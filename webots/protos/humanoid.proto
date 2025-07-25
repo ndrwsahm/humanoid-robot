@@ -1,0 +1,46 @@
+#VRML_SIM R2023b utf8
+
+PROTO humanoid [
+	field SFVec3f translation 0 0 0.028
+        field SFRotation rotation 0 0 1 0
+      field MFNode children [
+    Transform {
+      translation 0.35 0 0.05
+      scale 0.001 0.001 0.001
+      children [
+        Shape {
+          appearance PBRAppearance {
+          }
+          geometry Mesh {
+            url [
+              "../../../odin-v2/Autocad-Files/STL-Files/odin-outer-shell-top.stl"
+            ]
+          }
+        }
+      ]
+    }
+    Transform {
+      translation 0.35 0 0
+      scale 0.001 0.001 0.001
+      children [
+        Shape {
+          appearance PBRAppearance {
+          }
+          geometry Mesh {
+            url [
+              "../../../odin-v2/Autocad-Files/STL-Files/odin-outer-shell-bottom.stl"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+]
+
+{
+Robot {
+  translation IS translation
+    rotation IS rotation
+    children IS children
+}
+}
