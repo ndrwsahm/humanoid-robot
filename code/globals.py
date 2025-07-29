@@ -2,8 +2,8 @@ HOSTNAME = "192.168.1.173"
 USERNAME = "humanoid39"
 PASSWORD = "humanoid39"
 
-FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/"
-FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmware\\"
+FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/firmware"
+FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmware"
 
 GUI_WIDTH = 900
 GUI_HEIGHT = 600

@@ -77,7 +77,9 @@ def run_startup_control_api():
                 tx.test_comms()
         elif button == "firmware":
             tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION)
-    
+        elif button == "uninstall_firmware":
+            tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION)
+            
     return button, simulate
         
 if __name__ == "__main__":

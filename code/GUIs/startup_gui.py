@@ -47,12 +47,10 @@ class Startup_GUI:
         self.ssh_button_label2 = tk.Label(self.root, text="Username: "+str(USERNAME))
         self.ssh_button_label2.place(x=SSH_BUTTON_X-150, y=SSH_BUTTON_Y+30)
 
-        TEST_COMMS_BUTTON_X = 10
-        TEST_COMMS_BUTTON_Y = 175
-        #self.test_comms_button = tk.Button(self.root, text="Test Comms", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.test_comms_button_click)
-        #self.test_comms_button.place(x=TEST_COMMS_BUTTON_X, y=TEST_COMMS_BUTTON_Y)
-        #self.test_comms_button_label = tk.Label(self.root, text="File:  test_comms.py")
-        #self.test_comms_button_label.place(x=TEST_COMMS_BUTTON_X+15, y=TEST_COMMS_BUTTON_Y+65)
+        UNINSTALL_FIRMWARE_BUTTON_X = 10
+        UNINSTALL_FIRMWARE_BUTTON_Y = 175
+        self.uninstall_firmware_button = tk.Button(self.root, text="Uninstall Firmware", bg="red", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.uninstall_firmware_button_click)
+        self.uninstall_firmware_button.place(x=UNINSTALL_FIRMWARE_BUTTON_X, y=UNINSTALL_FIRMWARE_BUTTON_Y)
 
         RUN_FIRM_BUTTON_X = 200
         RUN_FIRM_BUTTON_Y = 175
@@ -60,8 +58,6 @@ class Startup_GUI:
         self.firmware_button.place(x=RUN_FIRM_BUTTON_X, y=RUN_FIRM_BUTTON_Y)
         self.firmware_button_label = tk.Label(self.root, text="File Location:   "+str(FIRMWARE_REMOTE_LOCATION))
         self.firmware_button_label.place(x=RUN_FIRM_BUTTON_X-150, y=SSH_BUTTON_Y+70)
-        self.firmware_button_label2 = tk.Label(self.root, text="File:   firmware_main.py")
-        self.firmware_button_label2.place(x=RUN_FIRM_BUTTON_X+25, y=RUN_FIRM_BUTTON_Y+65)
 
         CMD_LINE_ENTRY_X = 10
         CMD_LINE_ENTRY_Y = 305
@@ -97,9 +93,9 @@ class Startup_GUI:
             elif self.selected_button == "send":
                 self.selected_button = "none"
                 return True, "send"
-            elif self.selected_button == "test_comms":
+            elif self.selected_button == "uninstall_firmware":
                 self.selected_button = "none"
-                return True, "test_comms"
+                return True, "uninstall_firmware"
             elif self.selected_button == "firmware":
                 self.selected_button = "none"
                 return True, "firmware"
@@ -135,8 +131,8 @@ class Startup_GUI:
     def firmware_button_click(self):
         self.selected_button = "firmware"
 
-    def test_comms_button_click(self):
-        self.selected_button = "test_comms"
+    def uninstall_firmware_button_click(self):
+        self.selected_button = "uninstall_firmware"
 
     def exit_button_click(self):
         self.selected_button = "exit"

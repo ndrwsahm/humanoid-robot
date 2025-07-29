@@ -1,5 +1,6 @@
 import time
 import paramiko
+import os
 
 from globals import *
 
@@ -64,23 +65,54 @@ class TX_Comms:
         stdin, stdout, stderr = self.ssh.exec_command(command)
         print(stdout.readlines())
 
-    def test_comms(self):
-        full_file_path = 'sudo python ' + self.file_location_on_pi + 'test_comms.py\n'
-        print(full_file_path)
-
     def install_firmware(self, from_local_path, to_remote_path):
         try:
             sftp = self.ssh.open_sftp()
-            local_file_path = from_local_path + "local_file.txt"
-            #local_file_path = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmware\\local_file.txt"
-            #"/home/humanoid39/Documents/firmware/"
-            #remote_file_path = '/home/humanoid39/Documents/remote_file.txt'
-            remote_file_path = to_remote_path + "remote_file.txt"
-            sftp.put(local_file_path, remote_file_path)
-            print(f"File {local_file_path} uploaded to {remote_file_path} successfully.")
+
+            if os.path.isfile(from_local_path):
+                sftp.put(from_local_path, to_remote_path)
+                print(f"File {from_local_path} uploaded to {to_remote_path} successfully.")
+            elif os.path.isdir(from_local_path):
+                try:
+                    self.create_folder_if_not_exist(to_remote_path)
+                    #sftp.mkdir(to_remote_path)
+                    print(f"Remote Directory Created: {to_remote_path}")
+                except IOError as e:
+                    if "File exists" not in str(e):
+                        print(f"Error creating remote directory {to_remote_path}: {e}")
+                        return
+                
+                for item in os.listdir(from_local_path):
+                    local_item_path = os.path.join(from_local_path, item)
+                    remote_item_path = os.path.join(to_remote_path, item).replace("\\", "/")
+                    self.install_firmware(local_item_path, remote_item_path)
+
             sftp.close()
         except Exception as e:
             print(e)
+
+    def uninstall_firmware(self, remote_path):
+        try:
+            sftp = self.ssh.open_sftp()
+            
+            self.send_command("rm -r " + remote_path + "/*")
+            self.send_command("rmdir -r " + remote_path + "\n")
+
+            for item in os.listdir(remote_path):
+                remote_item_path = os.path.join(remote_path, item).replace("\\", "/")
+                self.install_firmware(remote_item_path)
+            
+            print(f"Removed Directory at {remote_path}")
+
+            sftp.close()
+        except Exception as e:
+            print(e)
+
+    def create_folder_if_not_exist(self, remote_path):
+        self.send_command("mkdir -p " + remote_path)
+
+    def create_file_if_not_exist(self, remote_path):
+        self.send_command("touch " + remote_path + "\n")
 
     def receive_response(self):
         pass
