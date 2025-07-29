@@ -20,6 +20,7 @@ class Startup_GUI:
         self.height = height
 
         self.exit_application = False
+        self.selected_button = "none"
 
         self.load()
         self.new()
@@ -37,38 +38,105 @@ class Startup_GUI:
         self.simulate_scale_label2 = tk.Label(self.root, text="True                        False")
         self.simulate_scale_label2.place(x=SIMULATE_SCALE_X-15, y=SIMULATE_SCALE_Y+25)
 
-        SSH_BUTTON_X = 150
+        SSH_BUTTON_X = 200
         SSH_BUTTON_Y = 75
-        ssh_button = tk.Button(self.root, text="Connect to PI", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.ssh_button_click)
-        ssh_button.place(x=SSH_BUTTON_X, y=SSH_BUTTON_Y)
+        self.ssh_button = tk.Button(self.root, text="Connect to PI", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.ssh_button_click)
+        self.ssh_button.place(x=SSH_BUTTON_X, y=SSH_BUTTON_Y)
         self.ssh_button_label1 = tk.Label(self.root, text="IP Addr: "+str(HOSTNAME))
-        self.ssh_button_label1.place(x=SSH_BUTTON_X-125, y=SSH_BUTTON_Y+10)
+        self.ssh_button_label1.place(x=SSH_BUTTON_X-150, y=SSH_BUTTON_Y+10)
         self.ssh_button_label2 = tk.Label(self.root, text="Username: "+str(USERNAME))
-        self.ssh_button_label2.place(x=SSH_BUTTON_X-125, y=SSH_BUTTON_Y+30)
+        self.ssh_button_label2.place(x=SSH_BUTTON_X-150, y=SSH_BUTTON_Y+30)
+
+        TEST_COMMS_BUTTON_X = 10
+        TEST_COMMS_BUTTON_Y = 175
+        #self.test_comms_button = tk.Button(self.root, text="Test Comms", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.test_comms_button_click)
+        #self.test_comms_button.place(x=TEST_COMMS_BUTTON_X, y=TEST_COMMS_BUTTON_Y)
+        #self.test_comms_button_label = tk.Label(self.root, text="File:  test_comms.py")
+        #self.test_comms_button_label.place(x=TEST_COMMS_BUTTON_X+15, y=TEST_COMMS_BUTTON_Y+65)
+
+        RUN_FIRM_BUTTON_X = 200
+        RUN_FIRM_BUTTON_Y = 175
+        self.firmware_button = tk.Button(self.root, text="Install Firmware", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.firmware_button_click)
+        self.firmware_button.place(x=RUN_FIRM_BUTTON_X, y=RUN_FIRM_BUTTON_Y)
+        self.firmware_button_label = tk.Label(self.root, text="File Location:   "+str(FIRMWARE_REMOTE_LOCATION))
+        self.firmware_button_label.place(x=RUN_FIRM_BUTTON_X-150, y=SSH_BUTTON_Y+70)
+        self.firmware_button_label2 = tk.Label(self.root, text="File:   firmware_main.py")
+        self.firmware_button_label2.place(x=RUN_FIRM_BUTTON_X+25, y=RUN_FIRM_BUTTON_Y+65)
+
+        CMD_LINE_ENTRY_X = 10
+        CMD_LINE_ENTRY_Y = 305
+        self.cmd_line_label = tk.Label(self.root, text="Command Line Argument")
+        self.cmd_line_label.place(x=CMD_LINE_ENTRY_X, y=CMD_LINE_ENTRY_Y-20)
+        self.cmd_line_arg=tk.StringVar()
+        self.cmd_line_entry = tk.Entry(self.root, textvariable=self.cmd_line_arg, font=("Arial", 14))
+        self.cmd_line_entry.place(x=CMD_LINE_ENTRY_X, y=CMD_LINE_ENTRY_Y)
+
+        SEND_BUTTON_X = 250
+        SEND_BUTTON_Y = 300
+        self.send_button = tk.Button(self.root, text="Send", bg="blue", fg="white", font=("Arial", 14), width=round(BUTTON_WIDTH/2), height=round(BUTTON_HEIGHT/2), command=self.send_button_click)
+        self.send_button.place(x=SEND_BUTTON_X, y=SEND_BUTTON_Y)
 
         manual_control_button = tk.Button(self.root, text="Manual Control", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.manual_control_button_click)
-        manual_control_button.place(x=500, y=200)
+        manual_control_button.place(x=525, y=175)
 
         exit_button = tk.Button(self.root, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
         exit_button.place(x=350, y=500)
 
-    def update(self):
+    def update(self, connection):
         self.root.update_idletasks()
         self.root.update()
+
+        self.update_ssh_button(connection)
 
         if self.exit_application:
             return False, self.selected_button
         else:
-            return True, "none"
+            if self.selected_button == "ssh":
+                self.selected_button = "none"   # Only send it once
+                return True, "ssh"
+            elif self.selected_button == "send":
+                self.selected_button = "none"
+                return True, "send"
+            elif self.selected_button == "test_comms":
+                self.selected_button = "none"
+                return True, "test_comms"
+            elif self.selected_button == "firmware":
+                self.selected_button = "none"
+                return True, "firmware"
+            else:
+                return True, "none"
         
     def manual_control_button_click(self):
         self.selected_button = "manual_control"
         self.close()
 
+    def send_button_click(self):
+        self.selected_button = "send"
+
+    def get_command(self):
+        cmd=self.cmd_line_arg.get()
+        full_cmd = cmd + "\n"
+
+        self.cmd_line_entry.delete(0, tk.END)
+
+        return full_cmd
+
     def ssh_button_click(self):
-        ssh_comms = TX_Comms()
-        if not ssh_comms.connection:
-            self.simulate_scale.set(0)   
+        self.selected_button = "ssh"
+
+    def update_ssh_button(self, connection):
+        if not connection:
+            self.simulate_scale.set(0)  
+            self.ssh_button.configure(bg="red")
+        else:
+            self.simulate_scale.set(1) 
+            self.ssh_button.configure(bg="green")
+
+    def firmware_button_click(self):
+        self.selected_button = "firmware"
+
+    def test_comms_button_click(self):
+        self.selected_button = "test_comms"
 
     def exit_button_click(self):
         self.selected_button = "exit"

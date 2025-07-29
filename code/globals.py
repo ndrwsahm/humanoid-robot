@@ -1,8 +1,9 @@
-HOSTNAME = "192.168.1.160"
-USERNAME = "puck39"
-PASSWORD = "puck39"
+HOSTNAME = "192.168.1.173"
+USERNAME = "humanoid39"
+PASSWORD = "humanoid39"
 
-FILE_LOCATION = "/home/puck39/Documents/Firmware/Firmware_drv.py"
+FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/"
+FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmware\\"
 
 GUI_WIDTH = 900
 GUI_HEIGHT = 600
