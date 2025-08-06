@@ -79,14 +79,17 @@ class Startup_GUI:
         exit_button.place(x=350, y=500)
 
     def update(self, connection):
-        self.root.update_idletasks()
-        self.root.update()
-
-        self.update_ssh_button(connection)
-
         if self.exit_application:
             return False, self.selected_button
         else:
+            self.root.update_idletasks()
+            self.root.update()
+            
+            if self.exit_application:
+                return False, self.selected_button
+        
+            self.update_ssh_button(connection)
+
             if self.selected_button == "ssh":
                 self.selected_button = "none"   # Only send it once
                 return True, "ssh"
@@ -99,6 +102,9 @@ class Startup_GUI:
             elif self.selected_button == "firmware":
                 self.selected_button = "none"
                 return True, "firmware"
+            elif self.selected_button == "manual_control":
+                self.selected_button = "none"
+                return False, "manual_control"
             else:
                 return True, "none"
         
@@ -154,3 +160,4 @@ class Startup_GUI:
         #self.root.quit()
         self.root.destroy()
         self.exit_application = True
+        print("close")
