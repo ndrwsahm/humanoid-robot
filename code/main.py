@@ -77,8 +77,14 @@ def run_startup_control_api():
                 tx.test_comms()
         elif button == "firmware":
             tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION)
+        elif button == "run_firmware":
+            tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
         elif button == "uninstall_firmware":
             tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION)
+        elif button == "raspi_config":
+            tx.run_config(FIRMWARE_REMOTE_LOCATION)
+        elif button == "reboot":
+            tx.run_reboot(FIRMWARE_REMOTE_LOCATION)
 
     return button, simulate
         

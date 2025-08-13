@@ -52,12 +52,12 @@ class Startup_GUI:
         self.uninstall_firmware_button = tk.Button(self.root, text="Uninstall Firmware", bg="red", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.uninstall_firmware_button_click)
         self.uninstall_firmware_button.place(x=UNINSTALL_FIRMWARE_BUTTON_X, y=UNINSTALL_FIRMWARE_BUTTON_Y)
 
-        RUN_FIRM_BUTTON_X = 200
-        RUN_FIRM_BUTTON_Y = 175
+        INSTALL_FIRM_BUTTON_X = 200
+        INSTALL_FIRM_BUTTON_Y = 175
         self.firmware_button = tk.Button(self.root, text="Install Firmware", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.firmware_button_click)
-        self.firmware_button.place(x=RUN_FIRM_BUTTON_X, y=RUN_FIRM_BUTTON_Y)
+        self.firmware_button.place(x=INSTALL_FIRM_BUTTON_X, y=INSTALL_FIRM_BUTTON_Y)
         self.firmware_button_label = tk.Label(self.root, text="File Location:   "+str(FIRMWARE_REMOTE_LOCATION))
-        self.firmware_button_label.place(x=RUN_FIRM_BUTTON_X-150, y=SSH_BUTTON_Y+70)
+        self.firmware_button_label.place(x=INSTALL_FIRM_BUTTON_X-150, y=SSH_BUTTON_Y+70)
 
         CMD_LINE_ENTRY_X = 10
         CMD_LINE_ENTRY_Y = 305
@@ -71,6 +71,21 @@ class Startup_GUI:
         SEND_BUTTON_Y = 300
         self.send_button = tk.Button(self.root, text="Send", bg="blue", fg="white", font=("Arial", 14), width=round(BUTTON_WIDTH/2), height=round(BUTTON_HEIGHT/2), command=self.send_button_click)
         self.send_button.place(x=SEND_BUTTON_X, y=SEND_BUTTON_Y)
+
+        RUN_FIRM_BUTTON_X = 100
+        RUN_FIRM_BUTTON_Y = 475
+        self.run_firmware_button = tk.Button(self.root, text="Run Firmware", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.run_firmware_button_click)
+        self.run_firmware_button.place(x=RUN_FIRM_BUTTON_X, y=RUN_FIRM_BUTTON_Y)
+
+        RUN_CONFIG_BUTTON_X = 10
+        RUN_CONFIG_BUTTON_Y = 375
+        self.run_config_button = tk.Button(self.root, text="Run Raspi Config", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.run_raspi_config_button_click)
+        self.run_config_button.place(x=RUN_CONFIG_BUTTON_X, y=RUN_CONFIG_BUTTON_Y)
+
+        RUN_REBOOT_BUTTON_X = 200
+        RUN_REBOOT_BUTTON_Y = 375
+        self.run_reboot_button = tk.Button(self.root, text="Reboot Pi", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.run_reboot_button_click)
+        self.run_reboot_button.place(x=RUN_REBOOT_BUTTON_X, y=RUN_REBOOT_BUTTON_Y)
 
         manual_control_button = tk.Button(self.root, text="Manual Control", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.manual_control_button_click)
         manual_control_button.place(x=525, y=175)
@@ -102,9 +117,18 @@ class Startup_GUI:
             elif self.selected_button == "firmware":
                 self.selected_button = "none"
                 return True, "firmware"
+            elif self.selected_button == "run_firmware":
+                self.selected_button = "none"
+                return True, "run_firmware"
             elif self.selected_button == "manual_control":
                 self.selected_button = "none"
                 return False, "manual_control"
+            elif self.selected_button == "raspi_config":
+                self.selected_button = "none"
+                return True, "raspi_config"
+            elif self.selected_button == "reboot":
+                self.selected_button = "none"
+                return True, "reboot"
             else:
                 return True, "none"
         
@@ -137,8 +161,17 @@ class Startup_GUI:
     def firmware_button_click(self):
         self.selected_button = "firmware"
 
+    def run_firmware_button_click(self):
+        self.selected_button = "run_firmware"
+
     def uninstall_firmware_button_click(self):
         self.selected_button = "uninstall_firmware"
+
+    def run_raspi_config_button_click(self):
+        self.selected_button = "raspi_config"
+
+    def run_reboot_button_click(self):
+        self.selected_button = "reboot"
 
     def exit_button_click(self):
         self.selected_button = "exit"

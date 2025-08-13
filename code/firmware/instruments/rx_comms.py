@@ -11,7 +11,6 @@ class RX_Comms:
       self.server_socket.listen(1)
       self.client_socket, self.computer_hostname = self.server_socket.accept()
       """
-      pass
 
    def new(self):
       pass
@@ -20,7 +19,8 @@ class RX_Comms:
       pass
 
    def update(self):
-      self.get_user_input()
+      user_input = self.get_user_input()
+      self.parse_user_input(user_input)
    
    def get_user_input(self):
         if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:

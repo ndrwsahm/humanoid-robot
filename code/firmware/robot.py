@@ -1,15 +1,21 @@
-from firmware.utility_functions import leg
-from firmware.settings import *
+try:
+    print("Ignore the failed commands starting from here if running without ssh")
+    from firmware.utility_functions import leg
+    from firmware.settings import *
+except:
+    print("Do not ignore the failed commands past this point if running with ssh")
+    from utility_functions import leg
+    from settings import *
 
 class Robot:
-    def __init__(self, pca):
-        self.pca = pca
-
+    def __init__(self, pca_object):
+        self.pca_obj = pca_object
         self.new()
 
     def new(self):
-        self.left_leg = leg.Leg(self.pca, LEFT_LEG_PINS, "left", (A1_LENGTH, A2_LENGTH, A3_LENGTH))
-        self.right_leg = leg.Leg(self.pca, RIGHT_LEG_PINS, "right", (A1_LENGTH, A2_LENGTH, A3_LENGTH))
+        print('Building Legs...')
+        self.left_leg = leg.Leg(self.pca_obj, LEFT_LEG_PINS, "left", (A1_LENGTH, A2_LENGTH, A3_LENGTH))
+        self.right_leg = leg.Leg(self.pca_obj, RIGHT_LEG_PINS, "right", (A1_LENGTH, A2_LENGTH, A3_LENGTH))
 
         #self.left_leg.set_leg_pos(0, 5.36, 6.73)  # starting position
         #self.right_leg.set_leg_pos(0, 5.36, 6.73)  # starting position

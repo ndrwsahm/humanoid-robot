@@ -1,5 +1,8 @@
 import math
-from firmware.settings import *
+try:
+    from firmware.settings import *
+except:
+    from settings import *
 
 DEBUG_PRINT_IK = False
 DEBUG_PRINT_FK = False
@@ -13,8 +16,8 @@ ANKLE_ADUCTOR = 4
 ANKLE_EXTENDOR = 5
 
 class Leg:
-    def __init__(self, pca_handle, pin_numbers, side, dimensions):
-        self.pca = pca_handle
+    def __init__(self, pca_object, pin_numbers, side, dimensions):
+        self.pca = pca_object
         self.pins = pin_numbers
         self.side = side.lower()    # make all lower case                                                  
                                                                            

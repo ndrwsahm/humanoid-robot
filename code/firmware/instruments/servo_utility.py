@@ -8,10 +8,14 @@ class PCA9865:
         self.simulate = simulate
 
         if not self.simulate:
-            from adafruit_servokit import ServoKit
+            try:
+                from adafruit_servokit import ServoKit
 
-            #Initialize the PCA9685 with default address (0x40)
-            self.pca = ServoKit(channels=16, address=addr)
+                #Initialize the PCA9685 with default address (0x40)
+                self.pca = ServoKit(channels=16, address=addr)
+            except Exception as e:
+                print (e)
+                print("Download Servo Kit")
         else:
             print("Simulating PCA Object")
 

@@ -46,20 +46,43 @@ class TX_Comms:
 
             time.sleep(0.5)
 
-            # Need to run script to wait for user input
-            #full_file_path = 'sudo python ' + self.file_location_on_pi + '\n'
-            #print("Running file at the following location: " + 'python ' + self.file_location_on_pi + "\n")
-
-            #print("Args Sent..." + self.firmware_args)
-
-            #self.channel.send(full_file_path)
             stdin, stdout, stderr = self.ssh.exec_command("ls")
             print(stdout.readlines())
+
             return True
  
         except:
             print("Unable to Connect!")
             return False
+
+    def run_firmware(self, file_path):
+        # Need to run script to wait for user input
+        full_file_path = 'python3 ' + file_path + '/firmware.py\n'
+        print("Running file at the following location: " + full_file_path)
+        #print("Args Sent..." + self.firmware_args)
+        self.send_command(full_file_path)
+
+    def run_config(self, file_path):
+        print("Running chmod..")
+        full_file_path = 'chmod +x ' + file_path + '/pi_config.sh'
+        self.send_command(full_file_path)
+        print("Chmod finished")
+
+        print("Running bash...")
+        full_file_path = 'bash ' + file_path + '/pi_config.sh'
+        self.send_command(full_file_path)
+        print("Bash finished")
+
+    def run_reboot(self, file_path):
+        print("Running chmod..")
+        full_file_path = 'chmod +x ' + file_path + '/rebot.sh'
+        self.send_command(full_file_path)
+        print("Chmod finished")
+
+        print("Running bash...May take several minutes be patient...")
+        full_file_path = 'bash ' + file_path + '/pi_config.sh'
+        self.send_command(full_file_path)
+        print("Bash finished")
 
     def send_command(self, command):
         stdin, stdout, stderr = self.ssh.exec_command(command)
