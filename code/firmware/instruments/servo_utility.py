@@ -29,7 +29,7 @@ class PCA9865:
 
     def set_servo_angle(self, servo_num, angle):
         if not self.simulate:
-            self.pca.serv[servo_num].angle = angle
+            self.pca.servo[servo_num].angle = angle
         else:
             print("Virtual Servo " + str(servo_num) + "     Set to : " + str(angle))
 

@@ -88,6 +88,12 @@ class TX_Comms:
         stdin, stdout, stderr = self.ssh.exec_command(command)
         print(stdout.readlines())
 
+    def invoke_shell(self):
+        self.channel = self.ssh.invoke_shell()
+
+    def send_user_input(self, command):
+        self.channel.send(command)
+
     def install_firmware(self, from_local_path, to_remote_path):
         try:
             sftp = self.ssh.open_sftp()

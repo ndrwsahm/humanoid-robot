@@ -23,7 +23,7 @@ class Leg:
                                                                            
         self.leg_dimensions = dimensions    # {a1, a2, a3}    
 
-        self.last_thetas = [90, 90, 90, 90, 90, 90]     # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
+        self.last_thetas = [0, 0, 0, 0, 0, 0]     # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
         self.current_thetas = [90, 90, 90, 90, 90, 90]  # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
 
         self.last_knee_pos = [0, 0, 0]
@@ -70,7 +70,7 @@ class Leg:
     def set_leg_theta(self, theta1, theta2, theta3, theta4, theta5, theta6):
         
         self.current_thetas = [theta1, theta2, theta3, theta4, theta5, theta6]
-        
+        print(self.current_thetas, self.pins)
         if self.last_thetas != self.current_thetas:
             self.pca.set_servo_angle(self.pins[0], theta1)
             self.pca.set_servo_angle(self.pins[1], theta2)
