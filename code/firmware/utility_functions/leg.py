@@ -70,7 +70,9 @@ class Leg:
     def set_leg_theta(self, theta1, theta2, theta3, theta4, theta5, theta6):
         
         self.current_thetas = [theta1, theta2, theta3, theta4, theta5, theta6]
+        print ("Current thetas")
         print(self.current_thetas, self.pins)
+        print ("")
         if self.last_thetas != self.current_thetas:
             self.pca.set_servo_angle(self.pins[0], theta1)
             self.pca.set_servo_angle(self.pins[1], theta2)
@@ -78,3 +80,5 @@ class Leg:
             self.pca.set_servo_angle(self.pins[3], theta4)
             self.pca.set_servo_angle(self.pins[4], theta5)
             self.pca.set_servo_angle(self.pins[5], theta6)
+
+            self.update()

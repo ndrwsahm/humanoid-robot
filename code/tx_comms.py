@@ -29,7 +29,7 @@ class TX_Comms:
         pass
 
     def update(self, command):
-        self.send_command(command)
+        self.send_user_input(command)
         self.response = self.receive_response()
 
     def connect_ssh(self):
@@ -58,9 +58,15 @@ class TX_Comms:
     def run_firmware(self, file_path):
         # Need to run script to wait for user input
         full_file_path = 'python3 ' + file_path + '/firmware.py\n'
-        print("Running file at the following location: " + full_file_path)
-        #print("Args Sent..." + self.firmware_args)
-        self.send_command(full_file_path)
+
+        try:
+            self.invoke_shell()
+            print("Interactive shell started")
+            self.send_user_input(full_file_path)
+            print("Running file at the following location: " + full_file_path)
+
+        except Exception as e:
+            print (e)
 
     def run_config(self, file_path):
         print("Running chmod..")
@@ -89,10 +95,16 @@ class TX_Comms:
         print(stdout.readlines())
 
     def invoke_shell(self):
-        self.channel = self.ssh.invoke_shell()
+        try:
+            self.channel = self.ssh.invoke_shell()
+        except Exception as e:
+            print (e)
 
     def send_user_input(self, command):
-        self.channel.send(command)
+        try:
+            self.channel.send(command)
+        except Exception as e:
+            print(e)
 
     def install_firmware(self, from_local_path, to_remote_path):
         try:
@@ -144,7 +156,12 @@ class TX_Comms:
         self.send_command("touch " + remote_path + "\n")
 
     def receive_response(self):
-        pass
+        output = None
+        while self.channel.recv_ready():
+            output = self.channel.recv(1024).decode('utf-8')
+
+        if output:    
+            return output
 
     def close(self):
         self.channel.send('quit\n')

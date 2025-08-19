@@ -190,7 +190,6 @@ class Startup_GUI:
             return True
 
     def close(self):
-        #self.root.quit()
         self.root.destroy()
         self.exit_application = True
         print("close")

@@ -17,7 +17,6 @@ def run_manual_control_api(simulate):
         robot = Robot(pca)
     else:
         tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
-        tx.invoke_shell()
         
     manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT)
 
@@ -40,20 +39,25 @@ def run_manual_control_api(simulate):
                 robot.update()
             
             else:
-                # if connected send all angles positions to pi
-                tx.send_user_input("lhr" + str(all_leg_angles[0]))
-                tx.send_user_input("lha" + str(all_leg_angles[1]))
-                tx.send_user_input("lhe" + str(all_leg_angles[2]))
-                tx.send_user_input("lk" + str(all_leg_angles[3]))
-                tx.send_user_input("laa" + str(all_leg_angles[4]))
-                tx.send_user_input("lae" + str(all_leg_angles[5]))
-                tx.send_user_input("rhr" + str(all_leg_angles[6]))
-                tx.send_user_input("rha" + str(all_leg_angles[7]))
-                tx.send_user_input("rhe" + str(all_leg_angles[8]))
-                tx.send_user_input("rk" + str(all_leg_angles[9]))
-                tx.send_user_input("raa" + str(all_leg_angles[10]))
-                tx.send_user_input("rae" + str(all_leg_angles[11]))
-
+                try:
+                    # if connected send all angles positions to pi
+                    tx.send_user_input("lhr" + str(all_leg_angles[0]) + "\n")
+                    tx.send_user_input("lha" + str(all_leg_angles[1]) + "\n")
+                    tx.send_user_input("lhe" + str(all_leg_angles[2]) + "\n")
+                    tx.send_user_input("lkk" + str(all_leg_angles[3]) + "\n")
+                    tx.send_user_input("laa" + str(all_leg_angles[4]) + "\n")
+                    tx.send_user_input("lae" + str(all_leg_angles[5]) + "\n")
+                    tx.send_user_input("rhr" + str(all_leg_angles[6]) + "\n")
+                    tx.send_user_input("rha" + str(all_leg_angles[7]) + "\n")
+                    tx.send_user_input("rhe" + str(all_leg_angles[8]) + "\n")
+                    tx.send_user_input("rkk" + str(all_leg_angles[9]) + "\n")
+                    tx.send_user_input("raa" + str(all_leg_angles[10]) + "\n")
+                    tx.send_user_input("rae" + str(all_leg_angles[11]) + "\n")
+                    response = tx.receive_response()
+                    if response:
+                        print(response)
+                except Exception as e:
+                    print (e)
         except:
             return 'exit'
 

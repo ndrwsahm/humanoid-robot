@@ -19,7 +19,11 @@ class Robot:
 
         #self.left_leg.set_leg_pos(0, 5.36, 6.73)  # starting position
         #self.right_leg.set_leg_pos(0, 5.36, 6.73)  # starting position
-
+        self.left_thetas = self.left_leg.get_leg_thetas()
+        self.right_thetas = self.right_leg.get_leg_thetas()
+        self.all_thetas = self.left_thetas + self.right_thetas
+        self.set_all_angles(self.all_thetas)
+    
     def update(self):
         self.left_leg.update()
         self.right_leg.update()
@@ -27,7 +31,11 @@ class Robot:
     def set_all_angles(self, angles):
         self.left_leg.set_leg_theta(angles[0], angles[1], angles[2], angles[3], angles[4], angles[5])  # starting 90 degree position
         self.right_leg.set_leg_theta(angles[6], angles[7], angles[8], angles[9], angles[10], angles[11])  # starting 90 degree position
+        self.all_thetas = angles
 
+    def get_all_angles(self):
+        return self.all_thetas
+    
     def set_standing_pos(self):
         pass
      

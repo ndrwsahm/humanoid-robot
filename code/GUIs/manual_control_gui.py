@@ -175,57 +175,57 @@ class Manual_Control_GUI:
         slider_val = 0
         if leg == LHR_IDX:
             #print(f"Left Hip Rotator Servo Value: {self.left_hip_sliders.get()}")
-            slider_val = self.left_hip_rotator_sliders.get()
+            slider_val = round(self.left_hip_rotator_sliders.get(), 0)
             self.left_hip_rotator_label.config(text="Left Hip Rotator: " + str(round(slider_val, 2)))
         elif leg == LHA_IDX:
             #print(f"Left Hip Aductor Servo Value: {self.left_hip_aductor_sliders.get()}")
-            slider_val = self.left_hip_aductor_sliders.get()
+            slider_val = round(self.left_hip_aductor_sliders.get(), 0)
             self.left_hip_aductor_label.config(text="Left Hip Aductor: " + str(round(slider_val, 2)))
         elif leg == LHE_IDX:
             #print(f"Left Hip Extendor Servo Value: {self.left_hip_extendor_sliders.get()}")
-            slider_val = self.left_hip_extendor_sliders.get()
+            slider_val = round(self.left_hip_extendor_sliders.get(), 0)
             self.left_hip_extendor_label.config(text="Left Hip Extendor: " + str(round(slider_val, 2)))
 
         elif leg == RHR_IDX:
             #print(f"Right Hip Rotator Servo Value: {self.right_hip_sliders.get()}")
-            slider_val = self.right_hip_rotator_sliders.get()
+            slider_val = round(self.right_hip_rotator_sliders.get(), 0)
             self.right_hip_rotator_label.config(text="Right Hip Rotator: " + str(round(slider_val, 2)))
         elif leg == RHA_IDX:
             #print(f"Right Hip Aductor Servo Value: {self.right_hip_aductor_sliders.get()}")
-            slider_val = self.right_hip_aductor_sliders.get()
+            slider_val = round(self.right_hip_aductor_sliders.get(), 0)
             self.right_hip_aductor_label.config(text="Right Hip Aductor: " + str(round(slider_val, 2)))
         elif leg == RHE_IDX:
             #print(f"Right Hip Extendor Servo Value: {self.right_hip_extendor_sliders.get()}")
-            slider_val = self.right_hip_extendor_sliders.get()
+            slider_val = round(self.right_hip_extendor_sliders.get(), 0)
             self.right_hip_extendor_label.config(text="Right Hip Extendor: " + str(round(slider_val, 2)))
 
         elif leg == LK_IDX:
             #print(f"Left Knee Servo Value: {self.left_knee_sliders.get()}")
-            slider_val = self.left_knee_sliders.get()
+            slider_val = round(self.left_knee_sliders.get(), 0)
             self.left_knee_label.config(text="Left Knee: " + str(round(slider_val, 2)))
         elif leg == LAA_IDX:
             #print(f"Left Knee Aductor Servo Value: {self.left_ankle_aductor_sliders.get()}")
-            slider_val = self.left_ankle_aductor_sliders.get()
+            slider_val = round(self.left_ankle_aductor_sliders.get(), 0)
             self.left_ankle_aductor_label.config(text="Left Knee Aductor: " + str(round(slider_val, 2)))
         elif leg == LAE_IDX:
             #print(f"Left Knee Extendor Servo Value: {self.left_ankle_extendor_sliders.get()}")
-            slider_val = self.left_ankle_extendor_sliders.get()
+            slider_val = round(self.left_ankle_extendor_sliders.get(), 0)
             self.left_ankle_extendor_label.config(text="Left Knee Extendor: " + str(round(slider_val, 2)))
 
         elif leg == RK_IDX:
             #print(f"Right Knee Servo Value: {self.right_knee_sliders.get()}")
-            slider_val = self.right_knee_sliders.get()
+            slider_val = round(self.right_knee_sliders.get(), 0)
             self.right_knee_label.config(text="Right Knee: " + str(round(slider_val, 2)))
         elif leg == RAA_IDX:
             #print(f"Right Ankle Aductor Servo Value: {self.right_ankle_aductor_sliders.get()}")
-            slider_val = self.right_ankle_aductor_sliders.get()
+            slider_val = round(self.right_ankle_aductor_sliders.get(), 0)
             self.right_ankle_aductor_label.config(text="Right Ankle Aductor: " + str(round(slider_val, 2)))
         elif leg == RAE_IDX:
             #print(f"Right Ankle Extendor Servo Value: {self.right_ankle_extendor_sliders.get()}")
-            slider_val = self.right_ankle_extendor_sliders.get()
+            slider_val = round(self.right_ankle_extendor_sliders.get(), 0)
             self.right_ankle_extendor_label.config(text="Right Ankle Extendor: " + str(round(slider_val, 2)))
 
-        return slider_val
+        return round(slider_val)
     
     def get_all_slider_angles(self):
         all_angles = []
