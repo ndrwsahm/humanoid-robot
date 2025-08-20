@@ -10,7 +10,7 @@ from GUIs.startup_gui import *
 
 def run_manual_control_api(simulate):
     global tx
-
+    last_all_leg_angles = [90,90,90,90,90,90,90,90,90,90,90,90]
     if simulate:
         # go thru local firmware folder to create objects
         pca = servo_utility.PCA9865(0x41, simulate)
@@ -41,21 +41,34 @@ def run_manual_control_api(simulate):
             else:
                 try:
                     # if connected send all angles positions to pi
-                    tx.send_user_input("lhr" + str(all_leg_angles[0]) + "\n")
-                    tx.send_user_input("lha" + str(all_leg_angles[1]) + "\n")
-                    tx.send_user_input("lhe" + str(all_leg_angles[2]) + "\n")
-                    tx.send_user_input("lkk" + str(all_leg_angles[3]) + "\n")
-                    tx.send_user_input("laa" + str(all_leg_angles[4]) + "\n")
-                    tx.send_user_input("lae" + str(all_leg_angles[5]) + "\n")
-                    tx.send_user_input("rhr" + str(all_leg_angles[6]) + "\n")
-                    tx.send_user_input("rha" + str(all_leg_angles[7]) + "\n")
-                    tx.send_user_input("rhe" + str(all_leg_angles[8]) + "\n")
-                    tx.send_user_input("rkk" + str(all_leg_angles[9]) + "\n")
-                    tx.send_user_input("raa" + str(all_leg_angles[10]) + "\n")
-                    tx.send_user_input("rae" + str(all_leg_angles[11]) + "\n")
+                    if last_all_leg_angles[0] != all_leg_angles[0]:
+                        tx.send_user_input("lhr" + str(all_leg_angles[0]) + "\n")
+                    if last_all_leg_angles[1] != all_leg_angles[1]:
+                        tx.send_user_input("lha" + str(all_leg_angles[1]) + "\n")
+                    if last_all_leg_angles[2] != all_leg_angles[2]:
+                        tx.send_user_input("lhe" + str(all_leg_angles[2]) + "\n")
+                    if last_all_leg_angles[3] != all_leg_angles[3]:
+                        tx.send_user_input("lkk" + str(all_leg_angles[3]) + "\n")
+                    if last_all_leg_angles[4] != all_leg_angles[4]:
+                        tx.send_user_input("laa" + str(all_leg_angles[4]) + "\n")
+                    if last_all_leg_angles[5] != all_leg_angles[5]:
+                        tx.send_user_input("lae" + str(all_leg_angles[5]) + "\n")
+                    if last_all_leg_angles[6] != all_leg_angles[6]:
+                        tx.send_user_input("rhr" + str(all_leg_angles[6]) + "\n")
+                    if last_all_leg_angles[7] != all_leg_angles[7]:
+                        tx.send_user_input("rha" + str(all_leg_angles[7]) + "\n")
+                    if last_all_leg_angles[8] != all_leg_angles[8]:
+                        tx.send_user_input("rhe" + str(all_leg_angles[8]) + "\n")
+                    if last_all_leg_angles[9] != all_leg_angles[9]:
+                        tx.send_user_input("rkk" + str(all_leg_angles[9]) + "\n")
+                    if last_all_leg_angles[10] != all_leg_angles[10]:
+                        tx.send_user_input("raa" + str(all_leg_angles[10]) + "\n")
+                    if last_all_leg_angles[11] != all_leg_angles[11]:
+                        tx.send_user_input("rae" + str(all_leg_angles[11]) + "\n")
                     response = tx.receive_response()
                     if response:
                         print(response)
+                    last_all_leg_angles = all_leg_angles
                 except Exception as e:
                     print (e)
         except:
