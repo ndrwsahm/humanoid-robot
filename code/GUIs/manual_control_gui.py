@@ -20,7 +20,7 @@ class Manual_Control_GUI:
         self.exit_application = False
 
         self.load()
-        self.new()
+        self.new([90,90,90,90,90,90,90,90,90,90,90,90])
 
     def load(self):
         # Left Hip Track Sliders
@@ -145,22 +145,22 @@ class Manual_Control_GUI:
         exit_button = tk.Button(self.root, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
         exit_button.place(x=350, y=500)
 
-    def new(self):
-        self.left_hip_rotator_sliders.set(90)
-        self.left_hip_aductor_sliders.set(90)
-        self.left_hip_extendor_sliders.set(90)
+    def new(self, angles):
+        self.left_hip_rotator_sliders.set(angles[0])
+        self.left_hip_aductor_sliders.set(angles[1])
+        self.left_hip_extendor_sliders.set(angles[2])
 
-        self.right_hip_rotator_sliders.set(90)
-        self.right_hip_aductor_sliders.set(90)
-        self.right_hip_extendor_sliders.set(90)
+        self.right_hip_rotator_sliders.set(angles[3])
+        self.right_hip_aductor_sliders.set(angles[4])
+        self.right_hip_extendor_sliders.set(angles[5])
 
-        self.left_knee_sliders.set(90)
-        self.left_ankle_aductor_sliders.set(90)
-        self.left_ankle_extendor_sliders.set(90)
+        self.left_knee_sliders.set(angles[6])
+        self.left_ankle_aductor_sliders.set(angles[7])
+        self.left_ankle_extendor_sliders.set(angles[8])
 
-        self.right_knee_sliders.set(90)
-        self.right_ankle_aductor_sliders.set(90)
-        self.right_ankle_extendor_sliders.set(90)
+        self.right_knee_sliders.set(angles[9])
+        self.right_ankle_aductor_sliders.set(angles[10])
+        self.right_ankle_extendor_sliders.set(angles[11])
 
     def update(self):
         self.root.update_idletasks()

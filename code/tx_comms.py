@@ -55,6 +55,19 @@ class TX_Comms:
             print("Unable to Connect!")
             return False
 
+    def run_manual_control(self, file_path):
+        # Need to run script to wait for user input
+        full_file_path = 'python3 ' + file_path + '/manual_control.py\n'
+
+        try:
+            self.invoke_shell()
+            print("Interactive shell started")
+            self.send_user_input(full_file_path)
+            print("Running file at the following location: " + full_file_path)
+
+        except Exception as e:
+            print (e)
+
     def run_firmware(self, file_path):
         # Need to run script to wait for user input
         full_file_path = 'python3 ' + file_path + '/firmware.py\n'

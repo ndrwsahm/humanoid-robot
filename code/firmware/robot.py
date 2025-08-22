@@ -37,9 +37,23 @@ class Robot:
         return self.all_thetas
     
     def set_standing_pos(self):
-        pass
+        angles = STANDING_ANGLES
+        self.set_all_angles(angles)
+
+    def lean_right(self):
+        angles = RIGHT_LEAN_ANGLES
+        self.set_all_angles(angles)
+
+    def lean_left(self):
+        angles = LEFT_LEAN_ANGLES
+        self.set_all_angles(angles)
      
     def walk_forward(self):
+        # Lean on one leg
+        lean_angles = [98, 90, 48, 82, 107, 80, 90, 90, 128, 119, 98, 107]
+
+        # Further Lean
+        lean_angles = [98, 69, 31, 92, 96, 65, 90, 92, 128, 109, 82, 107]
         pass
 
     def walk_backward(self):
