@@ -61,7 +61,9 @@ while running:
     print("Lean Right")
     robot.lean_right()
     time.sleep(1)
-    print("Lean Left")
+    #print("Lean Left")
+    #robot.set_standing_pos()
+    #time.sleep(1)
     robot.lean_left()
     time.sleep(1)
 

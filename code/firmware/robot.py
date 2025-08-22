@@ -7,6 +7,8 @@ except:
     from utility_functions import leg
     from settings import *
 
+import time
+
 class Robot:
     def __init__(self, pca_object):
         self.pca_obj = pca_object
@@ -41,19 +43,84 @@ class Robot:
         self.set_all_angles(angles)
 
     def lean_right(self):
-        angles = RIGHT_LEAN_ANGLES
-        self.set_all_angles(angles)
+        #angles = RIGHT_LEAN_ANGLES
+        #self.set_all_angles(angles)
+        
+        last_angles = self.get_all_angles()
+        end_angles = RIGHT_LEAN_ANGLES.copy()
+        final_true_angles = RIGHT_LEAN_ANGLES.copy()
+        new_angles = last_angles
+        fail_list = [1,1,1,1,1,1,1,1,1,1,1,1]
+        running = True
+        print("Original Angles" + str(last_angles))
+        print("Final Angles   " + str(end_angles))
+
+        X = 0.75
+   
+        for k in range(len(end_angles)):
+            end_angles[k] *= (1-X)
+
+        while running:
+            for j in range(len(last_angles)):
+                last_angles[j] *= X
+
+                new_angles[j] = end_angles[j] + last_angles[j]
+                new_angles_rounded = [round(num, 2) for num in new_angles]
+
+                # If difference is less than 1 degree
+                if abs(final_true_angles[j] - new_angles[j]) < 1:
+                    fail_list[j] = 0
+                #print("End Angle" + str(final_true_angles[j]) + " -  New Angle " + str(new_angles[j]) + " = " + str(final_true_angles[j] - new_angles[j]))
+            #print("Fail List:   " + str(fail_list))
+            if all(item == 0 for item in fail_list):
+                running = False
+                
+            print("New Angles:    " + str(new_angles_rounded))
+            self.set_all_angles(new_angles_rounded)
+            last_angles = new_angles_rounded
+
+            time.sleep(0.05)  
 
     def lean_left(self):
-        angles = LEFT_LEAN_ANGLES
-        self.set_all_angles(angles)
+        #angles = LEFT_LEAN_ANGLES.copy()
+        #self.set_all_angles(angles)
+
+        last_angles = self.get_all_angles()
+        end_angles = LEFT_LEAN_ANGLES.copy()
+        final_true_angles = LEFT_LEAN_ANGLES.copy()
+        new_angles = last_angles
+        fail_list = [1,1,1,1,1,1,1,1,1,1,1,1]
+        running = True
+        print("Original Angles" + str(last_angles))
+        print("Final Angles   " + str(end_angles))
+
+        X = 0.75
+   
+        for k in range(len(end_angles)):
+            end_angles[k] *= (1-X)
+
+        while running:
+            for j in range(len(last_angles)):
+                last_angles[j] *= X
+
+                new_angles[j] = end_angles[j] + last_angles[j]
+                new_angles_rounded = [round(num, 2) for num in new_angles]
+
+                # If difference is less than 1 degree
+                if abs(final_true_angles[j] - new_angles[j]) < 1:
+                    fail_list[j] = 0
+                #print("End Angle" + str(final_true_angles[j]) + " -  New Angle " + str(new_angles[j]) + " = " + str(final_true_angles[j] - new_angles[j]))
+            #print("Fail List:   " + str(fail_list))
+            if all(item == 0 for item in fail_list):
+                running = False
+                
+            print("New Angles:    " + str(new_angles_rounded))
+            self.set_all_angles(new_angles_rounded)
+            last_angles = new_angles_rounded
+
+            time.sleep(0.05)  
      
     def walk_forward(self):
-        # Lean on one leg
-        lean_angles = [98, 90, 48, 82, 107, 80, 90, 90, 128, 119, 98, 107]
-
-        # Further Lean
-        lean_angles = [98, 69, 31, 92, 96, 65, 90, 92, 128, 109, 82, 107]
         pass
 
     def walk_backward(self):
