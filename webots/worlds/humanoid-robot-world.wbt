@@ -8,7 +8,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation 0.2331045680639751 -0.28168846442511825 -0.9307598344135434 4.829667572342943
-  position -0.8375415525479062 -1.4213618851704157 1.0348103493047822
+  position -0.8844099816745795 -1.6674754155387292 1.168700818629814
 }
 TexturedBackground {
 }
@@ -21,6 +21,326 @@ CircleArena {
 Robot {
   translation -0.6 0 0.03
   children [
+    DEF LL1 HingeJoint {
+      jointParameters HingeJointParameters {
+        position 1.8196104787637608e-11
+        axis 0 0 1
+        anchor -0.0325 0.00775 0.27
+      }
+      device [
+        RotationalMotor {
+          name "ll1_motor"
+        }
+        PositionSensor {
+          name "ll1_pos"
+        }
+      ]
+      endPoint Solid {
+        translation 0.0325 0.00775000000354824 0.27
+        children [
+          DEF LL2 HingeJoint {
+            jointParameters HingeJointParameters {
+              axis 0 1 0
+              anchor 0 0.025 -0.03
+            }
+            device [
+              RotationalMotor {
+                name "ll2_motor"
+              }
+              PositionSensor {
+                name "ll2_pos"
+              }
+            ]
+            endPoint Solid {
+              translation 0 -4.896777427987331e-14 -0.03
+              rotation 1 0 0 1.5708
+              children [
+                DEF LL3 HingeJoint {
+                  jointParameters HingeJointParameters {
+                  }
+                  device [
+                    RotationalMotor {
+                      name "ll3_motor"
+                    }
+                    PositionSensor {
+                      name "ll3_pos"
+                    }
+                  ]
+                  endPoint Solid {
+                    rotation 0 1 0 1.5708053071795867
+                    children [
+                      DEF Upper_Leg_Servo Solid {
+                        translation 0 -0.1125 0
+                        rotation 0 1 0 0
+                        children [
+                          DEF LL4 HingeJoint {
+                            jointParameters HingeJointParameters {
+                              position 0.030720000000000004
+                              axis 0 0 1
+                              anchor 0.000307 -0.01 0
+                            }
+                            device [
+                              RotationalMotor {
+                                name "ll4_motor"
+                              }
+                              PositionSensor {
+                                name "ll4_pos"
+                              }
+                            ]
+                            endPoint Solid {
+                              translation 1.4484938244810125e-07 -0.010009429556695657 0
+                              rotation 0 0 1 0.030720000000002978
+                              children [
+                                DEF Lower_Leg_Servo Solid {
+                                  translation 0 -0.09 0
+                                  children [
+                                    DEF ll5_servo_box Shape {
+                                      appearance PBRAppearance {
+                                        baseColor 0 0 0
+                                        roughness 1
+                                        metalness 0
+                                      }
+                                      geometry Box {
+                                        size 0.03 0.03 0.03
+                                      }
+                                    }
+                                    DEF LL5 HingeJoint {
+                                      jointParameters HingeJointParameters {
+                                        axis 0 0 1
+                                        anchor -0.002 -0.005 0
+                                      }
+                                      device [
+                                        RotationalMotor {
+                                          name "ll5_motor"
+                                        }
+                                        PositionSensor {
+                                          name "ll5_pos"
+                                        }
+                                      ]
+                                      endPoint Solid {
+                                        translation -0.0020000000000034712 -0.005000000000005694 -1.7069679003611782e-15
+                                        children [
+                                          DEF ll6_servo Shape {
+                                            appearance PBRAppearance {
+                                              baseColor 1 0 0
+                                              roughness 1
+                                              metalness 0
+                                            }
+                                            geometry Cylinder {
+                                              height 0.05
+                                              radius 0.001
+                                            }
+                                          }
+                                          DEF ll6_servo_box Shape {
+                                            appearance PBRAppearance {
+                                              baseColor 0 0 0
+                                              roughness 1
+                                              metalness 0
+                                            }
+                                            geometry Box {
+                                              size 0.02 0.03 0.03
+                                            }
+                                          }
+                                          DEF LL6 HingeJoint {
+                                            jointParameters HingeJointParameters {
+                                            }
+                                            device [
+                                              RotationalMotor {
+                                                name "ll6_motor"
+                                              }
+                                              PositionSensor {
+                                                name "ll6_pos"
+                                              }
+                                            ]
+                                            endPoint Solid {
+                                              rotation -2.2243223143017736e-11 1 -2.224330484708891e-11 1.5708
+                                              children [
+                                                DEF Right_Foot Transform {
+                                                  translation 0.0350001 -0.0300001 0.00525001
+                                                  rotation 1.0171504044775673e-08 -0.7071062811861719 -0.7071072811865696 -3.1415853071795863
+                                                  scale 0.001 0.001 0.001
+                                                  children [
+                                                    DEF right_foot Shape {
+                                                      appearance PBRAppearance {
+                                                        baseColor 0 0 1
+                                                        roughness 1
+                                                        metalness 0
+                                                      }
+                                                      geometry Mesh {
+                                                        url [
+                                                          "STL_files/left_foot.stl"
+                                                        ]
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                              physics Physics {
+                                              }
+                                            }
+                                          }
+                                        ]
+                                        boundingObject USE ll6_servo_box
+                                        physics Physics {
+                                        }
+                                      }
+                                    }
+                                  ]
+                                  boundingObject USE ll5_servo_box
+                                  physics Physics {
+                                  }
+                                }
+                                DEF Lower_Leg Transform {
+                                  translation 5.6553e-08 -0.125 -0.0385
+                                  rotation 0.5773492691885823 0.5773502691890485 0.5773512691895147 -2.094395307179586
+                                  scale 0.001 0.001 0.001
+                                  children [
+                                    DEF lower_leg Shape {
+                                      appearance PBRAppearance {
+                                        baseColor 0 0 1
+                                        roughness 1
+                                        metalness 0
+                                      }
+                                      geometry Mesh {
+                                        url [
+                                          "STL_files/lower_leg.stl"
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                                DEF ll4_servo Shape {
+                                  appearance PBRAppearance {
+                                    baseColor 1 0 0
+                                    roughness 1
+                                    metalness 0
+                                  }
+                                  geometry Cylinder {
+                                    height 0.05
+                                    radius 0.001
+                                  }
+                                }
+                              ]
+                              boundingObject USE ll4_servo
+                              physics Physics {
+                              }
+                            }
+                          }
+                          DEF ll4_servo_box Shape {
+                            appearance PBRAppearance {
+                              baseColor 0 0 0
+                              roughness 1
+                              metalness 0
+                            }
+                            geometry Box {
+                              size 0.022 0.04 0.04
+                            }
+                          }
+                        ]
+                        boundingObject USE ll4_servo_box
+                        physics Physics {
+                        }
+                      }
+                      DEF Upper_Leg Transform {
+                        translation -0.00249997 -0.2475 -0.0375
+                        rotation 0.577349935856137 0.577349935856137 0.5773509358560258 -2.094395307179586
+                        scale 0.001 0.001 0.001
+                        children [
+                          DEF r_upper_leg Shape {
+                            appearance PBRAppearance {
+                              baseColor 0 0 1
+                              roughness 1
+                              metalness 0
+                            }
+                            geometry Mesh {
+                              url [
+                                "STL_files/left_upper_leg.stl"
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                      DEF ll3_servo Shape {
+                        appearance PBRAppearance {
+                          baseColor 1 0 0
+                          roughness 1
+                          metalness 0
+                        }
+                        geometry Cylinder {
+                          height 0.04
+                          radius 0.001
+                        }
+                      }
+                    ]
+                    boundingObject USE ll3_servo
+                    physics Physics {
+                    }
+                  }
+                }
+                DEF ll3_servo_box Shape {
+                  appearance PBRAppearance {
+                    baseColor 0 0 0
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Box {
+                    size 0.03 0.033 0.03
+                  }
+                }
+                DEF ll2_servo Shape {
+                  appearance PBRAppearance {
+                    baseColor 1 0 0
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Cylinder {
+                    height 0.005
+                    radius 0.005
+                  }
+                }
+              ]
+              boundingObject USE ll2_servo
+              physics Physics {
+              }
+            }
+          }
+          DEF ll1_servo_bracket Transform {
+            translation -0.345 -0.0075 0.0700008
+            rotation 0 1 0 1.5708
+            scale 0.001 0.001 0.001
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 0 0
+                  roughness 1
+                  metalness 0
+                }
+                geometry Mesh {
+                  url [
+                    "STL_files/left_shoulder.stl"
+                  ]
+                }
+              }
+            ]
+          }
+          DEF ll1_servo Shape {
+            appearance PBRAppearance {
+              baseColor 0 0 0
+              roughness 1
+              metalness 0
+            }
+            geometry Cylinder {
+              height 0.01
+              radius 0.005
+            }
+          }
+        ]
+        name "solid(1)"
+        boundingObject USE ll1_servo
+        physics Physics {
+        }
+      }
+    }
     DEF RL1 HingeJoint {
       jointParameters HingeJointParameters {
         position 1.8196104787637608e-11
@@ -88,7 +408,7 @@ Robot {
                               }
                             ]
                             endPoint Solid {
-                              translation 1.4484938244777599e-07 -0.010009429556695657 0
+                              translation 1.4484938244810125e-07 -0.010009429556695657 0
                               rotation 0 0 1 0.030720000000002978
                               children [
                                 DEF Lower_Leg_Servo Solid {
@@ -335,7 +655,7 @@ Robot {
             }
           }
         ]
-        name "solid(1)"
+        name "solid(2)"
         boundingObject USE rl1_servo
         physics Physics {
         }

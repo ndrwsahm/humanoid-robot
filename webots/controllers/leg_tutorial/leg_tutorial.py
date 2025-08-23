@@ -124,6 +124,6 @@ k = 0
 while (robot.step(timestep) != -1):
  
     # Left Leg 1
-    #lhem.setVelocity(1.0)
-    #lhem.setPosition(-0.58)
+    lhem.setVelocity(1.0)
+    lhem.setPosition(-0.58)
     
