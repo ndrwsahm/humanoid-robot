@@ -7,6 +7,7 @@ from firmware.robot import *
 
 from GUIs.manual_control_gui import *
 from GUIs.startup_gui import *
+from ssh_tx_comms import *
 
 def run_manual_control_api(simulate):
     global tx
@@ -82,8 +83,8 @@ def run_manual_control_api(simulate):
 def run_startup_control_api():
     global tx 
 
-    start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT)
-    tx = TX_Comms()
+    start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION)
+    tx = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)
     connection = False
 
     running = True

@@ -10,113 +10,113 @@ robot = Robot()
 # get the time step of the current world.
 timestep = 64
 
-# Left Leg 1
-ll1m = robot.getDevice('ll1_motor')
+# Left Hip Rotator
+lhrm = robot.getDevice('ll1_motor')
 
-ll1ps = robot.getDevice('ll1_pos')
-ll1ps.enable(timestep)
+lhrps = robot.getDevice('ll1_pos')
+lhrps.enable(timestep)
 
-ll1m.setPosition(float('inf'))
-ll1m.setVelocity(0.0)
+lhrm.setPosition(float('inf'))
+lhrm.setVelocity(0.0)
 
-# Left Leg 2
-ll2m = robot.getDevice('ll2_motor')
+# Left Hip Abductor
+lham = robot.getDevice('ll2_motor')
 
-ll2ps = robot.getDevice('ll2_pos')
-ll2ps.enable(timestep)
+lhaps = robot.getDevice('ll2_pos')
+lhaps.enable(timestep)
 
-ll2m.setPosition(float('inf'))
-ll2m.setVelocity(0.0)
+lham.setPosition(float('inf'))
+lham.setVelocity(0.0)
 
 # Left Leg 3
-ll3m = robot.getDevice('ll3_motor')
+lhem = robot.getDevice('ll3_motor')
 
-ll3ps = robot.getDevice('ll3_pos')
-ll3ps.enable(timestep)
+lheps = robot.getDevice('ll3_pos')
+lheps.enable(timestep)
 
-ll3m.setPosition(float('inf'))
-ll3m.setVelocity(0.0)
+lhem.setPosition(float('inf'))
+lhem.setVelocity(0.0)
 
-# Left Leg 4
-ll4m = robot.getDevice('ll4_motor')
+# Left Knee
+lkkm = robot.getDevice('ll4_motor')
 
-ll4ps = robot.getDevice('ll4_pos')
-ll4ps.enable(timestep)
+lkkps = robot.getDevice('ll4_pos')
+lkkps.enable(timestep)
 
-ll4m.setPosition(float('inf'))
-ll4m.setVelocity(0.0)
+lkkm.setPosition(float('inf'))
+lkkm.setVelocity(0.0)
 
-# Left Leg 5
-ll5m = robot.getDevice('ll5_motor')
+# Left Ankle Extender
+laem = robot.getDevice('ll5_motor')
 
-ll5ps = robot.getDevice('ll5_pos')
-ll5ps.enable(timestep)
+laeps = robot.getDevice('ll5_pos')
+laeps.enable(timestep)
 
-ll5m.setPosition(float('inf'))
-ll5m.setVelocity(0.0)
+laem.setPosition(float('inf'))
+laem.setVelocity(0.0)
 
-# Left Leg 6
-ll6m = robot.getDevice('ll6_motor')
+# Left Ankle Abductor
+laam = robot.getDevice('ll6_motor')
 
-ll6ps = robot.getDevice('ll6_pos')
-ll6ps.enable(timestep)
+laaps = robot.getDevice('ll6_pos')
+laaps.enable(timestep)
 
-ll6m.setPosition(float('inf'))
-ll6m.setVelocity(0.0)
+laam.setPosition(float('inf'))
+laam.setVelocity(0.0)
 
-# Left Leg 1
-rl1m = robot.getDevice('rl1_motor')
+# Right Hip Rotator
+rhrm = robot.getDevice('rl1_motor')
 
-rl1ps = robot.getDevice('rl1_pos')
-rl1ps.enable(timestep)
+rhrps = robot.getDevice('rl1_pos')
+rhrps.enable(timestep)
 
-rl1m.setPosition(float('inf'))
-rl1m.setVelocity(0.0)
+rhrm.setPosition(float('inf'))
+rhrm.setVelocity(0.0)
 
-# Right Leg 2
-rl2m = robot.getDevice('rl2_motor')
+# Right Hip Abductor
+rham = robot.getDevice('rl2_motor')
 
-rl2ps = robot.getDevice('rl2_pos')
-rl2ps.enable(timestep)
+rhaps = robot.getDevice('rl2_pos')
+rhaps.enable(timestep)
 
-rl2m.setPosition(float('inf'))
-rl2m.setVelocity(0.0)
+rham.setPosition(float('inf'))
+rham.setVelocity(0.0)
 
-# Right Leg 3
-rl3m = robot.getDevice('rl3_motor')
+# Right Hip Extender
+rhem = robot.getDevice('rl3_motor')
 
-rl3ps = robot.getDevice('rl3_pos')
-rl3ps.enable(timestep)
+rheps = robot.getDevice('rl3_pos')
+rheps.enable(timestep)
 
-rl3m.setPosition(float('inf'))
-rl3m.setVelocity(0.0)
+rhem.setPosition(float('inf'))
+rhem.setVelocity(0.0)
 
-# Right Leg 4
-rl4m = robot.getDevice('rl4_motor')
+# Right Knee
+rkkm = robot.getDevice('rl4_motor')
 
-rl4ps = robot.getDevice('rl4_pos')
-rl4ps.enable(timestep)
+rkkps = robot.getDevice('rl4_pos')
+rkkps.enable(timestep)
 
-rl4m.setPosition(float('inf'))
-rl4m.setVelocity(0.0)
+rkkm.setPosition(float('inf'))
+rkkm.setVelocity(0.0)
 
-# Right Leg 5
-rl5m = robot.getDevice('rl5_motor')
+# Right Ankle Extender
+raem = robot.getDevice('rl5_motor')
 
-rl5ps = robot.getDevice('rl5_pos')
-rl5ps.enable(timestep)
+raeps = robot.getDevice('rl5_pos')
+raeps.enable(timestep)
 
-rl5m.setPosition(float('inf'))
-rl5m.setVelocity(0.0)
+raem.setPosition(float('inf'))
+raem.setVelocity(0.0)
 
-# Right Leg 6
-rl6m = robot.getDevice('rl6_motor')
+# Right Ankle Abductor
+raam = robot.getDevice('rl6_motor')
 
-rl6ps = robot.getDevice('rl6_pos')
-rl6ps.enable(timestep)
+raaps = robot.getDevice('rl6_pos')
+raaps.enable(timestep)
 
-rl6m.setPosition(float('inf'))
-rl6m.setVelocity(0.0)
+raam.setPosition(float('inf'))
+raam.setVelocity(0.0)
 
 speed = 1
 k = 0
@@ -124,75 +124,6 @@ k = 0
 while (robot.step(timestep) != -1):
  
     # Left Leg 1
-    #ll1m.setVelocity(speed)
-    #ll1=ll1ps.getValue()
-    #ll1_deg=180/3.14*ll1
-    #print(ll1_deg)
+    #lhem.setVelocity(1.0)
+    #lhem.setPosition(-0.58)
     
-    # Left Leg 2
-    #ll2m.setVelocity(speed)
-    #ll2=ll2ps.getValue()
-    #ll2_deg=180/3.14*ll2
-    #print(ll2_deg)
-    
-    # Left Leg 3
-    #ll3m.setVelocity(speed)
-    #ll3=ll3ps.getValue()
-    #ll3_deg=180/3.14*ll3
-    #print(ll3_deg)
-    
-    # Left Leg 4
-    #ll4m.setVelocity(speed)
-    #ll4=ll4ps.getValue()
-    #ll4_deg=180/3.14*ll4
-    #print(ll4_deg)
-
-    # Left Leg 5
-    #ll5m.setVelocity(speed)
-    #ll5=ll6ps.getValue()
-    #ll5_deg=180/3.14*ll5
-    #print(ll5_deg)
-    
-    # Left Leg 6
-    #ll6m.setVelocity(speed)
-    #ll6=ll6ps.getValue()
-    #ll6_deg=180/3.14*ll6
-    #print(ll6_deg)
-    
-    # Right Leg 1
-    #rl1m.setVelocity(speed)
-    #rl1=rl1ps.getValue()
-    #rl1_deg=180/3.14*rl1
-    #print(rl1_deg)
-    
-    # Right Leg 2
-    #rl2m.setVelocity(speed)
-    #rl2=rl2ps.getValue()
-    #rl2_deg=180/3.14*rl2
-    #print(rl2_deg)
-    
-    # Right Leg 3
-    #rl3m.setPosition(90.0)
-    rl3m.setVelocity(-speed)
-    rl3=rl3ps.getValue()
-    rl3_deg=180/3.14*rl3
-    print(rl3_deg)
-    
-    # Right Leg 4
-    #rl4m.setVelocity(speed)
-    #rl4=rl4ps.getValue()
-    #rl4_deg=180/3.14*rl4
-    #print(rl4_deg)
-
-    # Right Leg 5
-    #rl5m.setPosition(90.0)
-    #rl5m.setVelocity(speed)
-    #rl5=rl6ps.getValue()
-    #rl5_deg=180/3.14*rl5
-    #print(rl5_deg)
-    
-    # Right Leg 6
-    #rl6m.setVelocity(speed)
-    #rl6=rl6ps.getValue()
-    #rl6_deg=180/3.14*rl6
-    #print(rl6_deg)

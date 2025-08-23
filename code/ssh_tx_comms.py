@@ -2,15 +2,13 @@ import time
 import paramiko
 import os
 
-from globals import *
+class SSH_TX_Comms:
+    def __init__(self, hostname, username, password, location):
+        self.host_name = hostname
+        self.username = username
+        self.password = password
 
-class TX_Comms:
-    def __init__(self):
-        self.host_name = HOSTNAME
-        self.username = USERNAME
-        self.password = PASSWORD
-
-        self.file_location_on_pi = FIRMWARE_REMOTE_LOCATION
+        self.file_location_on_pi = location
 
         self.connection = False
 
@@ -21,11 +19,6 @@ class TX_Comms:
         pass
 
     def load(self):
-        """
-        arg1 = ' --left_led_red ' + str(self.left_led_red_pin)
-        arg2 = ' --left_led_green ' + str(self.left_led_green_pin)
-        arg3 = ' --left_led_blue ' + str(self.left_led_blue_pin)
-        """
         pass
 
     def update(self, command):

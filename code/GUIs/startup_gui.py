@@ -1,9 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 
-from globals import *
-from tx_comms import *
-
 COLUMN_WIDTH_PADDING = 20
 ROW_HEIGHT_PADDING = 10
 
@@ -11,13 +8,17 @@ BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
 
 class Startup_GUI:
-    def __init__(self, width, height):
+    def __init__(self, width, height, hostname, username, location):
         self.root = tk.Tk()
         self.root.title("Starup Example")
         self.root.geometry(str(width) + "x" + str(height))
 
         self.width = width
         self.height = height
+
+        self.hostname = hostname
+        self.username = username
+        self.location = location
 
         self.exit_application = False
         self.selected_button = "none"
@@ -42,9 +43,9 @@ class Startup_GUI:
         SSH_BUTTON_Y = 75
         self.ssh_button = tk.Button(self.root, text="Connect to PI", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.ssh_button_click)
         self.ssh_button.place(x=SSH_BUTTON_X, y=SSH_BUTTON_Y)
-        self.ssh_button_label1 = tk.Label(self.root, text="IP Addr: "+str(HOSTNAME))
+        self.ssh_button_label1 = tk.Label(self.root, text="IP Addr: "+str(self.hostname))
         self.ssh_button_label1.place(x=SSH_BUTTON_X-150, y=SSH_BUTTON_Y+10)
-        self.ssh_button_label2 = tk.Label(self.root, text="Username: "+str(USERNAME))
+        self.ssh_button_label2 = tk.Label(self.root, text="Username: "+str(self.username))
         self.ssh_button_label2.place(x=SSH_BUTTON_X-150, y=SSH_BUTTON_Y+30)
 
         UNINSTALL_FIRMWARE_BUTTON_X = 10
@@ -56,7 +57,7 @@ class Startup_GUI:
         INSTALL_FIRM_BUTTON_Y = 175
         self.firmware_button = tk.Button(self.root, text="Install Firmware", bg="blue", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.firmware_button_click)
         self.firmware_button.place(x=INSTALL_FIRM_BUTTON_X, y=INSTALL_FIRM_BUTTON_Y)
-        self.firmware_button_label = tk.Label(self.root, text="File Location:   "+str(FIRMWARE_REMOTE_LOCATION))
+        self.firmware_button_label = tk.Label(self.root, text="File Location:   "+str(self.location))
         self.firmware_button_label.place(x=INSTALL_FIRM_BUTTON_X-150, y=SSH_BUTTON_Y+70)
 
         CMD_LINE_ENTRY_X = 10
