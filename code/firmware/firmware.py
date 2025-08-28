@@ -58,12 +58,22 @@ all_angles = robot.get_all_angles()
 time.sleep(1)
 
 while running:
-    print("Lean Right")
     robot.lean_right()
     time.sleep(1)
-    #print("Lean Left")
-    #robot.set_standing_pos()
-    #time.sleep(1)
+
+    robot.stand_right_leg()
+    time.sleep(1)
+
+    robot.lean_right()
+    time.sleep(1)
+
     robot.lean_left()
     time.sleep(1)
+
+    robot.stand_left_leg()
+    time.sleep(1)
+
+    robot.lean_left()
+    time.sleep(1)
+
 

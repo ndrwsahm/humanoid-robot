@@ -43,88 +43,59 @@ class Robot:
         self.set_all_angles(angles)
 
     def lean_right(self):
-        #angles = RIGHT_LEAN_ANGLES
-        #self.set_all_angles(angles)
-        
         last_angles = self.get_all_angles()
         end_angles = RIGHT_LEAN_ANGLES.copy()
-        final_true_angles = RIGHT_LEAN_ANGLES.copy()
-        new_angles = last_angles
-        fail_list = [1,1,1,1,1,1,1,1,1,1,1,1]
-        running = True
-        print("Original Angles" + str(last_angles))
-        print("Final Angles   " + str(end_angles))
-
-        X = 0.75
-   
-        for k in range(len(end_angles)):
-            end_angles[k] *= (1-X)
-
-        while running:
-            for j in range(len(last_angles)):
-                last_angles[j] *= X
-
-                new_angles[j] = end_angles[j] + last_angles[j]
-                new_angles_rounded = [round(num, 2) for num in new_angles]
-
-                # If difference is less than 1 degree
-                if abs(final_true_angles[j] - new_angles[j]) < 1:
-                    fail_list[j] = 0
-                #print("End Angle" + str(final_true_angles[j]) + " -  New Angle " + str(new_angles[j]) + " = " + str(final_true_angles[j] - new_angles[j]))
-            #print("Fail List:   " + str(fail_list))
-            if all(item == 0 for item in fail_list):
-                running = False
-                
-            print("New Angles:    " + str(new_angles_rounded))
-            self.set_all_angles(new_angles_rounded)
-            last_angles = new_angles_rounded
-
-            time.sleep(0.05)  
-
+        self.smooth_transition_position(last_angles, end_angles)
+        
     def lean_left(self):
-        #angles = LEFT_LEAN_ANGLES.copy()
-        #self.set_all_angles(angles)
-
         last_angles = self.get_all_angles()
         end_angles = LEFT_LEAN_ANGLES.copy()
-        final_true_angles = LEFT_LEAN_ANGLES.copy()
-        new_angles = last_angles
-        fail_list = [1,1,1,1,1,1,1,1,1,1,1,1]
-        running = True
-        print("Original Angles" + str(last_angles))
-        print("Final Angles   " + str(end_angles))
+        self.smooth_transition_position(last_angles, end_angles)
 
-        X = 0.75
-   
-        for k in range(len(end_angles)):
-            end_angles[k] *= (1-X)
+    def stand_right_leg(self):
+        last_angles = self.get_all_angles()
+        end_angles = RIGHT_LEG_STAND_ANGLES.copy()
+        self.smooth_transition_position(last_angles, end_angles)
 
-        while running:
-            for j in range(len(last_angles)):
-                last_angles[j] *= X
-
-                new_angles[j] = end_angles[j] + last_angles[j]
-                new_angles_rounded = [round(num, 2) for num in new_angles]
-
-                # If difference is less than 1 degree
-                if abs(final_true_angles[j] - new_angles[j]) < 1:
-                    fail_list[j] = 0
-                #print("End Angle" + str(final_true_angles[j]) + " -  New Angle " + str(new_angles[j]) + " = " + str(final_true_angles[j] - new_angles[j]))
-            #print("Fail List:   " + str(fail_list))
-            if all(item == 0 for item in fail_list):
-                running = False
-                
-            print("New Angles:    " + str(new_angles_rounded))
-            self.set_all_angles(new_angles_rounded)
-            last_angles = new_angles_rounded
-
-            time.sleep(0.05)  
-     
+    def stand_left_leg(self):
+        last_angles = self.get_all_angles()
+        end_angles = LEFT_LEG_STAND_ANGLES.copy()
+        self.smooth_transition_position(last_angles, end_angles)
+        
     def walk_forward(self):
         pass
 
     def walk_backward(self):
         pass
 
-    def go_to_position(self, x, y):
-        pass
+    def smooth_transition_position(self, last_angles, end_angles):
+        new_angles = last_angles
+        final_true_angles = end_angles.copy()
+        fail_list = [1,1,1,1,1,1,1,1,1,1,1,1]
+
+        X = 0.75
+
+        for k in range(len(end_angles)):
+            end_angles[k] *= (1-X)
+
+        running = True
+        while running:
+            for j in range(len(last_angles)):
+                last_angles[j] *= X
+
+                new_angles[j] = end_angles[j] + last_angles[j]
+                new_angles_rounded = [round(num, 2) for num in new_angles]
+
+                # If difference is less than 1 degree
+                if abs(final_true_angles[j] - new_angles[j]) < 1:
+                    fail_list[j] = 0
+                #print("End Angle" + str(final_true_angles[j]) + " -  New Angle " + str(new_angles[j]) + " = " + str(final_true_angles[j] - new_angles[j]))
+            #print("Fail List:   " + str(fail_list))
+            if all(item == 0 for item in fail_list):
+                running = False
+                
+            #print("New Angles:    " + str(new_angles_rounded))
+            self.set_all_angles(new_angles_rounded)
+            last_angles = new_angles_rounded
+
+            time.sleep(0.05) 
