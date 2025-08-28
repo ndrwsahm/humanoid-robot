@@ -2,6 +2,13 @@ HOSTNAME = "192.168.1.173"
 USERNAME = "humanoid39"
 PASSWORD = "humanoid39"
 
+# Phils data
+#HOSTNAME = "192.168.137.59"
+#USERNAME = "lwp26"
+#PASSWORD = "lwp26"
+
+#FIRMWARE_REMOTE_LOCATION = "/home/lwp26/Documents/firmware"
+
 FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/firmware"
 FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmware"
 

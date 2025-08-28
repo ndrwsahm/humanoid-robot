@@ -36,7 +36,7 @@ Robot {
         }
       ]
       endPoint Solid {
-        translation 0.0325 0.00775000000354824 0.27
+        translation 0.0325 0.007750000011827466 0.27
         children [
           DEF LL2 HingeJoint {
             jointParameters HingeJointParameters {
@@ -88,7 +88,7 @@ Robot {
                               }
                             ]
                             endPoint Solid {
-                              translation 1.4484938244810125e-07 -0.010009429556695657 0
+                              translation 1.448493824488602e-07 -0.010009429556695657 0
                               rotation 0 0 1 0.030720000000002978
                               children [
                                 DEF Lower_Leg_Servo Solid {
@@ -176,18 +176,21 @@ Robot {
                                                 }
                                               ]
                                               physics Physics {
+                                                mass 1
                                               }
                                             }
                                           }
                                         ]
                                         boundingObject USE ll6_servo_box
                                         physics Physics {
+                                          mass 1
                                         }
                                       }
                                     }
                                   ]
                                   boundingObject USE ll5_servo_box
                                   physics Physics {
+                                    mass 1
                                   }
                                 }
                                 DEF Lower_Leg Transform {
@@ -223,6 +226,7 @@ Robot {
                               ]
                               boundingObject USE ll4_servo
                               physics Physics {
+                                mass 1
                               }
                             }
                           }
@@ -239,6 +243,7 @@ Robot {
                         ]
                         boundingObject USE ll4_servo_box
                         physics Physics {
+                          mass 1
                         }
                       }
                       DEF Upper_Leg Transform {
@@ -274,6 +279,7 @@ Robot {
                     ]
                     boundingObject USE ll3_servo
                     physics Physics {
+                      mass 1
                     }
                   }
                 }
@@ -301,6 +307,7 @@ Robot {
               ]
               boundingObject USE ll2_servo
               physics Physics {
+                mass 1
               }
             }
           }
@@ -338,6 +345,7 @@ Robot {
         name "solid(1)"
         boundingObject USE ll1_servo
         physics Physics {
+          mass 1
         }
       }
     }
@@ -408,7 +416,7 @@ Robot {
                               }
                             ]
                             endPoint Solid {
-                              translation 1.4484938244810125e-07 -0.010009429556695657 0
+                              translation 1.448493824488602e-07 -0.010009429556695657 0
                               rotation 0 0 1 0.030720000000002978
                               children [
                                 DEF Lower_Leg_Servo Solid {
@@ -496,18 +504,21 @@ Robot {
                                                 }
                                               ]
                                               physics Physics {
+                                                mass 1
                                               }
                                             }
                                           }
                                         ]
                                         boundingObject USE rl6_servo_box
                                         physics Physics {
+                                          mass 1
                                         }
                                       }
                                     }
                                   ]
                                   boundingObject USE rl5_servo_box
                                   physics Physics {
+                                    mass 1
                                   }
                                 }
                                 DEF Lower_Leg Transform {
@@ -543,6 +554,7 @@ Robot {
                               ]
                               boundingObject USE rl4_servo
                               physics Physics {
+                                mass 1
                               }
                             }
                           }
@@ -559,6 +571,7 @@ Robot {
                         ]
                         boundingObject USE rl4_servo_box
                         physics Physics {
+                          mass 1
                         }
                       }
                       DEF Upper_Leg Transform {
@@ -594,6 +607,7 @@ Robot {
                     ]
                     boundingObject USE rl3_servo
                     physics Physics {
+                      mass 1
                     }
                   }
                 }
@@ -621,6 +635,7 @@ Robot {
               ]
               boundingObject USE rl2_servo
               physics Physics {
+                mass 1
               }
             }
           }
@@ -658,6 +673,7 @@ Robot {
         name "solid(2)"
         boundingObject USE rl1_servo
         physics Physics {
+          mass 1
         }
       }
     }
@@ -698,6 +714,7 @@ Robot {
   ]
   name "robot(2)"
   physics Physics {
+    mass 1
   }
   controller "leg_tutorial"
 }

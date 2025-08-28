@@ -5,6 +5,11 @@ A3_LENGTH = 11  # cm
 LEFT_LEG_PINS = (8, 9, 10, 11, 12, 13)    # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
 RIGHT_LEG_PINS = (0, 1, 2, 3, 4, 5)    # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
 
+# Phils pins
+#LEFT_LEG_PINS = (10, 11, 12, 13, 14, 15)    # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
+#RIGHT_LEG_PINS = (0, 1, 2, 3, 4, 5)    # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
+
+
 PULSE_WIDTH_MIN = 0
 PULSE_WIDTH_MAX = 1
 PULSE_WIDTH_SETTINGS = ((500, 2500), (500, 2500), (500, 2500),  # pins (0, 1, 2)
