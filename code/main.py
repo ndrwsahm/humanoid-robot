@@ -86,7 +86,7 @@ def run_startup_control_api():
     start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION)
     tx = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)
     connection = False
-
+    ssh_shell = False
     running = True
     while running:
         simulate = start_gui.get_simulate_value()
@@ -105,6 +105,7 @@ def run_startup_control_api():
             tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION)
         elif button == "run_firmware":
             tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
+            ssh_shell = True
         elif button == "uninstall_firmware":
             tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION)
         elif button == "raspi_config":
@@ -112,6 +113,10 @@ def run_startup_control_api():
         elif button == "reboot":
             tx.run_reboot(FIRMWARE_REMOTE_LOCATION)
 
+        if ssh_shell:
+            response = tx.receive_response()
+            if response:
+                print(response)
     return button, simulate
         
 if __name__ == "__main__":
