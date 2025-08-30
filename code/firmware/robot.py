@@ -61,7 +61,17 @@ class Robot:
         last_angles = self.get_all_angles()
         end_angles = LEFT_LEG_STAND_ANGLES.copy()
         self.smooth_transition_position(last_angles, end_angles)
-        
+
+    def swing_left_leg(self):
+        last_angles = self.get_all_angles()
+        end_angles = LEFT_LEG_FORWARD_STEP_ANGLES.copy()
+        self.smooth_transition_position(last_angles, end_angles)
+
+    def swing_right_leg(self):
+        last_angles = self.get_all_angles()
+        end_angles = RIGHT_LEG_FORWARD_STEP_ANGLES.copy()
+        self.smooth_transition_position(last_angles, end_angles)
+             
     def walk_forward(self):
         pass
 

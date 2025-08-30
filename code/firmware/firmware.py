@@ -64,7 +64,7 @@ while running:
     robot.stand_right_leg()
     time.sleep(1)
 
-    robot.lean_right()
+    robot.swing_left_leg()
     time.sleep(1)
 
     robot.lean_left()
@@ -73,7 +73,7 @@ while running:
     robot.stand_left_leg()
     time.sleep(1)
 
-    robot.lean_left()
+    robot.swing_right_leg()
     time.sleep(1)
 
 
