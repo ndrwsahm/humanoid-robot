@@ -13,6 +13,11 @@ class Manual_Control_GUI:
         self.root = tk.Tk()
         self.root.title("Slider Example")
         self.root.geometry(str(width) + "x" + str(height))
+        
+        #self.root.columnconfigure(1, weight=1)
+        #self.root.columnconfigure(2, weight=1)
+        #self.root.columnconfigure(4, weight=1)
+        #self.root.columnconfigure(5, weight=1)
 
         self.width = width
         self.height = height
@@ -31,7 +36,7 @@ class Manual_Control_GUI:
         # Anlge Track Sliders
         for al in ALL_LEGS:
             self.leg_slider_angle_group.append(ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_angle_value(al)))
-            self.leg_label_angle_group.append(tk.Label(self.root, text=self.leg_text_angle_group[al]))
+            self.leg_label_angle_group.append(tk.Label(self.root, text=self.leg_text_angle_group[al], width=35))
 
         self.empty_label = tk.Label(self.root, text = "")
 
@@ -41,7 +46,7 @@ class Manual_Control_GUI:
 
         for al in ALL_POS:
             self.leg_slider_pos_group.append(ttk.Scale(self.root, from_=-4, to=8, orient="horizontal", command=lambda x: self.get_slider_pos_value(al)))
-            self.leg_label_pos_group.append(tk.Label(self.root, text=self.leg_text_pos_group[al]))
+            self.leg_label_pos_group.append(tk.Label(self.root, text=self.leg_text_pos_group[al], width=35))
 
         mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
         mode_button.place(x=150, y=450)
@@ -108,14 +113,14 @@ class Manual_Control_GUI:
     def get_slider_angle_value(self, leg):
         slider_val = 0
         slider_val = self.leg_slider_angle_group[leg].get()
-        self.leg_label_angle_group[leg].config(text=self.leg_text_angle_group[leg] + str(round(slider_val, 2)))
+        self.leg_label_angle_group[leg].config(text= "  " + self.leg_text_angle_group[leg] + str(round(slider_val, 2)) + "      ")
         
         return round(slider_val)
     
     def get_slider_pos_value(self, leg):
         slider_val = 0
         slider_val = self.leg_slider_pos_group[leg].get()
-        self.leg_label_pos_group[leg].config(text=self.leg_text_pos_group[leg] + str(round(slider_val, 2)))
+        self.leg_label_pos_group[leg].config(text=self.leg_text_pos_group[leg] + str(round(slider_val, 2)) + "      ")
         
         return round(slider_val)
     
