@@ -1,14 +1,8 @@
-A1_LENGTH = 5   # cm
-A2_LENGTH = 7   # cm
-A3_LENGTH = 11  # cm 
+A1_LENGTH = 12   # cm
+A2_LENGTH = 9.25   # cm
 
 LEFT_LEG_PINS = (8, 9, 10, 11, 12, 13)    # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
 RIGHT_LEG_PINS = (0, 1, 2, 3, 4, 5)    # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
-
-# Phils pins
-#LEFT_LEG_PINS = (10, 11, 12, 13, 14, 15)    # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
-#RIGHT_LEG_PINS = (0, 1, 2, 3, 4, 5)    # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
-
 
 PULSE_WIDTH_MIN = 0
 PULSE_WIDTH_MAX = 1
@@ -33,6 +27,7 @@ RK_IDX = 9
 RAA_IDX = 10
 RAE_IDX = 11
 
+# Hardcoded Angles
 STANDING_ANGLES = [82, 88, 71, 73, 77, 94, 90, 96, 105, 134, 103, 121]
 
 LEFT_LEAN_ANGLES = [82, 105, 71, 73, 88, 94, 90, 96, 105, 134, 103, 121]

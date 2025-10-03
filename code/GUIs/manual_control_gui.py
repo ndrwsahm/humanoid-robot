@@ -22,238 +22,135 @@ class Manual_Control_GUI:
         self.load()
         self.new([90,90,90,90,90,90,90,90,90,90,90,90])
 
+        self.mode = "Angles"
+
     def load(self):
-        # Left Hip Track Sliders
-        self.left_hip_rotator_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(LHR_IDX))
-        self.left_hip_rotator_sliders.grid(row=0, column=0, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.left_hip_rotator_label = tk.Label(self.root, text="Left Hip Rotator: 0.00")
-        self.left_hip_rotator_label.grid(row=0, column=1)
+        self.leg_slider_angle_group = []
+        self.leg_label_angle_group = []
+        self.leg_text_angle_group = ["Left Hip Rotator: ", "Left Hip Aductor: ", "Left Hip Extendor: ", "Left Knee: ", "Left Ankle Aductor: ", "Left Ankle Extendor: ", "Right Hip Rotator: ", "Right Hip Aductor: ", "Right Hip Extendor: ", "Right Knee: ", "Right Ankle Aductor: ", "Right Ankle Extendor: "]
+        # Anlge Track Sliders
+        for al in ALL_LEGS:
+            self.leg_slider_angle_group.append(ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_angle_value(al)))
+            self.leg_label_angle_group.append(tk.Label(self.root, text=self.leg_text_angle_group[al]))
 
-        self.left_hip_aductor_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(LHA_IDX))
-        self.left_hip_aductor_sliders.grid(row=1, column=0, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.left_hip_aductor_label = tk.Label(self.root, text="Left Hip Aductor: 0.00")
-        self.left_hip_aductor_label.grid(row=1, column=1)
+        self.empty_label = tk.Label(self.root, text = "")
 
-        self.left_hip_extendor_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(LHE_IDX))
-        self.left_hip_extendor_sliders.grid(row=2, column=0, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.left_hip_extendor_label = tk.Label(self.root, text="Left Hip Extendor: 0.00")
-        self.left_hip_extendor_label.grid(row=2, column=1)
+        self.leg_slider_pos_group = []
+        self.leg_label_pos_group = []
+        self.leg_text_pos_group = ["Left Foot X Position:  ", "Left Foot Y Position: ", "Left Foot Z Position: ", "Right Foot X Position: ", "Right Foot Y Position: ", "Right Foot Z Position: "]
 
-        # Right Hip Track Sliders
-        self.right_hip_rotator_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(RHR_IDX))
-        self.right_hip_rotator_sliders.grid(row=0, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.right_hip_rotator_label = tk.Label(self.root, text="Right Hip Rotator: 0.00")
-        self.right_hip_rotator_label.grid(row=0, column=3)
+        for al in ALL_POS:
+            self.leg_slider_pos_group.append(ttk.Scale(self.root, from_=-4, to=8, orient="horizontal", command=lambda x: self.get_slider_pos_value(al)))
+            self.leg_label_pos_group.append(tk.Label(self.root, text=self.leg_text_pos_group[al]))
 
-        self.right_hip_aductor_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(RHA_IDX))
-        self.right_hip_aductor_sliders.grid(row=1, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.right_hip_aductor_label = tk.Label(self.root, text="Right Hip Aductor: 0.00")
-        self.right_hip_aductor_label.grid(row=1, column=3)
+        mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
+        mode_button.place(x=150, y=450)
 
-        self.right_hip_extendor_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(RHE_IDX))
-        self.right_hip_extendor_sliders.grid(row=2, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.right_hip_extendor_label = tk.Label(self.root, text="Right Hip Extendor: 0.00")
-        self.right_hip_extendor_label.grid(row=2, column=3)
-
-        # Left Knee Track Sliders
-        self.left_knee_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(LK_IDX))
-        self.left_knee_sliders.grid(row=3, column=0, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.left_knee_label = tk.Label(self.root, text="Left Knee: 0.00")
-        self.left_knee_label.grid(row=3, column=1)
-
-        self.left_ankle_aductor_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(LAA_IDX))
-        self.left_ankle_aductor_sliders.grid(row=4, column=0, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.left_ankle_aductor_label = tk.Label(self.root, text="Left Ankle Aductor: 0.00")
-        self.left_ankle_aductor_label.grid(row=4, column=1)
-
-        self.left_ankle_extendor_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(LAE_IDX))
-        self.left_ankle_extendor_sliders.grid(row=5, column=0, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.left_ankle_extendor_label = tk.Label(self.root, text="Left Ankle Extendor: 0.00")
-        self.left_ankle_extendor_label.grid(row=5, column=1)
-
-        # Right Back Track Sliders
-        self.right_knee_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(RK_IDX))
-        self.right_knee_sliders.grid(row=3, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.right_knee_label = tk.Label(self.root, text="Right Knee: 0.00")
-        self.right_knee_label.grid(row=3, column=3)
-
-        self.right_ankle_aductor_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(RAA_IDX))
-        self.right_ankle_aductor_sliders.grid(row=4, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.right_ankle_aductor_label = tk.Label(self.root, text="Right Ankle Aductor: 0.00")
-        self.right_ankle_aductor_label.grid(row=4, column=3)
-
-        self.right_ankle_extendor_sliders = ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_value(RAE_IDX))
-        self.right_ankle_extendor_sliders.grid(row=5, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-        self.right_ankle_extendor_label = tk.Label(self.root, text="Right Ankle Extendor: 0.00")
-        self.right_ankle_extendor_label.grid(row=5, column=3)
-
-        self.left_pos_label = tk.Label(self.root, text = "")
-        self.left_pos_label.grid(row=6, column=1)
-
-        # Left Leg Knee POS
-        self.left_knee_pos_label = tk.Label(self.root, text = "Left Leg Knee")
-        self.left_knee_pos_label.grid(row=7, column=1)
-
-        self.left_knee_x_pos_label = tk.Label(self.root, text = "X Pos: 0.00")
-        self.left_knee_x_pos_label.grid(row=8, column=1)
-
-        self.left_knee_y_pos_label = tk.Label(self.root, text = "Y Pos: 0.00")
-        self.left_knee_y_pos_label.grid(row=8, column=2)
-
-        self.left_knee_z_pos_label = tk.Label(self.root, text = "Z Pos: 0.00")
-        self.left_knee_z_pos_label.grid(row=8, column=3)
-
-        # Right Leg Knee POS
-        self.right_knee_pos_label = tk.Label(self.root, text = "Right Leg Knee")
-        self.right_knee_pos_label.grid(row=9, column=1)
-
-        self.right_knee_x_pos_label = tk.Label(self.root, text = "X Pos: 0.00")
-        self.right_knee_x_pos_label.grid(row=10, column=1)
-
-        self.right_knee_y_pos_label = tk.Label(self.root, text = "Y Pos: 0.00")
-        self.right_knee_y_pos_label.grid(row=10, column=2)
-
-        self.right_knee_z_pos_label = tk.Label(self.root, text = "Z Pos: 0.00")
-        self.right_knee_z_pos_label.grid(row=10, column=3)
-
-        # Left Leg Foot POS
-        self.left_foot_pos_label = tk.Label(self.root, text = "Left Leg Foot")
-        self.left_foot_pos_label.grid(row=11, column=1)
-
-        self.left_foot_x_pos_label = tk.Label(self.root, text = "X Pos: 0.00")
-        self.left_foot_x_pos_label.grid(row=12, column=1)
-
-        self.left_foot_y_pos_label = tk.Label(self.root, text = "Y Pos: 0.00")
-        self.left_foot_y_pos_label.grid(row=12, column=2)
-
-        self.left_foot_z_pos_label = tk.Label(self.root, text = "Z Pos: 0.00")
-        self.left_foot_z_pos_label.grid(row=12, column=3)
-
-        # Right Leg Foot POS
-        self.right_foot_pos_label = tk.Label(self.root, text = "Right Leg Foot")
-        self.right_foot_pos_label.grid(row=13, column=1)
-
-        self.right_foot_x_pos_label = tk.Label(self.root, text = "X Pos: 0.00")
-        self.right_foot_x_pos_label.grid(row=14, column=1)
-
-        self.right_foot_y_pos_label = tk.Label(self.root, text = "Y Pos: 0.00")
-        self.right_foot_y_pos_label.grid(row=14, column=2)
-
-        self.right_foot_z_pos_label = tk.Label(self.root, text = "Z Pos: 0.00")
-        self.right_foot_z_pos_label.grid(row=14, column=3)
-
+        # Exit Button
         exit_button = tk.Button(self.root, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
-        exit_button.place(x=350, y=500)
+        exit_button.place(x=450, y=450)
 
     def new(self, angles):
-        self.left_hip_rotator_sliders.set(angles[0])
-        self.left_hip_aductor_sliders.set(angles[1])
-        self.left_hip_extendor_sliders.set(angles[2])
+        print(len(self.leg_slider_angle_group))
+        for al in ALL_LEGS:
+            self.leg_slider_angle_group[al].set(angles[al])
 
-        self.right_hip_rotator_sliders.set(angles[3])
-        self.right_hip_aductor_sliders.set(angles[4])
-        self.right_hip_extendor_sliders.set(angles[5])
+        # TODO set all pos based on angles
 
-        self.left_knee_sliders.set(angles[6])
-        self.left_ankle_aductor_sliders.set(angles[7])
-        self.left_ankle_extendor_sliders.set(angles[8])
+    def show_kinematic_sliders(self):
+        for j in range(3): # number of servos per leg
+            self.leg_slider_pos_group[j].grid(row=j, column=1, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+            self.leg_slider_pos_group[j+3].grid(row=j, column=4, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
 
-        self.right_knee_sliders.set(angles[9])
-        self.right_ankle_aductor_sliders.set(angles[10])
-        self.right_ankle_extendor_sliders.set(angles[11])
+            self.leg_label_pos_group[j].grid(row=j, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+            self.leg_label_pos_group[j+3].grid(row=j, column=5, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+
+        self.empty_label = tk.Label(self.root, text="           ")
+        self.empty_label.grid(row=3,column=3,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+   
+    def hide_kinematic_sliders(self):
+        for al in ALL_POS:
+            self.leg_slider_pos_group[al].grid_remove()
+            self.leg_label_pos_group[al].grid_remove()
+      
+    def show_angle_sliders(self):
+        for j in range(6): # number of servos per leg
+            self.leg_slider_angle_group[j].grid(row=j, column=1, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+            self.leg_slider_angle_group[j+6].grid(row=j, column=4, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+
+            self.leg_label_angle_group[j].grid(row=j, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+            self.leg_label_angle_group[j+6].grid(row=j, column=5, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+
+        self.empty_label = tk.Label(self.root, text="           ")
+        self.empty_label.grid(row=3,column=3,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+
+    def hide_angle_sliders(self):
+        for al in ALL_LEGS:
+            self.leg_slider_angle_group[al].grid_remove()
+            self.leg_label_angle_group[al].grid_remove()
 
     def update(self):
         self.root.update_idletasks()
         self.root.update()
+
+        if self.mode == "Kinematics":
+            self.hide_angle_sliders()
+            self.show_kinematic_sliders()
+        elif self.mode == "Angles":
+            self.hide_kinematic_sliders()
+            self.show_angle_sliders()
         
         if self.exit_application:
             return False, self.selected_button
         else:
             return True, "none"
 
-    def get_slider_value(self, leg):
+    def get_slider_angle_value(self, leg):
         slider_val = 0
-        if leg == LHR_IDX:
-            #print(f"Left Hip Rotator Servo Value: {self.left_hip_sliders.get()}")
-            slider_val = round(self.left_hip_rotator_sliders.get(), 0)
-            self.left_hip_rotator_label.config(text="Left Hip Rotator: " + str(round(slider_val, 2)))
-        elif leg == LHA_IDX:
-            #print(f"Left Hip Aductor Servo Value: {self.left_hip_aductor_sliders.get()}")
-            slider_val = round(self.left_hip_aductor_sliders.get(), 0)
-            self.left_hip_aductor_label.config(text="Left Hip Aductor: " + str(round(slider_val, 2)))
-        elif leg == LHE_IDX:
-            #print(f"Left Hip Extendor Servo Value: {self.left_hip_extendor_sliders.get()}")
-            slider_val = round(self.left_hip_extendor_sliders.get(), 0)
-            self.left_hip_extendor_label.config(text="Left Hip Extendor: " + str(round(slider_val, 2)))
-
-        elif leg == RHR_IDX:
-            #print(f"Right Hip Rotator Servo Value: {self.right_hip_sliders.get()}")
-            slider_val = round(self.right_hip_rotator_sliders.get(), 0)
-            self.right_hip_rotator_label.config(text="Right Hip Rotator: " + str(round(slider_val, 2)))
-        elif leg == RHA_IDX:
-            #print(f"Right Hip Aductor Servo Value: {self.right_hip_aductor_sliders.get()}")
-            slider_val = round(self.right_hip_aductor_sliders.get(), 0)
-            self.right_hip_aductor_label.config(text="Right Hip Aductor: " + str(round(slider_val, 2)))
-        elif leg == RHE_IDX:
-            #print(f"Right Hip Extendor Servo Value: {self.right_hip_extendor_sliders.get()}")
-            slider_val = round(self.right_hip_extendor_sliders.get(), 0)
-            self.right_hip_extendor_label.config(text="Right Hip Extendor: " + str(round(slider_val, 2)))
-
-        elif leg == LK_IDX:
-            #print(f"Left Knee Servo Value: {self.left_knee_sliders.get()}")
-            slider_val = round(self.left_knee_sliders.get(), 0)
-            self.left_knee_label.config(text="Left Knee: " + str(round(slider_val, 2)))
-        elif leg == LAA_IDX:
-            #print(f"Left Knee Aductor Servo Value: {self.left_ankle_aductor_sliders.get()}")
-            slider_val = round(self.left_ankle_aductor_sliders.get(), 0)
-            self.left_ankle_aductor_label.config(text="Left Knee Aductor: " + str(round(slider_val, 2)))
-        elif leg == LAE_IDX:
-            #print(f"Left Knee Extendor Servo Value: {self.left_ankle_extendor_sliders.get()}")
-            slider_val = round(self.left_ankle_extendor_sliders.get(), 0)
-            self.left_ankle_extendor_label.config(text="Left Knee Extendor: " + str(round(slider_val, 2)))
-
-        elif leg == RK_IDX:
-            #print(f"Right Knee Servo Value: {self.right_knee_sliders.get()}")
-            slider_val = round(self.right_knee_sliders.get(), 0)
-            self.right_knee_label.config(text="Right Knee: " + str(round(slider_val, 2)))
-        elif leg == RAA_IDX:
-            #print(f"Right Ankle Aductor Servo Value: {self.right_ankle_aductor_sliders.get()}")
-            slider_val = round(self.right_ankle_aductor_sliders.get(), 0)
-            self.right_ankle_aductor_label.config(text="Right Ankle Aductor: " + str(round(slider_val, 2)))
-        elif leg == RAE_IDX:
-            #print(f"Right Ankle Extendor Servo Value: {self.right_ankle_extendor_sliders.get()}")
-            slider_val = round(self.right_ankle_extendor_sliders.get(), 0)
-            self.right_ankle_extendor_label.config(text="Right Ankle Extendor: " + str(round(slider_val, 2)))
-
+        slider_val = self.leg_slider_angle_group[leg].get()
+        self.leg_label_angle_group[leg].config(text=self.leg_text_angle_group[leg] + str(round(slider_val, 2)))
+        
+        return round(slider_val)
+    
+    def get_slider_pos_value(self, leg):
+        slider_val = 0
+        slider_val = self.leg_slider_pos_group[leg].get()
+        self.leg_label_pos_group[leg].config(text=self.leg_text_pos_group[leg] + str(round(slider_val, 2)))
+        
         return round(slider_val)
     
     def get_all_slider_angles(self):
         all_angles = []
         for al in ALL_LEGS:
-            all_angles.append(self.get_slider_value(al))
+            all_angles.append(self.get_slider_angle_value(al))
     
         return all_angles
     
-    def update_pos_labels(self, left_pos, right_pos):
-        self.left_knee_x_pos_label.config(text="X Pos: " + str(round(left_pos[0][0], 2)))
-        self.left_knee_y_pos_label.config(text="Y Pos: " + str(round(left_pos[0][1], 2)))
-        self.left_knee_z_pos_label.config(text="Z Pos: " + str(round(left_pos[0][2], 2)))
-
-        self.right_knee_x_pos_label.config(text="X Pos: " + str(round(right_pos[0][0], 2)))
-        self.right_knee_y_pos_label.config(text="Y Pos: " + str(round(right_pos[0][1], 2)))
-        self.right_knee_z_pos_label.config(text="Z Pos: " + str(round(right_pos[0][2], 2)))
-
-        self.left_foot_x_pos_label.config(text="X Pos: " + str(round(left_pos[1][0], 2)))
-        self.left_foot_y_pos_label.config(text="Y Pos: " + str(round(left_pos[1][1], 2)))
-        self.left_foot_z_pos_label.config(text="Z Pos: " + str(round(left_pos[1][2], 2)))
-
-        self.right_foot_x_pos_label.config(text="X Pos: " + str(round(right_pos[1][0], 2)))
-        self.right_foot_y_pos_label.config(text="Y Pos: " + str(round(right_pos[1][1], 2)))
-        self.right_foot_z_pos_label.config(text="Z Pos: " + str(round(right_pos[1][2], 2)))
+    def set_all_slider_angles(self, angles):
+        pass
+    
+    def get_all_slider_pos(self):
+        all_angles = []
+        for al in ALL_POS:
+            all_angles.append(self.get_slider_pos_value(al))
+    
+        return all_angles
+    
+    def get_mode(self):
+        return self.mode
 
     def exit_button_click(self):
         self.selected_button = "exit"
         self.close()
+
+    def mode_button_click(self):
+        if self.mode == "Kinematics":
+            self.mode = "Angles"
+
+        elif self.mode == "Angles":
+            self.mode = "Kinematics"
+
+        self.selected_button = "mode"
 
     def close(self):
         #self.root.quit()

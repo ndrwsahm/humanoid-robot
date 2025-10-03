@@ -4,6 +4,7 @@ sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/firmware/instruments
 
 from firmware.instruments import servo_utility
 from firmware.robot import *
+from firmware.kinematics import *
 
 from GUIs.manual_control_gui import *
 from GUIs.startup_gui import *
@@ -30,16 +31,26 @@ def run_manual_control_api(simulate):
         running, button = manual_control_gui.update()
 
         try:
+            mode = manual_control_gui.get_mode()
+
+            if mode == "Angles":
+                all_leg_angles = manual_control_gui.get_all_slider_angles()
+                # TODO compute forward kinematics and set pos values 
+                print(all_leg_angles)
+            elif mode == "Kinematics":
+                all_leg_pos = manual_control_gui.get_all_slider_pos()   
+                #left_leg_angles = compute_inverse_kinematics(all_leg_pos[0], all_leg_pos[1], all_leg_pos[2])
+                #right_leg_angles = robot.right_leg.compute_inverse_kinematics(all_leg_pos[3], all_leg_pos[4], all_leg_pos[5])
+                #print(left_leg_angles)
+                #print(right_leg_angles)
+
+            # TODO delete when mode select is finished
             all_leg_angles = manual_control_gui.get_all_slider_angles()
+
             if simulate:
                 # go thru local firmware folder to create objects
                 robot.set_all_angles(all_leg_angles)
 
-                left_leg_pos = robot.left_leg.get_leg_pos()
-                right_leg_pos = robot.right_leg.get_leg_pos()
-
-                manual_control_gui.update_pos_labels(left_leg_pos, right_leg_pos)
-    
                 robot.update()
             
             else:

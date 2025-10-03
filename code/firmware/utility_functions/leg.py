@@ -1,4 +1,3 @@
-import math
 try:
     from firmware.settings import *
 except:
@@ -21,7 +20,7 @@ class Leg:
         self.pins = pin_numbers
         self.side = side.lower()    # make all lower case                                                  
                                                                            
-        self.leg_dimensions = dimensions    # {a1, a2, a3}    
+        self.leg_dimensions = dimensions    # {a1, a2}    
 
         self.last_thetas = [0, 0, 0, 0, 0, 0]     # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
         self.current_thetas = [90, 90, 90, 90, 90, 90]  # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
@@ -43,21 +42,6 @@ class Leg:
 
         self.last_thetas = self.current_thetas
 
-    def compute_inverse_kinematics(self, x, y, z):
-        theta = [0, 0, 0, 0, 0, 0]
-
-        return theta
-    
-    def compute_forward_kinematics(self, theta1, theta2, theta3):
-        x = 0
-        y = 0
-        z = 0
-
-        return [x, y, z]
-
-    def check_work_envelope(self, x, y, z):
-        return True
-    
     def get_leg_pos(self):
         return [self.current_knee_pos, self.current_foot_pos]
     
@@ -70,9 +54,9 @@ class Leg:
     def set_leg_theta(self, theta1, theta2, theta3, theta4, theta5, theta6):
         
         self.current_thetas = [theta1, theta2, theta3, theta4, theta5, theta6]
-        print ("Current thetas")
-        print(self.current_thetas, self.pins)
-        print ("")
+        #print ("Current thetas")
+        #print(self.current_thetas, self.pins)
+        #print ("")
         if self.last_thetas != self.current_thetas:
             self.pca.set_servo_angle(self.pins[0], theta1)
             self.pca.set_servo_angle(self.pins[1], theta2)

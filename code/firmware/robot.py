@@ -16,8 +16,8 @@ class Robot:
 
     def new(self):
         print('Building Legs...')
-        self.left_leg = leg.Leg(self.pca_obj, LEFT_LEG_PINS, "left", (A1_LENGTH, A2_LENGTH, A3_LENGTH))
-        self.right_leg = leg.Leg(self.pca_obj, RIGHT_LEG_PINS, "right", (A1_LENGTH, A2_LENGTH, A3_LENGTH))
+        self.left_leg = leg.Leg(self.pca_obj, LEFT_LEG_PINS, "left", (A1_LENGTH, A2_LENGTH))
+        self.right_leg = leg.Leg(self.pca_obj, RIGHT_LEG_PINS, "right", (A1_LENGTH, A2_LENGTH))
 
         #self.left_leg.set_leg_pos(0, 5.36, 6.73)  # starting position
         #self.right_leg.set_leg_pos(0, 5.36, 6.73)  # starting position
