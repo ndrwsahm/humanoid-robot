@@ -13,6 +13,7 @@ from ssh_tx_comms import *
 def run_manual_control_api(simulate):
     global tx
     last_all_leg_angles = [90,90,90,90,90,90,90,90,90,90,90,90]
+
     if simulate:
         # go thru local firmware folder to create objects
         pca = servo_utility.PCA9865(0x41, simulate)
@@ -36,14 +37,14 @@ def run_manual_control_api(simulate):
             if mode == "Angles":
                 all_leg_angles = manual_control_gui.get_all_slider_angles()
                 # TODO compute forward kinematics and set pos values 
-                print(all_leg_angles)
+                #print(all_leg_angles)
+
             elif mode == "Kinematics":
                 all_leg_pos = manual_control_gui.get_all_slider_pos()   
-                #left_leg_angles = compute_inverse_kinematics(all_leg_pos[0], all_leg_pos[1], all_leg_pos[2])
-                #right_leg_angles = robot.right_leg.compute_inverse_kinematics(all_leg_pos[3], all_leg_pos[4], all_leg_pos[5])
-                #print(left_leg_angles)
-                #print(right_leg_angles)
-
+                left_leg_angles = compute_inverse_kinematics(all_leg_pos[0], all_leg_pos[1], all_leg_pos[2])
+                right_leg_angles = compute_inverse_kinematics(all_leg_pos[3], all_leg_pos[4], all_leg_pos[5])
+                manual_control_gui.set_all_slider_angles(left_leg_angles + right_leg_angles)
+                
             # TODO delete when mode select is finished
             all_leg_angles = manual_control_gui.get_all_slider_angles()
 

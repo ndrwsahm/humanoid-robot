@@ -25,7 +25,7 @@ class Manual_Control_GUI:
         self.exit_application = False
 
         self.load()
-        self.new([90,90,90,90,90,90,90,90,90,90,90,90])
+        self.new([90,90,90,90,90,90,90,90,90,90,90,90], [-9, 0, 12.25, -9, 0, 12.25])
 
         self.mode = "Angles"
 
@@ -45,7 +45,7 @@ class Manual_Control_GUI:
         self.leg_text_pos_group = ["Left Foot X Position:  ", "Left Foot Y Position: ", "Left Foot Z Position: ", "Right Foot X Position: ", "Right Foot Y Position: ", "Right Foot Z Position: "]
 
         for al in ALL_POS:
-            self.leg_slider_pos_group.append(ttk.Scale(self.root, from_=-4, to=8, orient="horizontal", command=lambda x: self.get_slider_pos_value(al)))
+            self.leg_slider_pos_group.append(ttk.Scale(self.root, from_=-20, to=20, orient="horizontal", command=lambda x: self.get_slider_pos_value(al)))
             self.leg_label_pos_group.append(tk.Label(self.root, text=self.leg_text_pos_group[al], width=35))
 
         mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
@@ -55,12 +55,13 @@ class Manual_Control_GUI:
         exit_button = tk.Button(self.root, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
         exit_button.place(x=450, y=450)
 
-    def new(self, angles):
+    def new(self, angles, pos):
         print(len(self.leg_slider_angle_group))
         for al in ALL_LEGS:
             self.leg_slider_angle_group[al].set(angles[al])
 
-        # TODO set all pos based on angles
+        for al in ALL_POS:
+            self.leg_slider_pos_group[al].set(pos[al])
 
     def show_kinematic_sliders(self):
         for j in range(3): # number of servos per leg
@@ -132,7 +133,8 @@ class Manual_Control_GUI:
         return all_angles
     
     def set_all_slider_angles(self, angles):
-        pass
+        for al in ALL_LEGS:
+            self.leg_slider_angle_group[al].set(angles[al])
     
     def get_all_slider_pos(self):
         all_angles = []
