@@ -143,6 +143,10 @@ class Manual_Control_GUI:
     
         return all_angles
     
+    def set_all_slider_pos(self, pos):
+        for al in ALL_POS:
+            self.leg_slider_pos_group[al].set(pos[al])
+    
     def get_mode(self):
         return self.mode
 

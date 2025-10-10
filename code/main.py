@@ -36,6 +36,9 @@ def run_manual_control_api(simulate):
 
             if mode == "Angles":
                 all_leg_angles = manual_control_gui.get_all_slider_angles()
+                left_leg_pos = compute_forward_kinematics(all_leg_angles, "left")
+                right_leg_pos = compute_forward_kinematics(all_leg_angles, "right")
+                manual_control_gui.set_all_slider_pos(left_leg_pos + right_leg_pos)
                 # TODO compute forward kinematics and set pos values 
                 #print(all_leg_angles)
 
