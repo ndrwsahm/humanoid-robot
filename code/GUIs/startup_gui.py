@@ -106,32 +106,21 @@ class Startup_GUI:
         
             self.update_ssh_button(connection)
 
-            if self.selected_button == "ssh":
-                self.selected_button = "none"   # Only send it once
-                return True, "ssh"
-            elif self.selected_button == "send":
-                self.selected_button = "none"
-                return True, "send"
-            elif self.selected_button == "uninstall_firmware":
-                self.selected_button = "none"
-                return True, "uninstall_firmware"
-            elif self.selected_button == "firmware":
-                self.selected_button = "none"
-                return True, "firmware"
-            elif self.selected_button == "run_firmware":
-                self.selected_button = "none"
-                return True, "run_firmware"
-            elif self.selected_button == "manual_control":
-                self.selected_button = "none"
-                return False, "manual_control"
-            elif self.selected_button == "raspi_config":
-                self.selected_button = "none"
-                return True, "raspi_config"
-            elif self.selected_button == "reboot":
-                self.selected_button = "none"
-                return True, "reboot"
-            else:
-                return True, "none"
+            button_actions = {
+                "ssh": (True, "ssh"),
+                "send": (True, "send"),
+                "uninstall_firmware": (True, "uninstall_firmware"),
+                "firmware": (True, "firmware"),
+                "run_firmware": (True, "run_firmware"),
+                "manual_control": (False, "manual_control"),
+                "raspi_config": (True, "raspi_config"),
+                "reboot": (True, "reboot")
+
+            }
+
+            result = button_actions.get(self.selected_button, (True, "none"))
+            self.selected_button = "none" # Reset after handling
+            return result
         
     def manual_control_button_click(self):
         self.selected_button = "manual_control"
