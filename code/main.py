@@ -88,9 +88,7 @@ def run_firmware(tx):
 def run_connect_ssh():
     global connection 
     
-    print("here")
     connection = tx.connect_ssh()
-    print("connection")
 
 def run_startup_control_api():
     global tx 
