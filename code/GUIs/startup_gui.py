@@ -24,9 +24,6 @@ class Startup_GUI:
         self.selected_button = "none"
 
         self.load()
-        self.new()
-
-    def new(self):
         self.simulate_scale.set(0)
 
     def load(self):
@@ -122,13 +119,6 @@ class Startup_GUI:
             self.selected_button = "none" # Reset after handling
             return result
         
-    def manual_control_button_click(self):
-        self.selected_button = "manual_control"
-        self.close()
-
-    def send_button_click(self):
-        self.selected_button = "send"
-
     def get_command(self):
         cmd=self.cmd_line_arg.get()
         full_cmd = cmd + "\n"
@@ -137,9 +127,6 @@ class Startup_GUI:
 
         return full_cmd
 
-    def ssh_button_click(self):
-        self.selected_button = "ssh"
-
     def update_ssh_button(self, connection):
         if not connection:
             self.simulate_scale.set(0)  
@@ -147,25 +134,6 @@ class Startup_GUI:
         else:
             self.simulate_scale.set(1) 
             self.ssh_button.configure(bg="green")
-
-    def firmware_button_click(self):
-        self.selected_button = "firmware"
-
-    def run_firmware_button_click(self):
-        self.selected_button = "run_firmware"
-
-    def uninstall_firmware_button_click(self):
-        self.selected_button = "uninstall_firmware"
-
-    def run_raspi_config_button_click(self):
-        self.selected_button = "raspi_config"
-
-    def run_reboot_button_click(self):
-        self.selected_button = "reboot"
-
-    def exit_button_click(self):
-        self.selected_button = "exit"
-        self.close()
         
     def get_simulate_value(self):
         simulate_val = self.simulate_scale.get()
@@ -183,3 +151,14 @@ class Startup_GUI:
         self.root.destroy()
         self.exit_application = True
         print("close")
+
+        
+    def ssh_button_click(self): self.selected_button = "ssh"
+    def manual_control_button_click(self): self.selected_button = "manual_control"; self.close()
+    def send_button_click(self): self.selected_button = "send"
+    def firmware_button_click(self): self.selected_button = "firmware"
+    def run_firmware_button_click(self): self.selected_button = "run_firmware"
+    def uninstall_firmware_button_click(self): self.selected_button = "uninstall_firmware"
+    def run_raspi_config_button_click(self): self.selected_button = "raspi_config"
+    def run_reboot_button_click(self): self.selected_button = "reboot"
+    def exit_button_click(self): self.selected_button = "exit"; self.close()
