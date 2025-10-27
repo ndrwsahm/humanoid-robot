@@ -15,6 +15,8 @@ FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmw
 GUI_WIDTH = 900
 GUI_HEIGHT = 600
 
+NUMBER_OF_SERVOS = 12
+
 LHR_IDX = 0
 LHA_IDX = 1
 LHE_IDX = 2
@@ -37,5 +39,6 @@ RIGHT_FOOT_X = 3
 RIGHT_FOOT_Y = 4
 RIGHT_FOOT_Z = 5
 
+ALL_LEG_NAMES = ["lhr", "lha", "lhe", "lkk", "laa", "lae", "rhr", "rha", "rhe", "rkk", "raa", "rae"]
 ALL_LEGS = [LHR_IDX, LHA_IDX, LHE_IDX, LK_IDX, LAA_IDX, LAE_IDX, RHR_IDX, RHA_IDX, RHE_IDX, RK_IDX, RAA_IDX, RAE_IDX]
 ALL_POS = [LEFT_FOOT_X, LEFT_FOOT_Y, LEFT_FOOT_Z, RIGHT_FOOT_X, RIGHT_FOOT_Y, RIGHT_FOOT_Z]

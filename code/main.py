@@ -10,6 +10,9 @@ from GUIs.manual_control_gui import *
 from GUIs.startup_gui import *
 from ssh_tx_comms import *
 
+ssh_shell = False
+connection = False
+
 def run_manual_control_api(simulate):
     global tx
     last_all_leg_angles = [90,90,90,90,90,90,90,90,90,90,90,90]
@@ -59,31 +62,12 @@ def run_manual_control_api(simulate):
             
             else:
                 try:
-                    # if connected send all angles positions to pi
-                    if last_all_leg_angles[0] != all_leg_angles[0]:
-                        tx.send_user_input("lhr" + str(all_leg_angles[0]) + "\n")
-                    if last_all_leg_angles[1] != all_leg_angles[1]:
-                        tx.send_user_input("lha" + str(all_leg_angles[1]) + "\n")
-                    if last_all_leg_angles[2] != all_leg_angles[2]:
-                        tx.send_user_input("lhe" + str(all_leg_angles[2]) + "\n")
-                    if last_all_leg_angles[3] != all_leg_angles[3]:
-                        tx.send_user_input("lkk" + str(all_leg_angles[3]) + "\n")
-                    if last_all_leg_angles[4] != all_leg_angles[4]:
-                        tx.send_user_input("laa" + str(all_leg_angles[4]) + "\n")
-                    if last_all_leg_angles[5] != all_leg_angles[5]:
-                        tx.send_user_input("lae" + str(all_leg_angles[5]) + "\n")
-                    if last_all_leg_angles[6] != all_leg_angles[6]:
-                        tx.send_user_input("rhr" + str(all_leg_angles[6]) + "\n")
-                    if last_all_leg_angles[7] != all_leg_angles[7]:
-                        tx.send_user_input("rha" + str(all_leg_angles[7]) + "\n")
-                    if last_all_leg_angles[8] != all_leg_angles[8]:
-                        tx.send_user_input("rhe" + str(all_leg_angles[8]) + "\n")
-                    if last_all_leg_angles[9] != all_leg_angles[9]:
-                        tx.send_user_input("rkk" + str(all_leg_angles[9]) + "\n")
-                    if last_all_leg_angles[10] != all_leg_angles[10]:
-                        tx.send_user_input("raa" + str(all_leg_angles[10]) + "\n")
-                    if last_all_leg_angles[11] != all_leg_angles[11]:
-                        tx.send_user_input("rae" + str(all_leg_angles[11]) + "\n")
+                    # if connected send angles positions to pi if angle changes
+                    for k in range(NUMBER_OF_SERVOS):
+                        if last_all_leg_angles[k] != all_leg_angles[k]:
+                            tx.send_user_input(ALL_LEG_NAMES[k] + str(all_leg_angles[k]) + "\n")
+
+                    # check error response
                     response = tx.receive_response()
                     if response:
                         print(response)
@@ -95,38 +79,45 @@ def run_manual_control_api(simulate):
 
     return button
 
+def run_firmware(tx):
+    global ssh_shell
+
+    tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
+    ssh_shell = True
+
+def run_connect_ssh():
+    global connection 
+    
+    print("here")
+    connection = tx.connect_ssh()
+    print("connection")
+
 def run_startup_control_api():
     global tx 
+    global ssh_shell
+    global connection
 
     start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION)
     tx = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)
-    connection = False
-    ssh_shell = False
+
+    dispatch = {
+    "ssh": lambda: run_connect_ssh(),
+    "send": lambda: tx.send_command(start_gui.get_command()),
+    "firmware": lambda: tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION),
+    "run_firmware": lambda: run_firmware(tx),
+    "uninstall_firmware": lambda: tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION),
+    "raspi_config": lambda: tx.run_config(FIRMWARE_REMOTE_LOCATION),
+    "reboot": lambda: tx.run_reboot(FIRMWARE_REMOTE_LOCATION)
+}
+    
     running = True
     while running:
         simulate = start_gui.get_simulate_value()
         running, button = start_gui.update(connection)
-        if button == "ssh":
-            connection = tx.connect_ssh()
-        elif button == "send":
-            command = start_gui.get_command()
-            tx.send_command(command)
-        elif button == "test_comms":
-            if simulate:
-                pass
-            else:
-                tx.test_comms()
-        elif button == "firmware":
-            tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION)
-        elif button == "run_firmware":
-            tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
-            ssh_shell = True
-        elif button == "uninstall_firmware":
-            tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION)
-        elif button == "raspi_config":
-            tx.run_config(FIRMWARE_REMOTE_LOCATION)
-        elif button == "reboot":
-            tx.run_reboot(FIRMWARE_REMOTE_LOCATION)
+
+        action = dispatch.get(button)
+        if action:
+            action()
 
         if ssh_shell:
             response = tx.receive_response()
