@@ -9,9 +9,11 @@ from firmware.kinematics import *
 from GUIs.manual_control_gui import *
 from GUIs.startup_gui import *
 from ssh_tx_comms import *
+from serial_comms import *
 
 ssh_shell = False
 connection = False
+rf_comms_connection = False
 
 def run_manual_control_api(simulate):
     global tx
@@ -90,16 +92,31 @@ def run_connect_ssh():
     
     connection = tx.connect_ssh()
 
+def run_connect_nrf():
+    global rf_comms
+    global rf_comms_connection
+    
+    rf_comms_connection = rf_comms.connect()
+
+    if rf_comms_connection:
+
+        rf_comms.send_command("CMD 39 lhr 180.5")
+        rf_comms.close()
+
 def run_startup_control_api():
     global tx 
+    global rf_comms
     global ssh_shell
     global connection
+    global rf_comms_connection
 
-    start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION)
+    start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE)
     tx = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)
-
+    rf_comms = Serial_Comms(port=COM_PORT, baudrate=BAUDRATE)
+    
     dispatch = {
     "ssh": lambda: run_connect_ssh(),
+    "nrf": lambda: run_connect_nrf(),
     "send": lambda: tx.send_command(start_gui.get_command()),
     "firmware": lambda: tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION),
     "run_firmware": lambda: run_firmware(tx),
@@ -111,7 +128,7 @@ def run_startup_control_api():
     running = True
     while running:
         simulate = start_gui.get_simulate_value()
-        running, button = start_gui.update(connection)
+        running, button = start_gui.update(connection, rf_comms_connection)
 
         action = dispatch.get(button)
         if action:

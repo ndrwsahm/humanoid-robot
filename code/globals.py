@@ -12,6 +12,9 @@ PASSWORD = "humanoid39"
 FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/firmware"
 FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmware"
 
+BAUDRATE = 115200
+COM_PORT = "COM6"
+
 GUI_WIDTH = 900
 GUI_HEIGHT = 600
 
