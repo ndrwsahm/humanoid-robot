@@ -38,20 +38,20 @@ class Serial_Comms:
                 response = self.ser.readline().decode('utf-8').strip()
                 #joint, angle = response.split()
                 if response:
-                    """
+                    
                     parts = response.split()
                     if len(parts) == 2:
                         joint, angle = parts
                         try:
                             angle = float(angle)
-                            print("Joint:", joint, "Angle:", angle)
+                            #print("Joint:", joint, "Angle:", angle)
                         except ValueError:
                             print("Invalid angle format:", angle)
                     else:
                         print("Malformed line:", response)
-                    """
+                
                     print(f"Received: {response}")
-                return response
+                return joint, angle
             except Exception as e:
                 print(e)
         return None

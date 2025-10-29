@@ -13,10 +13,13 @@ from serial_comms import *
 
 ssh_shell = False
 connection = False
-rf_comms_connection = False
+rf_connection = False
 
 def run_manual_control_api(simulate):
     global tx
+    global serials
+    global rf_connection
+
     last_all_leg_angles = [90,90,90,90,90,90,90,90,90,90,90,90]
 
     if simulate:
@@ -24,7 +27,11 @@ def run_manual_control_api(simulate):
         pca = servo_utility.PCA9865(0x41, simulate)
         robot = Robot(pca)
     else:
-        tx.run_manual_control(FIRMWARE_REMOTE_LOCATION)
+        if rf_connection:
+            # TODO how are you going to run firmware via RF????? FUCK....
+            pass
+        else:
+            tx.run_manual_control(FIRMWARE_REMOTE_LOCATION)
         
     manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT)
     # TODO, no access to robot bc thats firmware
@@ -62,9 +69,13 @@ def run_manual_control_api(simulate):
 
                 robot.update()
             
+            # RF Commands
+            elif rf_connection:
+                pass #TODO add send commands here
+
+            # SSH Commands
             else:
                 try:
-                    # if connected send angles positions to pi if angle changes
                     for k in range(NUMBER_OF_SERVOS):
                         if last_all_leg_angles[k] != all_leg_angles[k]:
                             tx.send_user_input(ALL_LEG_NAMES[k] + str(all_leg_angles[k]) + "\n")
@@ -93,26 +104,37 @@ def run_connect_ssh():
     connection = tx.connect_ssh()
 
 def run_connect_nrf():
-    global rf_comms
-    global rf_comms_connection
+    global serials
+    global rf_connection
     
-    rf_comms_connection = rf_comms.connect()
+    serials_connection = serials.connect()
 
-    if rf_comms_connection:
+    if serials_connection:
 
-        rf_comms.send_command("CMD 39 lhr 180.5")
-        rf_comms.close()
+        joint, rf_connection = serials.send_command("CMD 39 STA 0.0") # Check status of LED
+   
+        serials.close()
+
+def close_all():
+    global serials
+
+    serials_connection = serials.connect()
+
+    if serials_connection:
+
+        serials.send_command("CMD 39 DIS 0.0")
+        serials.close()
 
 def run_startup_control_api():
     global tx 
-    global rf_comms
+    global serials
     global ssh_shell
     global connection
-    global rf_comms_connection
+    global rf_connection
 
     start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE)
     tx = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)
-    rf_comms = Serial_Comms(port=COM_PORT, baudrate=BAUDRATE)
+    serials = Serial_Comms(port=COM_PORT, baudrate=BAUDRATE)
     
     dispatch = {
     "ssh": lambda: run_connect_ssh(),
@@ -123,12 +145,12 @@ def run_startup_control_api():
     "uninstall_firmware": lambda: tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION),
     "raspi_config": lambda: tx.run_config(FIRMWARE_REMOTE_LOCATION),
     "reboot": lambda: tx.run_reboot(FIRMWARE_REMOTE_LOCATION)
-}
+    }
     
     running = True
     while running:
         simulate = start_gui.get_simulate_value()
-        running, button = start_gui.update(connection, rf_comms_connection)
+        running, button = start_gui.update(connection, rf_connection)
 
         action = dispatch.get(button)
         if action:
@@ -149,5 +171,7 @@ if __name__ == "__main__":
 
         elif pressed_button == "manual_control":
             pressed_button = run_manual_control_api(simulate)
+
+    close_all()
 
     

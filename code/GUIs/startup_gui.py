@@ -30,11 +30,11 @@ class Startup_GUI:
         self.simulate_scale.set(0)
 
     def load_widgets(self):
-        self.create_simulate_scale(550, 200)
+        self.create_simulate_scale(500, 200)
         self.create_ssh_section(200, 75)
         self.create_firmware_buttons()
         self.create_command_entry(10, 305)
-        self.create_nrf_buttons(525, 75)
+        self.create_nrf_buttons(475, 75)
         self.create_misc_buttons()
 
     def create_simulate_scale(self, x, y):
@@ -44,7 +44,7 @@ class Startup_GUI:
         tk.Label(self.root, text="True                        False").place(x=x-15, y=y+25)
 
     def create_ssh_section(self, x, y):
-        self.ssh_button = self.create_button("Connect to PI", x, y, "blue", self.ssh_button_click)
+        self.ssh_button = self.create_button("SSH Connect", x, y, "blue", self.ssh_button_click)
         tk.Label(self.root, text=f"IP Addr: {self.hostname}").place(x=x-150, y=y+10)
         tk.Label(self.root, text=f"Username: {self.username}").place(x=x-150, y=y+30)
 
@@ -55,7 +55,7 @@ class Startup_GUI:
             "Run Firmware":         (100, 475, "blue", self.run_firmware_button_click),
             "Run Raspi Config":     (10, 375, "blue", self.run_raspi_config_button_click),
             "Reboot Pi":            (200, 375, "blue", self.run_reboot_button_click),
-            "Manual Control":       (525, 275, "green", self.manual_control_button_click),
+            "Manual Control":       (475, 275, "green", self.manual_control_button_click),
             "Exit":                 (350, 500, "green", self.exit_button_click)
         }
         for text, (x, y, color, cmd) in buttons.items():
