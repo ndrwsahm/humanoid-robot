@@ -69,21 +69,20 @@ def run_manual_control_api(simulate):
 
                 robot.update()
             
-            # RF Commands
-            elif rf_connection:
-                pass #TODO add send commands here
-
-            # SSH Commands
             else:
                 try:
                     for k in range(NUMBER_OF_SERVOS):
                         if last_all_leg_angles[k] != all_leg_angles[k]:
-                            tx.send_user_input(ALL_LEG_NAMES[k] + str(all_leg_angles[k]) + "\n")
+                            if rf_connection:
+                                response = serials.send_command("CMD " + str(ID) + " " + ALL_LEG_NAMES[k] + " " + str(all_leg_angles[k]))
+                            else:
+                                tx.send_user_input(ALL_LEG_NAMES[k] + str(all_leg_angles[k]) + "\n")
 
-                    # check error response
-                    response = tx.receive_response()
-                    if response:
-                        print(response)
+                    # check response
+                    if tx:
+                        response = tx.receive_response()
+                        if response:
+                            print(response)
                     last_all_leg_angles = all_leg_angles
                 except Exception as e:
                     print (e)
@@ -116,7 +115,7 @@ def run_connect_nrf():
         if not rf_connection:
             print("No acknowledgement received from humanoid receiver!")
    
-        serials.close()
+        #serials.close()
 
 def close_all():
     global serials

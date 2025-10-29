@@ -15,6 +15,8 @@ FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmw
 BAUDRATE = 115200
 COM_PORT = "COM6"
 
+ID = 39
+
 GUI_WIDTH = 900
 GUI_HEIGHT = 600
 

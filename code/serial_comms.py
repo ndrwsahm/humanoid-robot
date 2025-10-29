@@ -24,7 +24,7 @@ class Serial_Comms:
             self.ser.reset_input_buffer()  # Clear old data
             full_cmd = command.strip() + '\n'
             self.ser.write(full_cmd.encode('utf-8'))
-            print(f"Sent: {command}")
+            print(f"Sent from Transmitter Arduino: {command}")
             time.sleep(0.1)
             return self.receive_response()
         else:
@@ -50,7 +50,7 @@ class Serial_Comms:
                     else:
                         print("Malformed line:", response)
                 
-                    print(f"Received: {response}")
+                    print(f"Response from Humanoid Receiver: {response}")
                 return joint, angle
             except Exception as e:
                 print(e)
