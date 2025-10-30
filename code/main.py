@@ -12,7 +12,7 @@ from ssh_tx_comms import *
 from serial_comms import *
 
 ssh_shell = False
-connection = False
+ssh_connection = False
 rf_connection = False
 
 def run_manual_control_api(simulate):
@@ -79,7 +79,8 @@ def run_manual_control_api(simulate):
                                 tx.send_user_input(ALL_LEG_NAMES[k] + str(all_leg_angles[k]) + "\n")
 
                     # check response
-                    if tx:
+                    if ssh_connection:
+                        print("here")
                         response = tx.receive_response()
                         if response:
                             print(response)
@@ -98,9 +99,9 @@ def run_firmware(tx):
     ssh_shell = True
 
 def run_connect_ssh():
-    global connection 
+    global ssh_connection 
     
-    connection = tx.connect_ssh()
+    ssh_connection = tx.connect_ssh()
 
 def run_connect_nrf():
     global serials
@@ -131,7 +132,7 @@ def run_startup_control_api():
     global tx 
     global serials
     global ssh_shell
-    global connection
+    global ssh_connection
     global rf_connection
 
     start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE)
@@ -152,7 +153,7 @@ def run_startup_control_api():
     running = True
     while running:
         simulate = start_gui.get_simulate_value()
-        running, button = start_gui.update(connection, rf_connection)
+        running, button = start_gui.update(ssh_connection, rf_connection)
 
         action = dispatch.get(button)
         if action:

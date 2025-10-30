@@ -177,8 +177,7 @@ void listenSerial(void)
     command.toCharArray(com, 50);
     ServoCommand serial_cmd = parseCommand(com);
 
-    if (strcmp(serial_cmd.joint, "CNT") == 0) digitalWrite(GREEN_LED_PIN, HIGH);
-    if (strcmp(serial_cmd.joint, "DIS") == 0) digitalWrite(GREEN_LED_PIN, LOW);
+    if (serial_cmd.type == CMD) blinkLED(GREEN_LED_PIN);
     if (strcmp(serial_cmd.joint, "STA") == 0) 
     {
       int button_state = digitalRead(RED_LED_PIN);
@@ -222,7 +221,6 @@ void loop()
     listenSerial();
     
     cmd.checksum = computeChecksum((byte*)&cmd, sizeof(cmd) - 1);
-    
     Mirf.send((byte*)&cmd);
     while (Mirf.isSending());
 
@@ -236,28 +234,32 @@ void loop()
     if (Mirf.dataReady())
     {
       Mirf.getData((byte*)&received);
- 
       byte expected = computeChecksum((byte*)&received, sizeof(received) - 1);
+
+      // Send Reply Mirf 
+      //if (received.type == CMD) blinkLED(GREEN_LED_PIN);
       
       if (expected == received.checksum && received.type == CMD) 
       {
         reply = {ACK, received.id, {'A', 'C', 'K'}, 0.0, 0};
-        //Serial.print("Type: "); Serial.println(received.type);
-        //Serial.print("ID: "); Serial.println(received.id);
-        //Serial.print("Joint: "); Serial.println(received.joint);
-        //Serial.print("Angle: "); Serial.println(received.angle);
-      } 
-      else 
+        digitalWrite(RED_LED_PIN, HIGH);
+      }
+      else
       {
         reply = {NACK, received.id, {'N', 'A', 'K'}, 0.0, 0};
-        //Serial.println("Checksum mismatch — packet corrupted.");
+        digitalWrite(RED_LED_PIN, LOW);
       }
-
+ 
       reply.checksum = computeChecksum((byte*)&reply, sizeof(reply)-1);
       Mirf.send((byte*)&reply);
       while (Mirf.isSending());
       Mirf.config();
-    } 
+    }
+
+    else
+    {
+      digitalWrite(RED_LED_PIN, LOW);
+    }
   }
 }
 
