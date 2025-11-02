@@ -32,7 +32,7 @@
 const int GREEN_LED_PIN = A4;
 const int RED_LED_PIN = A5;
 
-int role = RX;
+int role = TX;
 
 unsigned long start;
 unsigned long lastAckTime;
@@ -196,7 +196,7 @@ void listenSerial(void)
     command.toCharArray(com, 50);
     ServoCommand serial_cmd = parseCommand(com);
 
-    if (serial_cmd.type == CMD) blinkLED(GREEN_LED_PIN);
+    //if (serial_cmd.type == CMD) blinkLED(GREEN_LED_PIN);
     if (strcmp(serial_cmd.joint, "STA") == 0)
     {
       int button_state = digitalRead(RED_LED_PIN);

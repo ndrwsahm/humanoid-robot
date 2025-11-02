@@ -8,13 +8,22 @@ running = True
 def parse_user_input(user_input):
     global joint_map
 
+    print (" ")
+    print("User Input: " + user_input)
+
     joint = user_input[:3]
+    angle_str = user_input[3:].strip()
     try:
-        angle = int(user_input[3:])
+        angle = float(angle_str)
+        print("got here")
     except ValueError:
+        print("Error in parsing input, setting default angle...")
         angle = 90  # Default fallback if angle is malformed
 
     servo = joint_map.get(joint, -1)  # -1 if joint not found
+
+    print("Servo: " + str(servo))
+    print("Angle: " + str(angle))
 
     return servo, angle
 
@@ -44,8 +53,6 @@ if __name__ == "__main__":
     while running:
         user_input = rx_comms.get_user_input()
         if user_input:
-            print (" ")
-            print("User Input   " + user_input)
             servo, angle = parse_user_input(user_input)
             
             if servo >= 0:

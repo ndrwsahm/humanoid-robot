@@ -18,7 +18,8 @@ class SSH_RX_Comms:
         if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
             return sys.stdin.readline().strip()
         return None
-      
+
+   """   
    def parse_user_input(self, line):
       line = line.strip()
       parts = line.split()
@@ -37,7 +38,7 @@ class SSH_RX_Comms:
          return {"error": "Empty line received"}
       else:
          return {"error": f"Malformed line: {line}"}
-
+    """
 if __name__ == "__main__":
    rx = SSH_RX_Comms()
 
