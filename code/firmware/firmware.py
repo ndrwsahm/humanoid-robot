@@ -1,5 +1,6 @@
 from robot import *
-from instruments.rx_comms import * 
+from instruments.serial_rx_comms import * 
+from instruments.ssh_rx_comms import *
 from instruments.servo_utility import *
 
 running = True
@@ -36,7 +37,7 @@ def setup():
         robot = Robot(pca_obj)
 
         print("Creating Comms Object...")
-        rx_comms = RX_Comms()
+        rx_comms = SSH_RX_Comms()
         
     except Exception as e:
         print(e)
@@ -48,7 +49,7 @@ def setup():
 
 if __name__ == "__main__":
     setup()
-    
+
     while running:
         robot.lean_right()
         time.sleep(1)

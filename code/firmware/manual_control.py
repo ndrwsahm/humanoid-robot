@@ -1,5 +1,6 @@
 from robot import *
-from firmware.instruments.serial_rx_comms import * 
+from instruments.serial_rx_comms import * 
+from instruments.ssh_rx_comms import *
 from instruments.servo_utility import *
 
 running = True
@@ -32,7 +33,7 @@ try:
     #           lhr, lha, lhe, lk, laa, lae
     #robot.set_all_angles([90,80,60,100,100,70,90,100,120,90,100,100])
     print("Creating Comms Object...")
-    rx_comms = RX_Comms()
+    rx_comms = SSH_RX_Comms()
     
 except Exception as e:
     print(e)
