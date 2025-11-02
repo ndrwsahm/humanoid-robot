@@ -1,3 +1,6 @@
+PI_COM_PORT = '/dev/ttyUSB0'
+PI_BAUDRATE = 115200
+
 A1_LENGTH = 12   # cm
 A2_LENGTH = 9.25   # cm
 

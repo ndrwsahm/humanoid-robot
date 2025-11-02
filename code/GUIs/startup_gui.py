@@ -85,7 +85,7 @@ class Startup_GUI:
         button.place(x=x, y=y)
         return button
 
-    def update(self, connection, rf_connection):
+    def update(self, ssh_connection, rf_connection):
         if self.exit_application:
             return False, self.selected_button
         else:
@@ -95,8 +95,7 @@ class Startup_GUI:
             if self.exit_application:
                 return False, self.selected_button
         
-            self.update_ssh_button(connection)
-            self.update_rf_button(rf_connection)
+            self.update_simulate_scale(ssh_connection, rf_connection)
 
             button_actions = {
                 "ssh": (True, "ssh"),
@@ -123,24 +122,21 @@ class Startup_GUI:
 
         return full_cmd
 
-    def update_ssh_button(self, connection):
-        if not connection:
-            self.simulate_scale.set(0)  
-            self.ssh_button.configure(bg="red")
-        else:
-            self.simulate_scale.set(1) 
+    def update_simulate_scale(self, ssh_connection, rf_connection):
+        if ssh_connection:
+            self.simulate_scale.set(1)  
             self.ssh_button.configure(bg="green")
-
-    def update_rf_button(self, connection):
-        if not connection:
-            self.simulate_scale.set(0)  
-            self.nrf_button.configure(bg="red")
-        else:
-            self.simulate_scale.set(1) 
+        elif rf_connection:
+            self.simulate_scale.set(1)
             self.nrf_button.configure(bg="green")
+        else:
+            self.simulate_scale.set(0) 
+            self.ssh_button.configure(bg="red")
+            self.nrf_button.configure(bg="red")
 
     def get_simulate_value(self):
         simulate_val = self.simulate_scale.get()
+
         if simulate_val >= 0.5:
             self.simulate_scale.set(1)
         else:

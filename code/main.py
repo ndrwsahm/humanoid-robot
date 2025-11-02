@@ -4,7 +4,7 @@ sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/firmware/instruments
 
 from firmware.instruments import servo_utility
 from firmware.robot import *
-from firmware.kinematics import *
+from firmware.utility_functions.kinematics import *
 
 from GUIs.manual_control_gui import *
 from GUIs.startup_gui import *
@@ -80,7 +80,6 @@ def run_manual_control_api(simulate):
 
                     # check response
                     if ssh_connection:
-                        print("here")
                         response = tx.receive_response()
                         if response:
                             print(response)
@@ -110,10 +109,9 @@ def run_connect_nrf():
     serials_connection = serials.connect()
 
     if serials_connection:
-
-        joint, rf_connection = serials.send_command("CMD 39 STA 0.0") # Check status of LED
-
-        if not rf_connection:
+        try:
+            joint, rf_connection = serials.send_command("CMD 39 STA 0.0") # Check status of LED
+        except:
             print("No acknowledgement received from humanoid receiver!")
    
         #serials.close()

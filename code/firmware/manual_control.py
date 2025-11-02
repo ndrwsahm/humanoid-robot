@@ -1,42 +1,25 @@
 from robot import *
-from instruments.rx_comms import * 
+from firmware.instruments.serial_rx_comms import * 
 from instruments.servo_utility import *
 
 running = True
 
+joint_map = {
+        "lhr": 0, "lha": 1, "lhe": 2, "lkk": 3,
+        "laa": 4, "lae": 5, "rhr": 6, "rha": 7,
+        "rhe": 8, "rkk": 9, "raa": 10, "rae": 11
+    }
+
 def parse_user_input(user_input):
-    # [lhr, lha, lhe, lk, laa, lae, rhr, rha, rhe, rk, raa, rae]
-    angle = int(user_input[3:])
-    #print(user_input[3:])
-    input = user_input[0:3]
-    #angle = 90
-    if input == "lhr":
-        servo = 0
-    elif input == "lha":
-        servo = 1
-    elif input == "lhe":
-        servo = 2
-    elif input == "lkk":
-        servo = 3
-    elif input == "laa":
-        servo = 4
-    elif input == "lae":
-        servo = 5
-    elif input == "rhr":
-        servo = 6
-    elif input == "rha":
-        servo = 7
-    elif input == "rhe":
-        servo = 8
-    elif input == "rkk":
-        servo = 9
-    elif input == "raa":
-        servo = 10
-    elif input == "rae":
-        servo = 11
-    else:
-        servo = -1
-        angle = 90
+    global joint_map
+
+    joint = user_input[:3]
+    try:
+        angle = int(user_input[3:])
+    except ValueError:
+        angle = 90  # Default fallback if angle is malformed
+
+    servo = joint_map.get(joint, -1)  # -1 if joint not found
 
     return servo, angle
 

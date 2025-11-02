@@ -54,13 +54,14 @@ class Serial_Comms:
                 return joint, angle
             except Exception as e:
                 print(e)
+                print("Unplug RX arduino from computer and try again!!")
         return None
 
     def close(self):
         if self.ser and self.ser.is_open:
             self.ser.close()
             #print("Serial connection closed.")
-"""
+
 # Example usage
 if __name__ == "__main__":
     comms = Serial_Comms(port=COM_PORT, baudrate=BAUDRATE)
@@ -72,4 +73,3 @@ if __name__ == "__main__":
         comms.send_command("CMD 39 rha 87.3")
         time.sleep(1)
         comms.close()
-"""
