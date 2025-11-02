@@ -101,7 +101,7 @@ void listenACK(void)
   Mirf.config();
   start = millis();
 
-  while (millis() - start < 10)
+  while (millis() - start < 5)
   {
     if (Mirf.dataReady())
     {
