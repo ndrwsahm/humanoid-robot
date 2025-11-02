@@ -46,3 +46,9 @@ RIGHT_LEG_STAND_ANGLES = [82, 77, 71, 107, 77, 94, 90, 88, 105, 134, 79, 113]
 LEFT_LEG_FORWARD_STEP_ANGLES = [82, 77, 36, 84, 69, 80, 90, 88, 105, 134, 94, 105]
 
 ONE_DEGREE_ANGLES = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+joint_map = {
+        "lhr": LHR_IDX, "lha": LHA_IDX, "lhe": LHE_IDX, "lkk": LK_IDX,
+        "laa": LAA_IDX, "lae": LAE_IDX, "rhr": RHR_IDX, "rha": RHA_IDX,
+        "rhe": RHE_IDX, "rkk": RK_IDX, "raa": RAA_IDX, "rae": RAE_IDX
+    }

@@ -5,12 +5,6 @@ from instruments.servo_utility import *
 
 running = True
 
-joint_map = {
-        "lhr": 0, "lha": 1, "lhe": 2, "lkk": 3,
-        "laa": 4, "lae": 5, "rhr": 6, "rha": 7,
-        "rhe": 8, "rkk": 9, "raa": 10, "rae": 11
-    }
-
 def parse_user_input(user_input):
     global joint_map
 

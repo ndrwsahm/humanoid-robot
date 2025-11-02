@@ -27,12 +27,9 @@ def run_manual_control_api(simulate):
         pca = servo_utility.PCA9865(0x41, simulate)
         robot = Robot(pca)
     else:
-        if rf_connection:
-            # TODO how are you going to run firmware via RF????? FUCK....
-            pass
-        else:
-            tx.run_manual_control(FIRMWARE_REMOTE_LOCATION)
-        
+        # TODO how are you going to run firmware via RF????? FUCK....
+        tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection)
+    
     manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT)
     # TODO, no access to robot bc thats firmware
     #starting_angles = robot.get_all_angles()

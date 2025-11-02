@@ -48,9 +48,13 @@ class SSH_TX_Comms:
             print("Unable to Connect!")
             return False
 
-    def run_manual_control(self, file_path):
+    def run_manual_control(self, file_path, rf_connection):
         # Need to run script to wait for user input
-        full_file_path = 'python3 ' + file_path + '/manual_control.py\n'
+        if rf_connection:
+            arg = 'nrf'
+        else:
+            arg = 'ssh'
+        full_file_path = 'python3 ' + file_path + '/manual_control.py ' + arg + '\n'
 
         try:
             self.invoke_shell()
