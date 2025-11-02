@@ -54,7 +54,7 @@ class Serial_Comms:
                 return joint, angle
             except Exception as e:
                 print(e)
-                print("Unplug RX arduino from computer and try again!!")
+                print("Ensure to plug in RX arduino and try again!!")
         return None
 
     def close(self):
