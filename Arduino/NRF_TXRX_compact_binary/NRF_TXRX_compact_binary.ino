@@ -170,6 +170,7 @@ ServoCommand parseCommand(char* input)
 
 void sendSerial(ServoCommand message)
 {
+  //blinkLED(GREEN_LED_PIN);
   // Prep message for echo back to python
   char joint_buf[4];
   memcpy(joint_buf, message.joint, 3);
@@ -279,7 +280,10 @@ void loop()
       }
 
       // Send received message to pi
-      sendSerial(received);
+      if(expected == received.checksum && strcmp(received.joint, "ACK") != 0)
+      {
+        sendSerial(received);  
+      }
 
       // Send echo ACK back to TX arduino
       sendNRF(reply);

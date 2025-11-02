@@ -58,9 +58,12 @@ class Serial_Comms:
         return None
 
     def close(self):
-        if self.ser and self.ser.is_open:
-            self.ser.close()
-            #print("Serial connection closed.")
+        try:
+            if self.ser and self.ser.is_open:
+                self.ser.close()
+                #print("Serial connection closed.")
+        except Exception as e:
+            print(e)
 
 # Example usage
 if __name__ == "__main__":

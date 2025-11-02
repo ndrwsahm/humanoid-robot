@@ -24,16 +24,19 @@ class Serial_RX_Comms:
          self.ser.close()       
 
    def get_user_input(self):
-      if self.ser.in_waiting and self.ser:
-         line = self.ser.readline().decode('utf-8', errors='ignore')
-         result = self.parse_user_input(line)
+      try:
+         if self.ser.in_waiting and self.ser:
+            line = self.ser.readline().decode('utf-8', errors='ignore')
+            result = self.parse_user_input(line)
 
-         if "error" in result:
-            print("Error:", result["error"])
-         else:
-            print(f"Joint: {result['joint']}, Angle: {result['angle']}")
+            if "error" in result:
+               print("Error:", result["error"])
+            else:
+               print(f"Joint: {result['joint']}, Angle: {result['angle']}")
 
-         return result
+            return result
+      except Exception as e:
+         pass
       
    def parse_user_input(self, line):
       line = line.strip()
@@ -55,7 +58,7 @@ class Serial_RX_Comms:
          return {"error": f"Malformed line: {line}"}
 
 if __name__ == "__main__":
-   rx = RX_Comms()
+   rx = Serial_RX_Comms()
 
    while True:
       rx.get_user_input()
