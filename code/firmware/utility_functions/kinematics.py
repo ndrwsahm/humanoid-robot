@@ -1,12 +1,17 @@
 import math
 import numpy as np
+import sys
+import os
+
+firmware_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, firmware_dir)
 
 try:
     from firmware.settings import *
 except:
     from settings import *
 
-def compute_inverse_kinematics(x, y, z):
+def compute_inverse_kinematics(x, y, z, leg):
     # Assumptions: Moving COM by abductors does not effect height of robot
     theta = [0, 0, 0, 0, 0, 0]
 
@@ -31,8 +36,10 @@ def compute_inverse_kinematics(x, y, z):
             knee_extendor = 0
         else:
             knee_extendor = math.acos(numerator / denomenator)
-            knee_extendor = math.degrees(knee_extendor)
-
+            if leg == "left":
+                knee_extendor = 180 - math.degrees(knee_extendor)
+            else:
+                knee_extendor = math.degrees(knee_extendor)
         # Ankle Extendor
         equation_str = f"({A2_LENGTH}*{A2_LENGTH} + {D}*{D} - {A1_LENGTH}*{A1_LENGTH}) / (2 * {A2_LENGTH} * {D})"
         err = "ankle_beta domain error!!"
@@ -50,7 +57,10 @@ def compute_inverse_kinematics(x, y, z):
         ankle_alpha = math.degrees(ankle_alpha)
         err = "ankle_alpha domain error!!"
 
-        ankle_extendor = 180 - ankle_alpha + ankle_beta   
+        if leg == "left":
+            ankle_extendor = 180 - (ankle_alpha + ankle_beta)   
+        else:
+            ankle_extendor = ankle_alpha + ankle_beta
 
         # Hip Extendor
         equation_str = f"({A1_LENGTH}*{A1_LENGTH} + {D}*{D} - {A2_LENGTH}*{A2_LENGTH}) / (2 * {A1_LENGTH} * {D})"
@@ -67,8 +77,10 @@ def compute_inverse_kinematics(x, y, z):
 
         hip_alpha = ankle_alpha
 
-        hip_extendor = hip_alpha - hip_beta
-
+        if leg == "left":
+            hip_extendor = hip_alpha - hip_beta
+        else:
+            hip_extendor = 180 - (hip_alpha - hip_beta)
         # Front Plane Kinematics
         # TODO assuming y = 0 for now until solid
 
@@ -93,15 +105,15 @@ def compute_forward_kinematics(angles, leg):
         knee_x_pos = A1_LENGTH * math.cos(math.radians(angles[LHE_IDX]))
         knee_z_pos = A1_LENGTH * math.sin(math.radians(angles[LHE_IDX]))
 
-        foot_x_pos = A2_LENGTH * math.cos(math.radians(angles[LHE_IDX] + 180 - angles[LK_IDX]))
-        foot_z_pos = A2_LENGTH * math.sin(math.radians(angles[LHE_IDX] + 180 - angles[LK_IDX]))
+        foot_x_pos = A2_LENGTH * math.cos(math.radians(angles[LHE_IDX] + angles[LK_IDX]))
+        foot_z_pos = A2_LENGTH * math.sin(math.radians(angles[LHE_IDX] + angles[LK_IDX]))
 
     elif leg == "right":
-        knee_x_pos = A1_LENGTH * math.cos(math.radians(angles[RHE_IDX]))
-        knee_z_pos = A1_LENGTH * math.sin(math.radians(angles[RHE_IDX]))
+        knee_x_pos = A1_LENGTH * math.cos(math.radians(angles[LHE_IDX]))
+        knee_z_pos = A1_LENGTH * math.sin(math.radians(angles[LHE_IDX]))
 
-        foot_x_pos = A2_LENGTH * math.cos(math.radians(angles[RHE_IDX] + 180 - angles[RK_IDX]))
-        foot_z_pos = A2_LENGTH * math.sin(math.radians(angles[RHE_IDX] + 180 - angles[RK_IDX]))
+        foot_x_pos = A2_LENGTH * math.cos(math.radians(angles[LHE_IDX] + 180 - angles[LK_IDX]))
+        foot_z_pos = A2_LENGTH * math.sin(math.radians(angles[LHE_IDX] + 180 - angles[LK_IDX]))
 
     x = knee_x_pos + foot_x_pos
     z = knee_z_pos + foot_z_pos
@@ -122,7 +134,7 @@ if __name__ == "__main__":
     y_pos = 0
     z_pos = -15
 
-    angles = compute_inverse_kinematics(x_pos, y_pos, z_pos)
+    angles = compute_inverse_kinematics(x_pos, y_pos, z_pos, "left")
 
     print(f"    X:    |    Y:    |    Z:   ")
     print("-" * 35)
@@ -139,7 +151,7 @@ if __name__ == "__main__":
     print("")
     print("")
 
-    x_pos, y_pos, z_pos = compute_forward_kinematics(angles)
+    x_pos, y_pos, z_pos = compute_forward_kinematics(angles, "left")
 
     # Print header
     print(f"{'Joint':<20} | {'Angle (°)'}")

@@ -101,6 +101,7 @@ void listenACK(void)
   Mirf.config();
   start = millis();
 
+  // TODO may need to thread this to make it smoother
   while (millis() - start < 5)
   {
     if (Mirf.dataReady())
