@@ -107,18 +107,19 @@ def compute_forward_kinematics(angles, leg):
 
     if leg == "left":
         # INFO Ignoring Y pos for now
+        # INFO Z will always be negative for now
         knee_x_pos = A1_LENGTH * math.cos(math.radians(angles[LHE_IDX]))
-        knee_z_pos = A1_LENGTH * math.sin(math.radians(angles[LHE_IDX]))
+        knee_z_pos = -1 * A1_LENGTH * math.sin(math.radians(angles[LHE_IDX]))
 
         foot_x_pos = A2_LENGTH * math.cos(math.radians(angles[LHE_IDX] + angles[LK_IDX]))
-        foot_z_pos = A2_LENGTH * math.sin(math.radians(angles[LHE_IDX] + angles[LK_IDX]))
+        foot_z_pos = -1 * A2_LENGTH * math.sin(math.radians(angles[LHE_IDX] + angles[LK_IDX]))
 
     elif leg == "right":
-        knee_x_pos = A1_LENGTH * math.cos(math.radians(angles[LHE_IDX]))
-        knee_z_pos = A1_LENGTH * math.sin(math.radians(angles[LHE_IDX]))
+        knee_x_pos = A1_LENGTH * math.cos(math.radians(180 - angles[LHE_IDX]))
+        knee_z_pos = -1 * A1_LENGTH * math.sin(math.radians(180 - angles[LHE_IDX]))
 
-        foot_x_pos = A2_LENGTH * math.cos(math.radians(angles[LHE_IDX] + 180 - angles[LK_IDX]))
-        foot_z_pos = A2_LENGTH * math.sin(math.radians(angles[LHE_IDX] + 180 - angles[LK_IDX]))
+        foot_x_pos = A2_LENGTH * math.cos(math.radians((180 - angles[LHE_IDX]) + (180 - angles[LK_IDX])))
+        foot_z_pos = -1 * A2_LENGTH * math.sin(math.radians((180 - angles[LHE_IDX]) + (180 - angles[LK_IDX])))
 
     x = knee_x_pos + foot_x_pos
     z = knee_z_pos + foot_z_pos
@@ -135,11 +136,11 @@ if __name__ == "__main__":
         "Ankle Extendor"
     ]
 
-    x_pos = -6
+    x_pos = 6
     y_pos = 0
     z_pos = -12
 
-    angles = compute_inverse_kinematics(x_pos, y_pos, z_pos, "left")
+    angles = compute_inverse_kinematics(x_pos, y_pos, z_pos, "right")
 
     print(f"    X:    |    Y:    |    Z:   ")
     print("-" * 35)
@@ -156,7 +157,7 @@ if __name__ == "__main__":
     print("")
     print("")
 
-    x_pos, y_pos, z_pos = compute_forward_kinematics(angles, "left")
+    x_pos, y_pos, z_pos = compute_forward_kinematics(angles, "right")
 
     # Print header
     print(f"{'Joint':<20} | {'Angle (°)'}")
