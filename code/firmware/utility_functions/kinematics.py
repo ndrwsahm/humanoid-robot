@@ -57,8 +57,13 @@ def compute_inverse_kinematics(x, y, z, leg):
         ankle_alpha = math.degrees(ankle_alpha)
         err = "ankle_alpha domain error!!"
 
-        if leg == "left":
-            ankle_extendor = 180 - (ankle_alpha + ankle_beta)   
+        # TODO not even close to correct.... not sure why
+        if leg == "left" and x < 0:
+            ankle_extendor = 180 - (ankle_alpha - ankle_beta)   
+        elif leg == "left" and x > 0:
+            ankle_extendor = 180 - (ankle_alpha + ankle_beta)
+        elif leg == "right" and x < 0:
+            ankle_extendor = ankle_alpha - ankle_beta
         else:
             ankle_extendor = ankle_alpha + ankle_beta
 
@@ -130,9 +135,9 @@ if __name__ == "__main__":
         "Ankle Extendor"
     ]
 
-    x_pos = 6
+    x_pos = -6
     y_pos = 0
-    z_pos = -15
+    z_pos = -12
 
     angles = compute_inverse_kinematics(x_pos, y_pos, z_pos, "left")
 
