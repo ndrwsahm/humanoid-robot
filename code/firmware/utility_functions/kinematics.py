@@ -16,10 +16,7 @@ def compute_inverse_kinematics(x, y, z, leg):
     # Front Plane Kinematics
     # INFO assuming y = 0 for now until solid
 
-    if leg == "right":
-        theta = RIGHT_LEG_DEFAULT_ANGLES
-    else:
-        theta = LEFT_LEG_DEFAULT_ANGLES
+    theta = ANGLES_TO_90
  
     if x == 0:
         x = 0.001

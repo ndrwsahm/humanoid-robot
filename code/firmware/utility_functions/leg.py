@@ -25,6 +25,11 @@ class Leg:
         self.last_thetas = [0, 0, 0, 0, 0, 0]     # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
         self.current_thetas = [90, 90, 90, 90, 90, 90]  # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
 
+        if side == "left":
+            self.offset_thetas = LEFT_OFFSET_ANGLES
+        else:
+            self.offset_thetas = RIGHT_OFFSET_ANGLES
+
         self.last_knee_pos = [0, 0, 0]
         self.last_foot_pos = [0, 0, 0]
         self.current_knee_pos = [0, 0, 0]
@@ -58,11 +63,11 @@ class Leg:
         #print(self.current_thetas, self.pins)
         #print ("")
         if self.last_thetas != self.current_thetas:
-            self.pca.set_servo_angle(self.pins[0], theta1)
-            self.pca.set_servo_angle(self.pins[1], theta2)
-            self.pca.set_servo_angle(self.pins[2], theta3)
-            self.pca.set_servo_angle(self.pins[3], theta4)
-            self.pca.set_servo_angle(self.pins[4], theta5)
-            self.pca.set_servo_angle(self.pins[5], theta6)
+            self.pca.set_servo_angle(self.pins[0], theta1 + self.offset_thetas[0])
+            self.pca.set_servo_angle(self.pins[1], theta2 + self.offset_thetas[1])
+            self.pca.set_servo_angle(self.pins[2], theta3 + self.offset_thetas[2])
+            self.pca.set_servo_angle(self.pins[3], theta4 + self.offset_thetas[3])
+            self.pca.set_servo_angle(self.pins[4], theta5 + self.offset_thetas[4])
+            self.pca.set_servo_angle(self.pins[5], theta6 + self.offset_thetas[5])
 
             self.update()
