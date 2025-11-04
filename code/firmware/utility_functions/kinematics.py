@@ -13,8 +13,14 @@ except:
 
 def compute_inverse_kinematics(x, y, z, leg):
     # Assumptions: Moving COM by abductors does not effect height of robot
-    theta = [0, 0, 0, 0, 0, 0]
+    # Front Plane Kinematics
+    # INFO assuming y = 0 for now until solid
 
+    if leg == "right":
+        theta = RIGHT_LEG_DEFAULT_ANGLES
+    else:
+        theta = LEFT_LEG_DEFAULT_ANGLES
+ 
     if x == 0:
         x = 0.001
     if y == 0:
@@ -33,13 +39,13 @@ def compute_inverse_kinematics(x, y, z, leg):
         numerator = (A2_LENGTH*A2_LENGTH + A1_LENGTH*A1_LENGTH - D*D)
         denomenator = (2 * A2_LENGTH * A1_LENGTH)
         if numerator > denomenator:
-            knee_extendor = 0
+            theta[KK_IDX] = 0
         else:
-            knee_extendor = math.acos(numerator / denomenator)
+            theta[KK_IDX] = math.acos(numerator / denomenator)
             if leg == "left":
-                knee_extendor = 180 - math.degrees(knee_extendor)
+                theta[KK_IDX] = 180 - math.degrees(theta[KK_IDX])
             else:
-                knee_extendor = math.degrees(knee_extendor)
+                theta[KK_IDX] = math.degrees(theta[KK_IDX])
         # Ankle Extendor
         equation_str = f"({A2_LENGTH}*{A2_LENGTH} + {D}*{D} - {A1_LENGTH}*{A1_LENGTH}) / (2 * {A2_LENGTH} * {D})"
         err = "ankle_beta domain error!!"
@@ -59,13 +65,13 @@ def compute_inverse_kinematics(x, y, z, leg):
 
         # TODO not even close to correct.... not sure why
         if leg == "left" and x < 0:
-            ankle_extendor = 180 - (ankle_alpha - ankle_beta)   
+            theta[AE_IDX] = 180 - (ankle_alpha - ankle_beta)   
         elif leg == "left" and x > 0:
-            ankle_extendor = 180 - (ankle_alpha + ankle_beta)
+            theta[AE_IDX] = 180 - (ankle_alpha + ankle_beta)
         elif leg == "right" and x < 0:
-            ankle_extendor = ankle_alpha - ankle_beta
+            theta[AE_IDX] = ankle_alpha - ankle_beta
         else:
-            ankle_extendor = ankle_alpha + ankle_beta
+            theta[AE_IDX] = ankle_alpha + ankle_beta
 
         # Hip Extendor
         equation_str = f"({A1_LENGTH}*{A1_LENGTH} + {D}*{D} - {A2_LENGTH}*{A2_LENGTH}) / (2 * {A1_LENGTH} * {D})"
@@ -83,13 +89,11 @@ def compute_inverse_kinematics(x, y, z, leg):
         hip_alpha = ankle_alpha
 
         if leg == "left":
-            hip_extendor = hip_alpha - hip_beta
+            theta[HE_IDX] = hip_alpha - hip_beta
         else:
-            hip_extendor = 180 - (hip_alpha - hip_beta)
-        # Front Plane Kinematics
-        # TODO assuming y = 0 for now until solid
+            theta[HE_IDX] = 180 - (hip_alpha - hip_beta)
 
-        theta = [90, 90, hip_extendor, knee_extendor, 90, ankle_extendor]      # hip rotation independent of kinematics
+        #theta = [90, 90, hip_extendor, knee_extendor, 90, ankle_extendor]      # hip rotation independent of kinematics
 
         # TODO check max thetas and limit values
 
@@ -108,18 +112,18 @@ def compute_forward_kinematics(angles, leg):
     if leg == "left":
         # INFO Ignoring Y pos for now
         # INFO Z will always be negative for now
-        knee_x_pos = A1_LENGTH * math.cos(math.radians(angles[LHE_IDX]))
-        knee_z_pos = -1 * A1_LENGTH * math.sin(math.radians(angles[LHE_IDX]))
+        knee_x_pos = A1_LENGTH * math.cos(math.radians(angles[HE_IDX]))
+        knee_z_pos = -1 * A1_LENGTH * math.sin(math.radians(angles[HE_IDX]))
 
-        foot_x_pos = A2_LENGTH * math.cos(math.radians(angles[LHE_IDX] + angles[LK_IDX]))
-        foot_z_pos = -1 * A2_LENGTH * math.sin(math.radians(angles[LHE_IDX] + angles[LK_IDX]))
+        foot_x_pos = A2_LENGTH * math.cos(math.radians(angles[HE_IDX] + angles[KK_IDX]))
+        foot_z_pos = -1 * A2_LENGTH * math.sin(math.radians(angles[HE_IDX] + angles[KK_IDX]))
 
     elif leg == "right":
-        knee_x_pos = A1_LENGTH * math.cos(math.radians(180 - angles[LHE_IDX]))
-        knee_z_pos = -1 * A1_LENGTH * math.sin(math.radians(180 - angles[LHE_IDX]))
+        knee_x_pos = A1_LENGTH * math.cos(math.radians(180 - angles[HE_IDX]))
+        knee_z_pos = -1 * A1_LENGTH * math.sin(math.radians(180 - angles[HE_IDX]))
 
-        foot_x_pos = A2_LENGTH * math.cos(math.radians((180 - angles[LHE_IDX]) + (180 - angles[LK_IDX])))
-        foot_z_pos = -1 * A2_LENGTH * math.sin(math.radians((180 - angles[LHE_IDX]) + (180 - angles[LK_IDX])))
+        foot_x_pos = A2_LENGTH * math.cos(math.radians((180 - angles[HE_IDX]) + (180 - angles[KK_IDX])))
+        foot_z_pos = -1 * A2_LENGTH * math.sin(math.radians((180 - angles[HE_IDX]) + (180 - angles[KK_IDX])))
 
     x = knee_x_pos + foot_x_pos
     z = knee_z_pos + foot_z_pos
