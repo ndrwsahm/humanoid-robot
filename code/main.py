@@ -15,7 +15,7 @@ ssh_shell = False
 ssh_connection = False
 rf_connection = False
 
-def run_manual_control_api(simulate):
+def run_manual_control_api(simulate, recal_servos):
     global tx
     global serials
     global rf_connection
@@ -28,7 +28,7 @@ def run_manual_control_api(simulate):
         robot = Robot(pca)
     else:
         # TODO how are you going to run firmware via RF????? FUCK....
-        tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection)
+        tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
     
     manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT)
     # TODO, no access to robot bc thats firmware
@@ -148,6 +148,8 @@ def run_startup_control_api():
     running = True
     while running:
         simulate = start_gui.get_simulate_value()
+        recal_servos = start_gui.get_recal_value()
+
         running, button = start_gui.update(ssh_connection, rf_connection)
 
         action = dispatch.get(button)
@@ -158,17 +160,17 @@ def run_startup_control_api():
             response = tx.receive_response()
             if response:
                 print(response)
-    return button, simulate
+    return button, simulate, recal_servos
         
 if __name__ == "__main__":
     pressed_button = "start"
 
     while pressed_button != "exit":
         if pressed_button == "start":
-            pressed_button, simulate = run_startup_control_api()
+            pressed_button, simulate, recal_servos = run_startup_control_api()
 
         elif pressed_button == "manual_control":
-            pressed_button = run_manual_control_api(simulate)
+            pressed_button = run_manual_control_api(simulate, recal_servos)
 
     close_all()
 

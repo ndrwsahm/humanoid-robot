@@ -31,6 +31,7 @@ class Startup_GUI:
 
     def load_widgets(self):
         self.create_simulate_scale(500, 200)
+        self.create_recal_scale(500, 375)
         self.create_ssh_section(200, 75)
         self.create_firmware_buttons()
         self.create_command_entry(10, 305)
@@ -42,6 +43,14 @@ class Startup_GUI:
         self.simulate_scale.place(x=x, y=y)
         tk.Label(self.root, text="Simulate").place(x=x-15, y=y-25)
         tk.Label(self.root, text="True                        False").place(x=x-15, y=y+25)
+
+    def create_recal_scale(self, x, y):
+        self.recal_scale = ttk.Scale(self.root, from_=0, to=1, orient="horizontal", command=lambda x: self.get_recal_value)
+        self.recal_scale.place(x=x, y=y)
+        tk.Label(self.root, text="Recal Servos").place(x=x-15, y=y-25)
+        tk.Label(self.root, text="True                        False").place(x=x-15, y=y+25)
+        tk.Label(self.root, text="If True, it will remove offsets").place(x=x+125, y=y)
+        self.recal_scale.set(1)
 
     def create_ssh_section(self, x, y):
         self.ssh_button = self.create_button("SSH Connect", x, y, "blue", self.ssh_button_click)
@@ -143,6 +152,19 @@ class Startup_GUI:
             self.simulate_scale.set(0)
 
         if simulate_val == 1:
+            return False
+        else:
+            return True
+        
+    def get_recal_value(self):
+        recal_val = self.recal_scale.get()
+
+        if recal_val >= 0.5:
+            self.recal_scale.set(1)
+        else:
+            self.recal_scale.set(0)
+
+        if recal_val == 1:
             return False
         else:
             return True
