@@ -28,7 +28,7 @@ def setup():
     try:
         pca_obj = PCA9865(0x41, False)
         print("Creating Robot Object...")
-        robot = Robot(pca_obj)
+        robot = Robot(pca_obj, False)   # Recal always false for firmware
 
         print("Creating Comms Object...")
         rx_comms = SSH_RX_Comms()

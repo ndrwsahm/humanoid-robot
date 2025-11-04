@@ -3,6 +3,7 @@ from instruments.serial_rx_comms import *
 from instruments.ssh_rx_comms import *
 from instruments.servo_utility import *
 
+RECAL_SERVOS = True
 running = True
 
 def parse_user_input(user_input):
@@ -33,7 +34,7 @@ if __name__ == "__main__":
     try:
         pca_obj = PCA9865(0x41, False)
         print("Creating Robot Object...")
-        robot = Robot(pca_obj)
+        robot = Robot(pca_obj, RECAL_SERVOS)
         #           lhr, lha, lhe, lk, laa, lae
         #robot.set_all_angles([90,80,60,100,100,70,90,100,120,90,100,100])
         if(sys.argv[1] == "ssh"):

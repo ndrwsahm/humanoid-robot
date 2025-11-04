@@ -15,7 +15,7 @@ ANKLE_ADUCTOR = 4
 ANKLE_EXTENDOR = 5
 
 class Leg:
-    def __init__(self, pca_object, pin_numbers, side, dimensions):
+    def __init__(self, pca_object, pin_numbers, side, dimensions, is_recal):
         self.pca = pca_object
         self.pins = pin_numbers
         self.side = side.lower()    # make all lower case                                                  
@@ -25,10 +25,13 @@ class Leg:
         self.last_thetas = [0, 0, 0, 0, 0, 0]     # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
         self.current_thetas = [90, 90, 90, 90, 90, 90]  # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
 
-        if side == "left":
-            self.offset_thetas = LEFT_OFFSET_ANGLES
+        if is_recal:    # Recalibrate servo flag
+            self.offset_thetas = [0, 0, 0, 0, 0, 0] 
         else:
-            self.offset_thetas = RIGHT_OFFSET_ANGLES
+            if side == "left":
+                self.offset_thetas = LEFT_OFFSET_ANGLES
+            else:
+                self.offset_thetas = RIGHT_OFFSET_ANGLES
 
         self.last_knee_pos = [0, 0, 0]
         self.last_foot_pos = [0, 0, 0]
