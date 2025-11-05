@@ -59,14 +59,10 @@ def compute_inverse_kinematics(x, y, z, leg):
         err = "ankle_alpha domain error!!"
 
         # TODO not even close to correct.... not sure why
-        if leg == "left" and x < 0:
-            ankle_extendor = 180 - (ankle_alpha - ankle_beta)   
-        elif leg == "left" and x > 0:
-            ankle_extendor = 180 - (ankle_alpha + ankle_beta)
-        elif leg == "right" and x < 0:
-            ankle_extendor = ankle_alpha - ankle_beta
+        if leg == "left":
+            ankle_extendor = ankle_alpha + ankle_beta 
         else:
-            ankle_extendor = ankle_alpha + ankle_beta
+            ankle_extendor = 180 - (ankle_alpha + ankle_beta)
 
         # Hip Extendor
         equation_str = f"({A1_LENGTH}*{A1_LENGTH} + {D}*{D} - {A2_LENGTH}*{A2_LENGTH}) / (2 * {A1_LENGTH} * {D})"

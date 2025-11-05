@@ -73,6 +73,9 @@ class Leg:
                     self.pca.set_servo_angle(self.pins[k], thetas[k] + self.offset_thetas[k])
                 except Exception as e:
                     print(e)
+                    print("Tried to set angle to :", thetas[k]+ self.offset_thetas[k])
+                    print("Last theta", self.last_thetas[k])
+                    # TODO errors out here and ankle angles get weird
                     self.pca.set_servo_angle(self.pins[k], self.last_thetas[k])
             #self.pca.set_servo_angle(self.pins[1], theta2 + self.offset_thetas[1])
             #self.pca.set_servo_angle(self.pins[2], theta3 + self.offset_thetas[2])
