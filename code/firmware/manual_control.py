@@ -15,7 +15,6 @@ def parse_user_input(user_input):
     angle_str = user_input[3:].strip()
     try:
         angle = float(angle_str)
-        print("got here")
     except ValueError:
         print("Error in parsing input, setting default angle...")
         angle = 90  # Default fallback if angle is malformed

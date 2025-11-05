@@ -16,8 +16,6 @@ def compute_inverse_kinematics(x, y, z, leg):
     # Front Plane Kinematics
     # INFO assuming y = 0 for now until solid
 
-    theta = ANGLES_TO_90
- 
     if x == 0:
         x = 0.001
     if y == 0:
@@ -36,13 +34,13 @@ def compute_inverse_kinematics(x, y, z, leg):
         numerator = (A2_LENGTH*A2_LENGTH + A1_LENGTH*A1_LENGTH - D*D)
         denomenator = (2 * A2_LENGTH * A1_LENGTH)
         if numerator > denomenator:
-            theta[KK_IDX] = 0
+            knee_extendor = 0
         else:
-            theta[KK_IDX] = math.acos(numerator / denomenator)
+            knee_extendor = math.acos(numerator / denomenator)
             if leg == "left":
-                theta[KK_IDX] = 180 - math.degrees(theta[KK_IDX])
+                knee_extendor = 180 - math.degrees(knee_extendor)
             else:
-                theta[KK_IDX] = math.degrees(theta[KK_IDX])
+                knee_extendor = math.degrees(knee_extendor)
         # Ankle Extendor
         equation_str = f"({A2_LENGTH}*{A2_LENGTH} + {D}*{D} - {A1_LENGTH}*{A1_LENGTH}) / (2 * {A2_LENGTH} * {D})"
         err = "ankle_beta domain error!!"
@@ -62,13 +60,13 @@ def compute_inverse_kinematics(x, y, z, leg):
 
         # TODO not even close to correct.... not sure why
         if leg == "left" and x < 0:
-            theta[AE_IDX] = 180 - (ankle_alpha - ankle_beta)   
+            ankle_extendor = 180 - (ankle_alpha - ankle_beta)   
         elif leg == "left" and x > 0:
-            theta[AE_IDX] = 180 - (ankle_alpha + ankle_beta)
+            ankle_extendor = 180 - (ankle_alpha + ankle_beta)
         elif leg == "right" and x < 0:
-            theta[AE_IDX] = ankle_alpha - ankle_beta
+            ankle_extendor = ankle_alpha - ankle_beta
         else:
-            theta[AE_IDX] = ankle_alpha + ankle_beta
+            ankle_extendor = ankle_alpha + ankle_beta
 
         # Hip Extendor
         equation_str = f"({A1_LENGTH}*{A1_LENGTH} + {D}*{D} - {A2_LENGTH}*{A2_LENGTH}) / (2 * {A1_LENGTH} * {D})"
@@ -86,19 +84,20 @@ def compute_inverse_kinematics(x, y, z, leg):
         hip_alpha = ankle_alpha
 
         if leg == "left":
-            theta[HE_IDX] = hip_alpha - hip_beta
+            hip_extendor = hip_alpha - hip_beta
         else:
-            theta[HE_IDX] = 180 - (hip_alpha - hip_beta)
+            hip_extendor = 180 - (hip_alpha - hip_beta)
 
-        #theta = [90, 90, hip_extendor, knee_extendor, 90, ankle_extendor]      # hip rotation independent of kinematics
-
+        theta = [90, 90, hip_extendor, knee_extendor, 90, ankle_extendor]      # hip rotation independent of kinematics
+        
         # TODO check max thetas and limit values
 
     except Exception as e:
         print(e)
         print("Equation = " + equation_str)
         print(err)
-    
+        return None # handle error upstream
+
     return theta
 
 def compute_forward_kinematics(angles, leg):

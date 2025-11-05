@@ -15,6 +15,16 @@ ssh_shell = False
 ssh_connection = False
 rf_connection = False
 
+def check_is_none(angles, last_angles, leg):
+    if angles is None:
+        angles = [90, 90, 90, 90, 90, 90]
+        for k in range(6):
+            if leg == "right":
+                angles[k] = last_angles[k+6]
+            else:
+                angles[k] = last_angles[k]
+    return angles
+
 def run_manual_control_api(simulate, recal_servos):
     global tx
     global serials
@@ -25,7 +35,7 @@ def run_manual_control_api(simulate, recal_servos):
     if simulate:
         # go thru local firmware folder to create objects
         pca = servo_utility.PCA9865(0x41, simulate)
-        robot = Robot(pca)
+        robot = Robot(pca, recal_servos)
     else:
         # TODO how are you going to run firmware via RF????? FUCK....
         tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
@@ -44,6 +54,7 @@ def run_manual_control_api(simulate, recal_servos):
             mode = manual_control_gui.get_mode()
 
             if mode == "Angles":
+                #print("Loading Angle Control...")
                 all_leg_angles = manual_control_gui.get_all_slider_angles()
                 left_leg_pos = compute_forward_kinematics(all_leg_angles, "left")
                 right_leg_pos = compute_forward_kinematics(all_leg_angles, "right")
@@ -52,19 +63,29 @@ def run_manual_control_api(simulate, recal_servos):
                 #print(all_leg_angles)
 
             elif mode == "Kinematics":
-                all_leg_pos = manual_control_gui.get_all_slider_pos()   
-                left_leg_angles = compute_inverse_kinematics(all_leg_pos[0], all_leg_pos[1], all_leg_pos[2])
-                right_leg_angles = compute_inverse_kinematics(all_leg_pos[3], all_leg_pos[4], all_leg_pos[5])
-                manual_control_gui.set_all_slider_angles(left_leg_angles + right_leg_angles)
-                
+                #print("Loading Kinematic Control...")
+                all_leg_pos = manual_control_gui.get_all_slider_pos()  
+                #print("Leg Pos...", all_leg_pos) 
+                left_leg_angles = compute_inverse_kinematics(all_leg_pos[0], all_leg_pos[1], all_leg_pos[2], "left")
+                right_leg_angles = compute_inverse_kinematics(all_leg_pos[3], all_leg_pos[4], all_leg_pos[5], "right")
+
+                left_leg_angles = check_is_none(left_leg_angles, last_all_leg_angles, "left")
+                right_leg_angles = check_is_none(right_leg_angles, last_all_leg_angles, "right")
+                all_leg_angles = left_leg_angles + right_leg_angles
+ 
+                manual_control_gui.set_all_slider_angles(all_leg_angles)
+
             # TODO delete when mode select is finished
-            all_leg_angles = manual_control_gui.get_all_slider_angles()
+            #print("Getting GUI Angles...")
+            #all_leg_angles = manual_control_gui.get_all_slider_angles()
 
             if simulate:
                 # go thru local firmware folder to create objects
+                #print("Setting Angles...")
                 robot.set_all_angles(all_leg_angles)
-
+                #print("Updating Robot...")
                 robot.update()
+                last_all_leg_angles = all_leg_angles
             
             else:
                 try:
@@ -82,6 +103,7 @@ def run_manual_control_api(simulate, recal_servos):
                             print(response)
                     last_all_leg_angles = all_leg_angles
                 except Exception as e:
+                    print("Sending command error...")
                     print (e)
         except:
             return 'exit'

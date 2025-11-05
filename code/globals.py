@@ -47,3 +47,5 @@ RIGHT_FOOT_Z = 5
 ALL_LEG_NAMES = ["lhr", "lha", "lhe", "lkk", "laa", "lae", "rhr", "rha", "rhe", "rkk", "raa", "rae"]
 ALL_LEGS = [LHR_IDX, LHA_IDX, LHE_IDX, LK_IDX, LAA_IDX, LAE_IDX, RHR_IDX, RHA_IDX, RHE_IDX, RK_IDX, RAA_IDX, RAE_IDX]
 ALL_POS = [LEFT_FOOT_X, LEFT_FOOT_Y, LEFT_FOOT_Z, RIGHT_FOOT_X, RIGHT_FOOT_Y, RIGHT_FOOT_Z]
+MIN_POS = [-20, 0, -20, -20, 0, -20]
+MAX_POS = [20, 20, 0, 20, 20, 0]

@@ -15,12 +15,13 @@ ANKLE_ADUCTOR = 4
 ANKLE_EXTENDOR = 5
 
 class Leg:
-    def __init__(self, pca_object, pin_numbers, side, dimensions, is_recal):
+    def __init__(self, pca_object, pin_numbers, side, dimensions, limits, is_recal):
         self.pca = pca_object
         self.pins = pin_numbers
         self.side = side.lower()    # make all lower case                                                  
                                                                            
         self.leg_dimensions = dimensions    # {a1, a2}    
+        self.theta_limits = limits
 
         self.last_thetas = [0, 0, 0, 0, 0, 0]     # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
         self.current_thetas = [90, 90, 90, 90, 90, 90]  # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
@@ -62,15 +63,21 @@ class Leg:
     def set_leg_theta(self, theta1, theta2, theta3, theta4, theta5, theta6):
         
         self.current_thetas = [theta1, theta2, theta3, theta4, theta5, theta6]
+        thetas = [theta1, theta2, theta3, theta4, theta5, theta6]
         #print ("Current thetas")
         #print(self.current_thetas, self.pins)
         #print ("")
         if self.last_thetas != self.current_thetas:
-            self.pca.set_servo_angle(self.pins[0], theta1 + self.offset_thetas[0])
-            self.pca.set_servo_angle(self.pins[1], theta2 + self.offset_thetas[1])
-            self.pca.set_servo_angle(self.pins[2], theta3 + self.offset_thetas[2])
-            self.pca.set_servo_angle(self.pins[3], theta4 + self.offset_thetas[3])
-            self.pca.set_servo_angle(self.pins[4], theta5 + self.offset_thetas[4])
-            self.pca.set_servo_angle(self.pins[5], theta6 + self.offset_thetas[5])
+            for k in range(len(self.current_thetas)):
+                try:
+                    self.pca.set_servo_angle(self.pins[k], thetas[k] + self.offset_thetas[k])
+                except Exception as e:
+                    print(e)
+                    self.pca.set_servo_angle(self.pins[k], self.last_thetas[k])
+            #self.pca.set_servo_angle(self.pins[1], theta2 + self.offset_thetas[1])
+            #self.pca.set_servo_angle(self.pins[2], theta3 + self.offset_thetas[2])
+            #self.pca.set_servo_angle(self.pins[3], theta4 + self.offset_thetas[3])
+            #self.pca.set_servo_angle(self.pins[4], theta5 + self.offset_thetas[4])
+            #self.pca.set_servo_angle(self.pins[5], theta6 + self.offset_thetas[5])
 
             self.update()
