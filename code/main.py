@@ -10,6 +10,7 @@ from GUIs.manual_control_gui import *
 from GUIs.startup_gui import *
 from ssh_tx_comms import *
 from serial_comms import *
+from write_to_file import *
 
 ssh_shell = False
 ssh_connection = False
@@ -62,13 +63,10 @@ def run_manual_control_api(simulate, recal_servos):
         pca = servo_utility.PCA9865(0x41, simulate)
         robot = Robot(pca, recal_servos)
     else:
-        # TODO how are you going to run firmware via RF????? FUCK....
+        # TODO how are you going to run firmware via RF????? FUCK.... also RF keeps crashing due to parsing issues, will randomly receive 000000000 instead of lha 180.0
         tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
     
     manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT, recal_servos)
-    # TODO, no access to robot bc thats firmware
-    #starting_angles = robot.get_all_angles()
-    #manual_control_gui.new(starting_angles)
 
     running = True
     while running:
@@ -78,37 +76,12 @@ def run_manual_control_api(simulate, recal_servos):
         # TODO create write file 
         if button == "recal_servos":
             print("Writing Cal Data to file...")
+            write_cal_data(last_all_leg_angles)
 
         try:
             mode = manual_control_gui.get_mode()
 
             all_leg_angles = run_kinematics(manual_control_gui, last_all_leg_angles, mode)
-            """
-            if mode == "Angles":
-                #print("Loading Angle Control...")
-                all_leg_angles = manual_control_gui.get_all_slider_angles()
-                left_leg_pos = compute_forward_kinematics(all_leg_angles, "left")
-                right_leg_pos = compute_forward_kinematics(all_leg_angles, "right")
-                manual_control_gui.set_all_slider_pos(left_leg_pos + right_leg_pos)
-                # TODO compute forward kinematics and set pos values 
-                #print(all_leg_angles)
-
-            elif mode == "Kinematics":
-                #print("Loading Kinematic Control...")
-                all_leg_pos = manual_control_gui.get_all_slider_pos()  
-                #print("Leg Pos...", all_leg_pos) 
-                left_leg_angles = compute_inverse_kinematics(all_leg_pos[0], all_leg_pos[1], all_leg_pos[2], "left")
-                right_leg_angles = compute_inverse_kinematics(all_leg_pos[3], all_leg_pos[4], all_leg_pos[5], "right")
-
-                left_leg_angles = check_is_none(left_leg_angles, last_all_leg_angles, "left")
-                right_leg_angles = check_is_none(right_leg_angles, last_all_leg_angles, "right")
-                all_leg_angles = left_leg_angles + right_leg_angles
- 
-                manual_control_gui.set_all_slider_angles(all_leg_angles)
-            """
-            # TODO delete when mode select is finished
-            #print("Getting GUI Angles...")
-            #all_leg_angles = manual_control_gui.get_all_slider_angles()
 
             if simulate:
                 # go thru local firmware folder to create objects

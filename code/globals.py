@@ -13,7 +13,7 @@ FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/firmware"
 FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmware"
 
 BAUDRATE = 115200
-COM_PORT = "COM6"
+COM_PORT = "COM8"
 
 ID = 39
 

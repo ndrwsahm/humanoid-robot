@@ -46,6 +46,9 @@ class Manual_Control_GUI:
             self.leg_slider_pos_group.append(ttk.Scale(self.root, from_=MIN_POS[al], to=MAX_POS[al], orient="horizontal", command=lambda x: self.get_slider_pos_value(al)))
             self.leg_label_pos_group.append(tk.Label(self.root, text=self.leg_text_pos_group[al], width=35))
 
+        self.shift_weight_scale = ttk.Scale(self.root, from_=-3, to=3, orient="horizontal", command=lambda x: self.get_slider_weight_val)
+        self.shift_weight_label = tk.Label(self.root, text="Shift Weight", width=35)
+
         mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
         mode_button.place(x=150, y=450)
 
@@ -68,17 +71,23 @@ class Manual_Control_GUI:
         for j in range(3): # number of servos per leg
             self.leg_slider_pos_group[j].grid(row=j, column=1, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
             self.leg_slider_pos_group[j+3].grid(row=j, column=4, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-
+            
             self.leg_label_pos_group[j].grid(row=j, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
             self.leg_label_pos_group[j+3].grid(row=j, column=5, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
 
         self.empty_label = tk.Label(self.root, text="           ")
         self.empty_label.grid(row=3,column=3,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
    
+        self.shift_weight_scale.grid(row=4,column=1,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+        self.shift_weight_label.grid(row=4,column=2,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+
     def hide_kinematic_sliders(self):
         for al in ALL_POS:
             self.leg_slider_pos_group[al].grid_remove()
             self.leg_label_pos_group[al].grid_remove()
+        
+        self.shift_weight_scale.grid_remove()
+        self.shift_weight_label.grid_remove()
       
     def show_angle_sliders(self):
         for j in range(6): # number of servos per leg
@@ -128,6 +137,10 @@ class Manual_Control_GUI:
         self.leg_label_pos_group[leg].config(text=self.leg_text_pos_group[leg] + str(round(slider_val, 2)) + "      ")
         
         return round(slider_val)
+    
+    def get_slider_weight_val(self):
+        print(round(self.shift_weight_scale.get()))
+        return round(self.shift_weight_scale.get())
     
     def get_all_slider_angles(self):
         all_angles = []
