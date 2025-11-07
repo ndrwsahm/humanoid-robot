@@ -25,6 +25,31 @@ def check_is_none(angles, last_angles, leg):
                 angles[k] = last_angles[k]
     return angles
 
+def run_kinematics(mc_gui, last_angles, mode):
+    if mode == "Angles":
+        #print("Loading Angle Control...")
+        leg_angles = mc_gui.get_all_slider_angles()
+        left_leg_pos = compute_forward_kinematics(leg_angles, "left")
+        right_leg_pos = compute_forward_kinematics(leg_angles, "right")
+        mc_gui.set_all_slider_pos(left_leg_pos + right_leg_pos)
+        # TODO compute forward kinematics and set pos values 
+        #print(leg_angles)
+
+    elif mode == "Kinematics":
+        #print("Loading Kinematic Control...")
+        leg_pos = mc_gui.get_all_slider_pos()  
+        #print("Leg Pos...", leg_pos) 
+        left_leg_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
+        right_leg_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
+
+        left_leg_angles = check_is_none(left_leg_angles, last_angles, "left")
+        right_leg_angles = check_is_none(right_leg_angles, last_angles, "right")
+        leg_angles = left_leg_angles + right_leg_angles
+
+        mc_gui.set_all_slider_angles(leg_angles)
+
+    return leg_angles
+
 def run_manual_control_api(simulate, recal_servos):
     global tx
     global serials
@@ -40,7 +65,7 @@ def run_manual_control_api(simulate, recal_servos):
         # TODO how are you going to run firmware via RF????? FUCK....
         tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
     
-    manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT)
+    manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT, recal_servos)
     # TODO, no access to robot bc thats firmware
     #starting_angles = robot.get_all_angles()
     #manual_control_gui.new(starting_angles)
@@ -50,9 +75,15 @@ def run_manual_control_api(simulate, recal_servos):
         
         running, button = manual_control_gui.update()
 
+        # TODO create write file 
+        if button == "recal_servos":
+            print("Writing Cal Data to file...")
+
         try:
             mode = manual_control_gui.get_mode()
 
+            all_leg_angles = run_kinematics(manual_control_gui, last_all_leg_angles, mode)
+            """
             if mode == "Angles":
                 #print("Loading Angle Control...")
                 all_leg_angles = manual_control_gui.get_all_slider_angles()
@@ -74,7 +105,7 @@ def run_manual_control_api(simulate, recal_servos):
                 all_leg_angles = left_leg_angles + right_leg_angles
  
                 manual_control_gui.set_all_slider_angles(all_leg_angles)
-
+            """
             # TODO delete when mode select is finished
             #print("Getting GUI Angles...")
             #all_leg_angles = manual_control_gui.get_all_slider_angles()

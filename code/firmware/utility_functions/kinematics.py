@@ -86,15 +86,7 @@ def compute_inverse_kinematics(x, y, z, leg):
         hip_abductor = math.acos(y/D)
         hip_abductor = math.degrees(hip_abductor)
         hip_abductor = 180 - hip_abductor
-        
-        """
-        if y < 0 and leg == "left":
-            hip_abductor = 180 - hip_abductor   
-        elif y > 0 and leg == "right":
-            hip_abductor = 180 - hip_abductor
-        else:
-            hip_abductor = hip_abductor
-        """
+
         ankle_abductor = hip_abductor
 
         theta = [90, hip_abductor, hip_extendor, knee_extendor, ankle_abductor, ankle_extendor]      # hip rotation independent of kinematics

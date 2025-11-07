@@ -9,20 +9,18 @@ BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
 
 class Manual_Control_GUI:
-    def __init__(self, width, height):
+    def __init__(self, width, height, cal_servo_mode):
         self.root = tk.Tk()
         self.root.title("Slider Example")
         self.root.geometry(str(width) + "x" + str(height))
-        
-        #self.root.columnconfigure(1, weight=1)
-        #self.root.columnconfigure(2, weight=1)
-        #self.root.columnconfigure(4, weight=1)
-        #self.root.columnconfigure(5, weight=1)
 
         self.width = width
         self.height = height
 
         self.exit_application = False
+        self.save_cal_servo = False
+        self.cal_servo_mode = cal_servo_mode
+        self.selected_button = "none"
 
         self.load()
         self.new([90,90,90,90,90,90,90,90,90,90,90,90], [-9, 0, 12.25, -9, 0, 12.25])
@@ -50,6 +48,10 @@ class Manual_Control_GUI:
 
         mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
         mode_button.place(x=150, y=450)
+
+        if self.cal_servo_mode:
+            cal_button = tk.Button(self.root, text="Cal Servos", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.cal_servos_button_click)
+            cal_button.place(x=300, y=350)
 
         # Exit Button
         exit_button = tk.Button(self.root, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
@@ -104,9 +106,12 @@ class Manual_Control_GUI:
         elif self.mode == "Angles":
             self.hide_kinematic_sliders()
             self.show_angle_sliders()
-        
+
         if self.exit_application:
             return False, self.selected_button
+        elif self.save_cal_servo:
+            self.save_cal_servo = False
+            return True, "recal_servos"
         else:
             return True, "none"
 
@@ -148,6 +153,12 @@ class Manual_Control_GUI:
     
     def get_mode(self):
         return self.mode
+    
+    def get_cal_save(self):
+        return self.save_cal_servo
+    
+    def cal_servos_button_click(self):
+        self.save_cal_servo = True
 
     def exit_button_click(self):
         self.selected_button = "exit"

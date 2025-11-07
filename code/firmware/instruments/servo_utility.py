@@ -2,6 +2,8 @@ import time
 
 MIN_DEGREES_PER_ROT = 1
 MIN_TIME_PER_ROT = 0.05 # Lowest value acceptable is 0.05
+MIN_ANGLE = 0
+MAX_ANGLE = 180
 
 class PCA9865:
     def __init__(self, addr, simulate):
@@ -29,7 +31,10 @@ class PCA9865:
 
     def set_servo_angle(self, servo_num, angle):
         if not self.simulate:
-            self.pca.servo[servo_num].angle = angle
+            if angle > MIN_ANGLE and angle < MAX_ANGLE:
+                self.pca.servo[servo_num].angle = angle
+            else:
+                print("Min/Max Angle Reached!!")
         else:
             print("Virtual Servo " + str(servo_num) + "     Set to : " + str(angle))
 
