@@ -13,8 +13,6 @@ except:
 
 def compute_inverse_kinematics(x, y, z, leg):
     # Assumptions: Moving COM by abductors does not effect height of robot
-    # Front Plane Kinematics
-    # INFO assuming y = 0 for now until solid
 
     if x == 0:
         x = 0.001
@@ -24,6 +22,7 @@ def compute_inverse_kinematics(x, y, z, leg):
         z = 0.001
 
     try:
+        # Side View Kinematics =========================================================================
         temp = x*x + z*z
         D = math.sqrt(temp)
 
@@ -58,7 +57,6 @@ def compute_inverse_kinematics(x, y, z, leg):
         ankle_alpha = math.degrees(ankle_alpha)
         err = "ankle_alpha domain error!!"
 
-        # TODO not even close to correct.... not sure why
         if leg == "left":
             ankle_extendor = ankle_alpha + ankle_beta 
         else:
@@ -84,8 +82,22 @@ def compute_inverse_kinematics(x, y, z, leg):
         else:
             hip_extendor = 180 - (hip_alpha - hip_beta)
 
-        theta = [90, 90, hip_extendor, knee_extendor, 90, ankle_extendor]      # hip rotation independent of kinematics
+        # Front View Kinematics =========================================================================
+        hip_abductor = math.acos(y/D)
+        hip_abductor = math.degrees(hip_abductor)
+        hip_abductor = 180 - hip_abductor
         
+        """
+        if y < 0 and leg == "left":
+            hip_abductor = 180 - hip_abductor   
+        elif y > 0 and leg == "right":
+            hip_abductor = 180 - hip_abductor
+        else:
+            hip_abductor = hip_abductor
+        """
+        ankle_abductor = hip_abductor
+
+        theta = [90, hip_abductor, hip_extendor, knee_extendor, ankle_abductor, ankle_extendor]      # hip rotation independent of kinematics
         # TODO check max thetas and limit values
 
     except Exception as e:
