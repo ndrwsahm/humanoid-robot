@@ -2,8 +2,8 @@ import sys
 
 sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/')
 
-from firmware.instruments import servo_utility
-from firmware.robot import *
+from _firmware.instruments import servo_utility
+from _firmware.robot import *
 
 from GUIs.manual_control_gui import *
 from GUIs.startup_gui import *

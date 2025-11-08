@@ -1,5 +1,5 @@
 try:
-    from firmware.settings import *
+    from _firmware.settings import *
 except:
     from settings import *
 

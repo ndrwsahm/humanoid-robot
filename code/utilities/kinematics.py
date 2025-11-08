@@ -7,7 +7,7 @@ firmware_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, firmware_dir)
 
 try:
-    from firmware.settings import *
+    from _firmware.settings import *
 except:
     from settings import *
 

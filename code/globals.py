@@ -9,8 +9,8 @@ PASSWORD = "humanoid39"
 
 #FIRMWARE_REMOTE_LOCATION = "/home/lwp26/Documents/firmware"
 
-FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/firmware"
-FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\firmware"
+FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/_firmware"
+FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\_firmware"
 
 BAUDRATE = 115200
 COM_PORT = "COM8"
