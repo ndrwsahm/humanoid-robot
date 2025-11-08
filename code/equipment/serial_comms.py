@@ -1,5 +1,11 @@
 import serial
 import time
+import os
+import sys
+
+firmware_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, firmware_dir)
+
 from globals import *
 
 class Serial_Comms:

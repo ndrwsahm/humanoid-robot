@@ -46,7 +46,7 @@ class Manual_Control_GUI:
             self.leg_slider_pos_group.append(ttk.Scale(self.root, from_=MIN_POS[al], to=MAX_POS[al], orient="horizontal", command=lambda x: self.get_slider_pos_value(al)))
             self.leg_label_pos_group.append(tk.Label(self.root, text=self.leg_text_pos_group[al], width=35))
 
-        self.shift_weight_scale = ttk.Scale(self.root, from_=-3, to=3, orient="horizontal", command=lambda x: self.get_slider_weight_val)
+        self.shift_weight_scale = ttk.Scale(self.root, from_=SHIFT_WEIGTH_MIN, to=SHIFT_WEIGTH_MAX, orient="horizontal", command=self.get_slider_weight_val)
         self.shift_weight_label = tk.Label(self.root, text="Shift Weight", width=35)
 
         mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
@@ -138,9 +138,16 @@ class Manual_Control_GUI:
         
         return round(slider_val)
     
-    def get_slider_weight_val(self):
-        print(round(self.shift_weight_scale.get()))
-        return round(self.shift_weight_scale.get())
+    def get_slider_weight_val(self, val):
+        # Apply shift (example logic: add shift_val to left, subtract from right)
+        self.leg_slider_pos_group[LEFT_FOOT_Y].set(val)
+        self.leg_slider_pos_group[RIGHT_FOOT_Y].set(val)
+
+        # Update labels
+        self.get_slider_pos_value(LEFT_FOOT_Y)
+        self.get_slider_pos_value(RIGHT_FOOT_Y)
+        print(float(val))
+        return float(val)
     
     def get_all_slider_angles(self):
         all_angles = []
