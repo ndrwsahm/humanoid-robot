@@ -4,13 +4,13 @@ sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/')
 
 from firmware.instruments import servo_utility
 from firmware.robot import *
-from firmware.utility_functions.kinematics import *
 
 from GUIs.manual_control_gui import *
 from GUIs.startup_gui import *
 from equipment.ssh_tx_comms import *
 from equipment.serial_comms import *
 from utilities.write_to_file import *
+from utilities.kinematics import *
 
 ssh_shell = False
 ssh_connection = False
