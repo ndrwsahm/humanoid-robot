@@ -11,6 +11,7 @@ from equipment.ssh_tx_comms import *
 from equipment.serial_comms import *
 from utilities.write_to_file import *
 from utilities.kinematics import *
+from utilities.movement_profiles import *
 
 ssh_shell = False
 ssh_connection = False
@@ -26,8 +27,14 @@ def check_is_none(angles, last_angles, leg):
                 angles[k] = last_angles[k]
     return angles
 
+def run_movement_profile(movement_array):
+    # TODO this will execute the entirety of movement array
+    # NOTE you will be locked into movement profile until it is complete
+    pass
+
 def run_kinematics(mc_gui, last_angles, mode):
     if mode == "Angles":
+        # TODO this is bugged out and doesnt work as intended
         #print("Loading Angle Control...")
         leg_angles = mc_gui.get_all_slider_angles()
         left_leg_pos = compute_forward_kinematics(leg_angles, "left")
@@ -72,11 +79,19 @@ def run_manual_control_api(simulate, recal_servos):
     while running:
         
         running, button = manual_control_gui.update()
-
+        #print(button)
         # TODO create write file 
         if button == "recal_servos":
             print("Writing Cal Data to file...")
             write_cal_data(last_all_leg_angles)
+
+        elif button == "stand":
+            print("Setting Standing Position")
+            movement_array = stand_still(-15)
+            print(movement_array)
+
+        else:
+            pass
 
         try:
             mode = manual_control_gui.get_mode()

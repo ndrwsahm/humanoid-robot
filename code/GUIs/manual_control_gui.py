@@ -17,20 +17,30 @@ class Manual_Control_GUI:
         self.width = width
         self.height = height
 
-        self.exit_application = False
-        self.save_cal_servo = False
         self.cal_servo_mode = cal_servo_mode
         self.selected_button = "none"
 
+        self.leg_slider_angle_group = []
+        self.leg_label_angle_group = []
+        self.leg_text_angle_group = ["Left Hip Rotator: ", "Left Hip Aductor: ", "Left Hip Extendor: ", "Left Knee: ", "Left Ankle Aductor: ", "Left Ankle Extendor: ", "Right Hip Rotator: ", "Right Hip Aductor: ", "Right Hip Extendor: ", "Right Knee: ", "Right Ankle Aductor: ", "Right Ankle Extendor: "]
+        
+        self.leg_slider_pos_group = []
+        self.leg_label_pos_group = []
+        self.movement_group = []
+        self.leg_text_pos_group = ["Left Foot X Position:  ", "Left Foot Y Position: ", "Left Foot Z Position: ", "Right Foot X Position: ", "Right Foot Y Position: ", "Right Foot Z Position: "]
+
+        self.movements = ["stand", "walk_forward", "walk_backward"]
+        self.movement_labels = ["Stand", "Walk Forward", "Walk Backward"]
+
+        #self.movements = ["stand", "walk_forward", "walk_backward", "turn_left", "turn_right", "strife_left", "strife_right"]
+        #self.movement_labels = ["Stand", "Walk Forward", "Walk Backward", "Turn Left", "Turn Right", "Strife Left", "Strife Right"]
+    
         self.load()
         self.new([90,90,90,90,90,90,90,90,90,90,90,90], [-9, 0, 12.25, -9, 0, 12.25])
 
         self.mode = "Angles"
 
     def load(self):
-        self.leg_slider_angle_group = []
-        self.leg_label_angle_group = []
-        self.leg_text_angle_group = ["Left Hip Rotator: ", "Left Hip Aductor: ", "Left Hip Extendor: ", "Left Knee: ", "Left Ankle Aductor: ", "Left Ankle Extendor: ", "Right Hip Rotator: ", "Right Hip Aductor: ", "Right Hip Extendor: ", "Right Knee: ", "Right Ankle Aductor: ", "Right Ankle Extendor: "]
         # Anlge Track Sliders
         for al in ALL_LEGS:
             self.leg_slider_angle_group.append(ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_angle_value(al)))
@@ -38,19 +48,28 @@ class Manual_Control_GUI:
 
         self.empty_label = tk.Label(self.root, text = "")
 
-        self.leg_slider_pos_group = []
-        self.leg_label_pos_group = []
-        self.leg_text_pos_group = ["Left Foot X Position:  ", "Left Foot Y Position: ", "Left Foot Z Position: ", "Right Foot X Position: ", "Right Foot Y Position: ", "Right Foot Z Position: "]
-
         for al in ALL_POS:
             self.leg_slider_pos_group.append(ttk.Scale(self.root, from_=MIN_POS[al], to=MAX_POS[al], orient="horizontal", command=lambda x: self.get_slider_pos_value(al)))
             self.leg_label_pos_group.append(tk.Label(self.root, text=self.leg_text_pos_group[al], width=35))
-
+        
         self.shift_weight_scale = ttk.Scale(self.root, from_=SHIFT_WEIGTH_MIN, to=SHIFT_WEIGTH_MAX, orient="horizontal", command=self.get_slider_weight_val)
         self.shift_weight_label = tk.Label(self.root, text="Shift Weight", width=35)
+        self.shift_weight_scale.set((SHIFT_HEIGTH_MIN + SHIFT_HEIGTH_MAX)/2)
+        self.shift_height_scale = ttk.Scale(self.root, from_=SHIFT_HEIGTH_MAX, to=SHIFT_HEIGTH_MIN, orient="vertical", command=self.get_slider_height_val)
+        self.shift_height_label = tk.Label(self.root, text="Shift Height", width=35)
 
         mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
-        mode_button.place(x=150, y=450)
+        mode_button.place(x=150, y=500)
+
+        x = 10
+        y = 350
+        offset = 0
+        for k in range(len(self.movements)):
+            # TODO create second row automatically
+            print(self.movements[k])
+            self.movement_group.append(tk.Button(self.root, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
+            self.movement_group[k].place(x=x+offset, y=y)
+            offset += BUTTON_WIDTH + 200
 
         if self.cal_servo_mode:
             cal_button = tk.Button(self.root, text="Cal Servos", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.cal_servos_button_click)
@@ -58,7 +77,7 @@ class Manual_Control_GUI:
 
         # Exit Button
         exit_button = tk.Button(self.root, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
-        exit_button.place(x=450, y=450)
+        exit_button.place(x=450, y=500)
 
     def new(self, angles, pos):
         for al in ALL_LEGS:
@@ -80,6 +99,9 @@ class Manual_Control_GUI:
    
         self.shift_weight_scale.grid(row=4,column=1,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
         self.shift_weight_label.grid(row=4,column=2,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+        
+        self.shift_height_scale.grid(row=5,column=1,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
+        self.shift_height_label.grid(row=5,column=2,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
 
     def hide_kinematic_sliders(self):
         for al in ALL_POS:
@@ -88,6 +110,9 @@ class Manual_Control_GUI:
         
         self.shift_weight_scale.grid_remove()
         self.shift_weight_label.grid_remove()
+
+        self.shift_height_scale.grid_remove()
+        self.shift_height_label.grid_remove()
       
     def show_angle_sliders(self):
         for j in range(6): # number of servos per leg
@@ -116,13 +141,17 @@ class Manual_Control_GUI:
             self.hide_kinematic_sliders()
             self.show_angle_sliders()
 
-        if self.exit_application:
-            return False, self.selected_button
-        elif self.save_cal_servo:
-            self.save_cal_servo = False
-            return True, "recal_servos"
-        else:
-            return True, "none"
+        button_actions = {
+            "recal_servos": (True, "recal_servos"),
+            "stand": (True, "stand"),
+            "walk_forward": (True, "walk_forward"),
+            "walk_backward": (True, "walk_backward"),
+            "exit": (False, self.selected_button)
+        }
+
+        result = button_actions.get(self.selected_button, (True, "none"))
+        self.selected_button = "none" # Reset after handling
+        return result
 
     def get_slider_angle_value(self, leg):
         slider_val = 0
@@ -146,7 +175,17 @@ class Manual_Control_GUI:
         # Update labels
         self.get_slider_pos_value(LEFT_FOOT_Y)
         self.get_slider_pos_value(RIGHT_FOOT_Y)
-        print(float(val))
+        return float(val)
+    
+    def get_slider_height_val(self, val):
+        # Apply shift (example logic: add shift_val to left, subtract from right)
+        self.leg_slider_pos_group[LEFT_FOOT_Z].set(val)
+        self.leg_slider_pos_group[RIGHT_FOOT_Z].set(val)
+
+        # Update labels
+        self.get_slider_pos_value(LEFT_FOOT_Z)
+        self.get_slider_pos_value(RIGHT_FOOT_Z)
+
         return float(val)
     
     def get_all_slider_angles(self):
@@ -171,19 +210,6 @@ class Manual_Control_GUI:
         for al in ALL_POS:
             self.leg_slider_pos_group[al].set(pos[al])
     
-    def get_mode(self):
-        return self.mode
-    
-    def get_cal_save(self):
-        return self.save_cal_servo
-    
-    def cal_servos_button_click(self):
-        self.save_cal_servo = True
-
-    def exit_button_click(self):
-        self.selected_button = "exit"
-        self.close()
-
     def mode_button_click(self):
         if self.mode == "Kinematics":
             self.mode = "Angles"
@@ -193,8 +219,11 @@ class Manual_Control_GUI:
 
         self.selected_button = "mode"
 
-    def close(self):
-        #self.root.quit()
-        self.root.destroy()
-        self.exit_application = True
+    def get_movement_click(self, movement): self.selected_button = movement
+    def get_mode(self): return self.mode
+    def cal_servos_button_click(self): self.selected_button = "stand"
+    def stand_button_click(self): self.selected_button = "stand"
+    def exit_button_click(self): self.selected_button = "exit", self.close()
+    def close(self): self.root.destroy()
+    
    
