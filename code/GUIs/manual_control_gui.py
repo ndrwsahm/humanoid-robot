@@ -9,7 +9,7 @@ BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
 
 class Manual_Control_GUI:
-    def __init__(self, width, height, cal_servo_mode):
+    def __init__(self, width, height, starting_angles, starting_pos, cal_servo_mode):
         self.root = tk.Tk()
         self.root.title("Slider Example")
         self.root.geometry(str(width) + "x" + str(height))
@@ -32,11 +32,8 @@ class Manual_Control_GUI:
         self.movements = ["stand", "walk_forward", "walk_backward"]
         self.movement_labels = ["Stand", "Walk Forward", "Walk Backward"]
 
-        #self.movements = ["stand", "walk_forward", "walk_backward", "turn_left", "turn_right", "strife_left", "strife_right"]
-        #self.movement_labels = ["Stand", "Walk Forward", "Walk Backward", "Turn Left", "Turn Right", "Strife Left", "Strife Right"]
-    
         self.load()
-        self.new([90,90,90,90,90,90,90,90,90,90,90,90], [-9, 0, 12.25, -9, 0, 12.25])
+        self.new(starting_angles, starting_pos)
 
         self.mode = "Angles"
 
@@ -54,9 +51,10 @@ class Manual_Control_GUI:
         
         self.shift_weight_scale = ttk.Scale(self.root, from_=SHIFT_WEIGTH_MIN, to=SHIFT_WEIGTH_MAX, orient="horizontal", command=self.get_slider_weight_val)
         self.shift_weight_label = tk.Label(self.root, text="Shift Weight", width=35)
-        self.shift_weight_scale.set((SHIFT_HEIGTH_MIN + SHIFT_HEIGTH_MAX)/2)
+        self.shift_weight_scale.set(0)
         self.shift_height_scale = ttk.Scale(self.root, from_=SHIFT_HEIGTH_MAX, to=SHIFT_HEIGTH_MIN, orient="vertical", command=self.get_slider_height_val)
         self.shift_height_label = tk.Label(self.root, text="Shift Height", width=35)
+        self.shift_height_scale.set(WALKING_HEIGHT)
 
         mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
         mode_button.place(x=150, y=500)
@@ -66,7 +64,6 @@ class Manual_Control_GUI:
         offset = 0
         for k in range(len(self.movements)):
             # TODO create second row automatically
-            print(self.movements[k])
             self.movement_group.append(tk.Button(self.root, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
             self.movement_group[k].place(x=x+offset, y=y)
             offset += BUTTON_WIDTH + 200
@@ -196,7 +193,6 @@ class Manual_Control_GUI:
         return all_angles
     
     def set_all_slider_angles(self, angles):
-        print(angles)
         for al in ALL_LEGS:
             self.leg_slider_angle_group[al].set(angles[al])
     

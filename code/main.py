@@ -60,7 +60,6 @@ def send_leg_commands_to_robot(robot, simulate, last_all_leg_angles, all_leg_ang
 def run_movement_profile(mc_gui, robot, simulate, last_angles, movement_array):
     # TODO this will execute the entirety of movement array
     # NOTE you will be locked into movement profile until it is complete
-    print(len(movement_array))
     for k in range(len(movement_array)):
         mc_gui.set_all_slider_angles(movement_array[k])
         send_leg_commands_to_robot(robot, simulate, last_angles, movement_array[k])
@@ -100,7 +99,7 @@ def run_manual_control_api(simulate, recal_servos):
     global serials
     global rf_connection
 
-    last_all_leg_angles = [90,90,90,90,90,90,90,90,90,90,90,90]
+    last_all_leg_angles = [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
 
     if simulate:
         # go thru local firmware folder to create objects
@@ -111,7 +110,12 @@ def run_manual_control_api(simulate, recal_servos):
         # TODO how are you going to run firmware via RF????? FUCK.... also RF keeps crashing due to parsing issues, will randomly receive 000000000 instead of lha 180.0
         tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
     
-    manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT, recal_servos)
+    standing_array = build_stand_still_array(WALKING_HEIGHT)
+    left_leg_pos = compute_forward_kinematics(standing_array[0], "left")
+    right_leg_pos = compute_forward_kinematics(standing_array[0], "right")
+    starting_leg_pos = left_leg_pos + right_leg_pos
+
+    manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT, standing_array[0], starting_leg_pos, recal_servos)
 
     running = True
     while running:
@@ -146,37 +150,8 @@ def run_manual_control_api(simulate, recal_servos):
             mode = manual_control_gui.get_mode()
 
             all_leg_angles = run_kinematics(manual_control_gui, last_all_leg_angles, mode)
-        
             last_all_leg_angles = send_leg_commands_to_robot(robot, simulate, last_all_leg_angles, all_leg_angles)
-            
-            """
-            if simulate:
-                # go thru local firmware folder to create objects
-                #print("Setting Angles...")
-                robot.set_all_angles(all_leg_angles)
-                #print("Updating Robot...")
-                robot.update()
-                last_all_leg_angles = all_leg_angles
-            
-            else:
-                try:
-                    for k in range(NUMBER_OF_SERVOS):
-                        if last_all_leg_angles[k] != all_leg_angles[k]:
-                            if rf_connection:
-                                response = serials.send_command("CMD " + str(ID) + " " + ALL_LEG_NAMES[k] + " " + str(all_leg_angles[k]))
-                            else:
-                                tx.send_user_input(ALL_LEG_NAMES[k] + str(all_leg_angles[k]) + "\n")
-
-                    # check response
-                    if ssh_connection:
-                        response = tx.receive_response()
-                        if response:
-                            print(response)
-                    last_all_leg_angles = all_leg_angles
-                except Exception as e:
-                    print("Sending command error...")
-                    print (e)
-            """
+           
         except Exception as e:
             print(e)
             return 'exit'

@@ -51,9 +51,8 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
 
-    #robot.set_standing_pos()
-    #all_angles = robot.get_all_angles()
-    all_angles = [90,90,90,90,90,90,90,90,90,90,90,90]
+    # Hardcoded soft start angles
+    all_angles = HARDCODED_SOFT_START_ANGLES
     while running:
         user_input = rx_comms.get_user_input()
         if user_input:
