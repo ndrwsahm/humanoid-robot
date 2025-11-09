@@ -126,17 +126,17 @@ def run_manual_control_api(simulate, recal_servos):
         elif button == "stand":
             print("Setting Standing Position")
             
-            movement_array = build_stand_still_array(-15)
+            movement_array = build_stand_still_array(WALKING_HEIGHT)
             last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
 
         elif button == "walk_forward":
             print("Walking Forward...")
-            movement_array = build_walk_array(1, -15, 2, 1)
+            movement_array = build_walk_array(1, WALKING_HEIGHT, 2, 1)
             last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
 
         elif button == "walk_backward":
             print("Walking Backward...")
-            movement_array = build_walk_array(-1, -15, 2, 1)
+            movement_array = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
             last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
 
         else:

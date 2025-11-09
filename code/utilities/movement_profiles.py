@@ -14,6 +14,10 @@ def build_swing_phase(direction, center_x, height, step_length, leg):
     angles = []
 
     #print("Swing X Z Pos....")
+    if leg == "left":
+        y = -3
+    else:
+        y = 3
 
     # half circle equation z = sqrt(r^2 - x^2)
     for t in np.linspace(np.pi, 0, NUM_FRAMES):
@@ -21,7 +25,7 @@ def build_swing_phase(direction, center_x, height, step_length, leg):
         z = 3 * np.sin(t) + height
 
         #print(x, z)
-        angles.append(compute_inverse_kinematics(x, 0, z, leg))
+        angles.append(compute_inverse_kinematics(x, y, z, leg))
 
     return angles
 
@@ -30,6 +34,10 @@ def build_push_phase(direction, center_x, height, step_length, leg):
     angles = []
 
     #print("Back Step X Z Pos....")
+    if leg == "left":
+        y = 2
+    else:
+        y = -2
 
     #Straight line from end of half circle to back
     for t in np.linspace(1, -1, NUM_FRAMES):
@@ -37,7 +45,7 @@ def build_push_phase(direction, center_x, height, step_length, leg):
         z = height
 
         #print(x, z)
-        angles.append(compute_inverse_kinematics(x, 0, z, leg))
+        angles.append(compute_inverse_kinematics(x, y, z, leg))
     
     return angles
 

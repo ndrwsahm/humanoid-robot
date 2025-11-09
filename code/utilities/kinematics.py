@@ -99,34 +99,7 @@ def compute_inverse_kinematics(x, y, z, leg):
         return None # handle error upstream
 
     return theta
-"""
-def compute_forward_kinematics(angles, leg):
-    x = 0
-    y = 0
-    z = 0
 
-    if leg == "left":
-        # INFO Ignoring Y pos for now
-        # INFO Z will always be negative for now
-        knee_x_pos = A1_LENGTH * math.cos(math.radians(angles[HE_IDX]))
-        knee_z_pos = -1 * A1_LENGTH * math.sin(math.radians(angles[HE_IDX]))
-
-        foot_x_pos = A2_LENGTH * math.cos(math.radians(angles[HE_IDX] + angles[KK_IDX]))
-        foot_z_pos = -1 * A2_LENGTH * math.sin(math.radians(angles[HE_IDX] + angles[KK_IDX]))
-
-    elif leg == "right":
-        # TODO right leg forward kinematics are fucked, need to fix
-        knee_x_pos = A1_LENGTH * math.cos(math.radians(180 - angles[HE_IDX]))
-        knee_z_pos = -1 * A1_LENGTH * math.sin(math.radians(180 - angles[HE_IDX]))
-
-        foot_x_pos = A2_LENGTH * math.cos(math.radians((180 - angles[HE_IDX]) + (180 - angles[KK_IDX])))
-        foot_z_pos = -1 * A2_LENGTH * math.sin(math.radians((180 - angles[HE_IDX]) + (180 - angles[KK_IDX])))
-
-    x = knee_x_pos + foot_x_pos
-    z = knee_z_pos + foot_z_pos
-
-    return [x, y, z]
-"""
 def compute_forward_kinematics(angles, leg):
     # Ignore Y for now
     HE = angles[HE_IDX]
