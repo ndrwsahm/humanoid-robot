@@ -27,10 +27,44 @@ def check_is_none(angles, last_angles, leg):
                 angles[k] = last_angles[k]
     return angles
 
-def run_movement_profile(movement_array):
+def send_leg_commands_to_robot(robot, simulate, last_all_leg_angles, all_leg_angles):
+    global tx, serials, rf_connection, ssh_connection
+
+    try:
+        if simulate:
+            robot.set_all_angles(all_leg_angles)
+            robot.update()
+            return all_leg_angles  # update and return new state
+
+        for k in range(NUMBER_OF_SERVOS):
+            if last_all_leg_angles[k] != all_leg_angles[k]:
+                cmd = f"CMD {ID} {ALL_LEG_NAMES[k]} {all_leg_angles[k]}"
+                if rf_connection:
+                    response = serials.send_command(cmd)
+                else:
+                    tx.send_user_input(f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n")
+
+        if ssh_connection:
+            response = tx.receive_response()
+            if response:
+                print(response)
+
+        return all_leg_angles  # update and return new state
+
+    except Exception as e:
+        print("Sending command error...")
+        print(e)
+        return last_all_leg_angles  # fallback to previous state
+
+def run_movement_profile(mc_gui, robot, simulate, last_angles, movement_array):
     # TODO this will execute the entirety of movement array
     # NOTE you will be locked into movement profile until it is complete
-    pass
+    for k in range(len(movement_array)):
+        mc_gui.set_all_slider_angles(movement_array[k])
+        send_leg_commands_to_robot(robot, simulate, last_angles, movement_array[k])
+        last_angles = movement_array[k]
+
+    return last_angles
 
 def run_kinematics(mc_gui, last_angles, mode):
     if mode == "Angles":
@@ -70,6 +104,7 @@ def run_manual_control_api(simulate, recal_servos):
         pca = servo_utility.PCA9865(0x41, simulate)
         robot = Robot(pca, recal_servos)
     else:
+        robot = None
         # TODO how are you going to run firmware via RF????? FUCK.... also RF keeps crashing due to parsing issues, will randomly receive 000000000 instead of lha 180.0
         tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
     
@@ -87,8 +122,9 @@ def run_manual_control_api(simulate, recal_servos):
 
         elif button == "stand":
             print("Setting Standing Position")
-            movement_array = stand_still(-15)
+            movement_array = build_stand_still_array(-15)
             print(movement_array)
+            last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
 
         else:
             pass
@@ -97,7 +133,10 @@ def run_manual_control_api(simulate, recal_servos):
             mode = manual_control_gui.get_mode()
 
             all_leg_angles = run_kinematics(manual_control_gui, last_all_leg_angles, mode)
-
+        
+            last_all_leg_angles = send_leg_commands_to_robot(robot, simulate, last_all_leg_angles, all_leg_angles)
+            
+            """
             if simulate:
                 # go thru local firmware folder to create objects
                 #print("Setting Angles...")
@@ -124,7 +163,9 @@ def run_manual_control_api(simulate, recal_servos):
                 except Exception as e:
                     print("Sending command error...")
                     print (e)
-        except:
+            """
+        except Exception as e:
+            print(e)
             return 'exit'
 
     return button

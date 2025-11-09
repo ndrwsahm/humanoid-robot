@@ -99,7 +99,7 @@ def compute_inverse_kinematics(x, y, z, leg):
         return None # handle error upstream
 
     return theta
-
+"""
 def compute_forward_kinematics(angles, leg):
     x = 0
     y = 0
@@ -115,6 +115,7 @@ def compute_forward_kinematics(angles, leg):
         foot_z_pos = -1 * A2_LENGTH * math.sin(math.radians(angles[HE_IDX] + angles[KK_IDX]))
 
     elif leg == "right":
+        # TODO right leg forward kinematics are fucked, need to fix
         knee_x_pos = A1_LENGTH * math.cos(math.radians(180 - angles[HE_IDX]))
         knee_z_pos = -1 * A1_LENGTH * math.sin(math.radians(180 - angles[HE_IDX]))
 
@@ -125,6 +126,29 @@ def compute_forward_kinematics(angles, leg):
     z = knee_z_pos + foot_z_pos
 
     return [x, y, z]
+"""
+def compute_forward_kinematics(angles, leg):
+    # Ignore Y for now
+    HE = angles[HE_IDX]
+    KK = angles[KK_IDX]
+
+    # Knee position
+    knee_x = A1_LENGTH * math.cos(math.radians(HE))
+    knee_z = -A1_LENGTH * math.sin(math.radians(HE))
+
+    # Foot position relative to knee
+    foot_x = A2_LENGTH * math.cos(math.radians(HE + KK))
+    foot_z = -A2_LENGTH * math.sin(math.radians(HE + KK))
+
+    # Total foot position
+    x = knee_x + foot_x
+    z = knee_z + foot_z
+
+    # Flip X for right leg
+    if leg == "right":
+        x = -x
+
+    return [x, 0, z]
 
 if __name__ == "__main__":
     joint_names = [

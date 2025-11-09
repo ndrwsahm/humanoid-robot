@@ -9,30 +9,30 @@ from utilities.kinematics import *
 STANDING_POS = [-1, 0, -13, -1, 0, -13]
 
 # TODO each function will return nth dim array of angle arrays 
-def walk_forward(height, num_steps):
+def build_walk_forward_array(height, num_steps):
     pass
 
-def walk_backward(height, num_steps):
+def build_walk_backward_array(height, num_steps):
     pass
 
-def turn_left(height, num_degrees):
+def build_turn_left_array(height, num_degrees):
     pass
 
-def turn_right(height, num_degrees):
+def build_turn_right_array(height, num_degrees):
     pass
 
-def strife_left(height, num_steps):
+def build_strife_left_array(height, num_steps):
     pass
 
-def strife_right(height, num_steps):
+def build_strife_right_array(height, num_steps):
     pass
 
-def stand_still(height):
+def build_stand_still_array(height):
     all_angles = []
     standing = STANDING_POS
 
     left_angles = compute_inverse_kinematics(standing[0], standing[1], height, "left")
-    right_angles = compute_inverse_kinematics(standing[4], standing[5], height, "right")
+    right_angles = compute_inverse_kinematics(standing[3], standing[4], height, "right")
 
     all_angles = [left_angles + right_angles]
 
