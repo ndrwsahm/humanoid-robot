@@ -196,6 +196,7 @@ class Manual_Control_GUI:
         return all_angles
     
     def set_all_slider_angles(self, angles):
+        print(angles)
         for al in ALL_LEGS:
             self.leg_slider_angle_group[al].set(angles[al])
     

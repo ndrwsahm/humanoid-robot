@@ -1,4 +1,5 @@
 import sys
+import time
 
 sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/')
 
@@ -59,10 +60,12 @@ def send_leg_commands_to_robot(robot, simulate, last_all_leg_angles, all_leg_ang
 def run_movement_profile(mc_gui, robot, simulate, last_angles, movement_array):
     # TODO this will execute the entirety of movement array
     # NOTE you will be locked into movement profile until it is complete
+    print(len(movement_array))
     for k in range(len(movement_array)):
         mc_gui.set_all_slider_angles(movement_array[k])
         send_leg_commands_to_robot(robot, simulate, last_angles, movement_array[k])
         last_angles = movement_array[k]
+        #time.sleep(0.001)
 
     return last_angles
 
@@ -122,8 +125,18 @@ def run_manual_control_api(simulate, recal_servos):
 
         elif button == "stand":
             print("Setting Standing Position")
+            
             movement_array = build_stand_still_array(-15)
-            print(movement_array)
+            last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
+
+        elif button == "walk_forward":
+            print("Walking Forward...")
+            movement_array = build_walk_array(1, -15, 2, 1)
+            last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
+
+        elif button == "walk_backward":
+            print("Walking Backward...")
+            movement_array = build_walk_array(-1, -15, 2, 1)
             last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
 
         else:
