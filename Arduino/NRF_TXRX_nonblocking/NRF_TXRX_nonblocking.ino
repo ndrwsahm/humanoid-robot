@@ -32,7 +32,7 @@
 const int GREEN_LED_PIN = A4;
 const int RED_LED_PIN = A5;
 
-int role = TX;
+int role = RX;
 
 unsigned long start;
 unsigned long lastAckTime;
@@ -53,6 +53,31 @@ struct ServoCommand
   float angle;       // e.g., 90.0, 182.2
   byte checksum;
 };
+
+enum TxState 
+{
+  TX_IDLE, 
+  TX_SENDING,
+  TX_WAIT_ACK
+};
+
+enum RxState
+{
+  RX_IDLE,
+  RX_RECEIVED,
+  RX_RESPONDING
+};
+
+TxState txState = TX_IDLE;
+ServoCommand txBuffer;
+unsigned long txStartTime = 0;
+const unsigned long ACK_TIMEOUT = 10;
+int retryCount = 0;
+const int MAX_RETRIES = 3;
+
+RxState rxState = RX_IDLE;
+unsigned long rxStartTime = 0;
+const unsigned long RX_RESPONSE_DELAY = 0;
 
 ServoCommand ack = {CMD, ID, {'A', 'C', 'K'}, 0.0, 0};
 ServoCommand command;
@@ -76,6 +101,121 @@ byte computeChecksum(byte* data, int length)
   return sum;
 }
 
+void startTx(ServoCommand msg)
+{
+  txBuffer = msg;
+  txBuffer.checksum = computeChecksum((byte*)&txBuffer, sizeof(txBuffer) - 1);
+  Mirf.send((byte*)&txBuffer);
+  txState = TX_SENDING;
+}
+
+void updateTxState()
+{
+  switch(txState)
+  {
+    case TX_IDLE:
+      break;
+      
+    case TX_SENDING:
+      if(!Mirf.isSending())
+      {
+        txStartTime = millis();
+        txState = TX_WAIT_ACK;
+      }
+      break;
+
+    case TX_WAIT_ACK:
+      if(Mirf.dataReady())
+      {
+        Mirf.getData((byte*)&response);
+        if(response.type == ACK && response.id == ID)
+        {
+          ackReceived = true;
+          digitalWrite(RED_LED_PIN, HIGH);
+          lastAckTime = millis();
+          txState = TX_IDLE;
+          retryCount = 0;
+        }
+        else
+        {
+          ackReceived = false;
+          digitalWrite(RED_LED_PIN, LOW);
+        }
+      }
+      else if (millis() - txStartTime > ACK_TIMEOUT)
+      {
+        retryCount++;
+        if(retryCount < MAX_RETRIES)
+        {
+          Mirf.send((byte*)&txBuffer);
+          txState = TX_SENDING;
+        }
+      }
+      else
+      {
+        txState = TX_IDLE;
+        retryCount = 0;
+      }
+      break;
+  }
+}
+
+void updateRxState()
+{
+  switch (rxState)
+  {
+    case RX_IDLE:
+      if(Mirf.dataReady())
+      {
+        Mirf.getData((byte*)&received);
+        rxState = RX_RECEIVED;
+      }
+      break;
+
+    case RX_RECEIVED: 
+    {
+      byte expected = computeChecksum((byte*)&received, sizeof(received) - 1);
+
+      if (expected == received.checksum && received.type == CMD) {
+        reply = {ACK, received.id, {'A', 'C', 'K'}, 0.0, 0};
+        digitalWrite(RED_LED_PIN, HIGH);
+      } else {
+        reply = {NACK, received.id, {'N', 'A', 'K'}, 0.0, 0};
+        digitalWrite(RED_LED_PIN, LOW);
+      }
+
+      if (expected == received.checksum && strcmp(received.joint, "ACK") != 0) {
+        sendSerial(received);
+      }
+
+      rxStartTime = millis();
+      rxState = RX_RESPONDING;
+      break;
+    }
+     case RX_RESPONDING:
+      if (millis() - rxStartTime >= RX_RESPONSE_DELAY) {
+        sendNRFReply(reply);
+        rxState = RX_IDLE;
+      }
+      break;
+  }
+}
+
+bool replyInProgress = false;
+
+void sendNRFReply(ServoCommand message) {
+  if (!replyInProgress) {
+    message.checksum = computeChecksum((byte*)&message, sizeof(message) - 1);
+    Mirf.send((byte*)&message);
+    replyInProgress = true;
+  }
+
+  if (replyInProgress && !Mirf.isSending()) {
+    replyInProgress = false;
+  }
+}
+
+
 // Setup ================================================================
 void setup()
 {
@@ -90,7 +230,17 @@ void setup()
   Mirf.spi = &MirfHardwareSpi;
   Mirf.init();
 
-  Mirf.setRADDR((byte *)"robot"); // Set your own address (receiver address) using 5 characters
+  if (role == TX)
+  {
+    Mirf.setTADDR((byte *)"base"); // Set your own address (receiver address) using 5 characters
+    Mirf.setRADDR((byte *)"robot");
+  }
+
+  else
+  {
+    Mirf.setTADDR((byte *)"robot"); // Set your own address (receiver address) using 5 characters
+    Mirf.setRADDR((byte *)"base");
+  }
   Mirf.channel = 90;             // Set the used channel
   Mirf.payload = SIZE_OF_PAYLOAD;
   Mirf.config();
@@ -208,28 +358,10 @@ void listenSerial(void)
     }
 
     // Send Serial command to RX arduino
-    sendNRF(serial_cmd);
     sendSerial(serial_cmd);
+    startTx(serial_cmd);
   }
   //return serial_cmd;
-}
-
-void blinkLED(int pin)
-{
-  digitalWrite(pin, HIGH);
-  delay(100);
-  digitalWrite(pin, LOW);
-  delay(100);
-  digitalWrite(pin, HIGH);
-  delay(100);
-  digitalWrite(pin, LOW);
-}
-
-void sendNRF(ServoCommand message)
-{
-  message.checksum = computeChecksum((byte*)&message, sizeof(message) - 1);
-  Mirf.send((byte*)&message);
-  while (Mirf.isSending()); // Blocking function!!!!
 }
 
 // Main loop ==================================================================
@@ -238,62 +370,13 @@ void loop()
   // Sender Code
   if (role == TX)
   {
-    // TODO add if loop for sendNRF(ack) and sendNRF(cmd)
-    // Send Connect RF command to RX arduino
-    sendNRF(ack);
-
-    // Receive serial command from cpu
-    // Send NRF signal and echo serial to cpu
-    listenSerial();
-
-    // Send echo back to cpu via serial
-    //sendSerial(command);
-
-    // Listen for echo from RX arduino and adjust LED accordingly
-    listenACK();
+    if(txState == TX_IDLE) listenSerial();
+    updateTxState();
     checkACK();
   }
 
-  // Receiver Code
-  else
+  if (role == RX)
   {
-    if (Mirf.dataReady())
-    {
-      Mirf.getData((byte*)&received);
-
-      byte expected = computeChecksum((byte*)&received, sizeof(received) - 1);
-
-      if (expected == received.checksum && received.type == CMD)
-      {
-        reply = {ACK, received.id, {'A', 'C', 'K'}, 0.0, 0};
-        /*
-          Serial.print("Type: "); Serial.println(received.type);
-          Serial.print("ID: "); Serial.println(received.id);
-          Serial.print("Joint: "); Serial.println(received.joint);
-          Serial.print("Angle: "); Serial.println(received.angle);*/
-        digitalWrite(RED_LED_PIN, HIGH);
-      }
-      else
-      {
-        reply = {NACK, received.id, {'N', 'A', 'K'}, 0.0, 0};
-        digitalWrite(RED_LED_PIN, LOW);
-        //Serial.println("Checksum mismatch — packet corrupted.");
-      }
-
-      // Send received message to pi
-      if(expected == received.checksum && strcmp(received.joint, "ACK") != 0)
-      {
-        sendSerial(received);  
-      }
-
-      // Send echo ACK back to TX arduino
-      sendNRF(reply);
-      Mirf.config();
-    }
-
-    else
-    {
-      digitalWrite(RED_LED_PIN, LOW);
-    }
+    updateRxState();
   }
 }

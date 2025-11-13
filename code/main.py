@@ -177,7 +177,8 @@ def run_connect_nrf():
 
     if serials_connection:
         try:
-            joint, rf_connection = serials.send_command("CMD 39 STA 0.0") # Check status of LED
+            joint, rf_connection = serials.send_command("CMD 39 STA 1.0") # Check status of LED
+            #print(rf_connection)
         except:
             print("No acknowledgement received from humanoid receiver!")
    

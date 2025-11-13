@@ -42,7 +42,7 @@ class Serial_Comms:
             try:
                 #response = self.ser.readline()
                 response = self.ser.readline().decode('utf-8').strip()
-                #joint, angle = response.split()
+                joint, angle = response.split()
                 if response:
                     
                     parts = response.split()
@@ -75,9 +75,9 @@ class Serial_Comms:
 if __name__ == "__main__":
     comms = Serial_Comms(port=COM_PORT, baudrate=BAUDRATE)
     if comms.connect():
-        comms.send_command("CMD 39 lhr 180.5")
+        comms.send_command("CMD 39 lhr 80.5")
         time.sleep(1)
-        comms.send_command("CMD 39 lha 190.9")
+        comms.send_command("CMD 39 lha 90")
         time.sleep(1)
         comms.send_command("CMD 39 rha 87.3")
         time.sleep(1)

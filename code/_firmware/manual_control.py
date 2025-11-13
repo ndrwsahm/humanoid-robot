@@ -17,7 +17,7 @@ def parse_user_input(user_input):
         angle = float(angle_str)
     except ValueError:
         print("Error in parsing input, setting default angle...")
-        angle = 90  # Default fallback if angle is malformed
+        angle = 999  # Default fallback if angle is malformed
 
     servo = joint_map.get(joint, -1)  # -1 if joint not found
 
@@ -53,13 +53,17 @@ if __name__ == "__main__":
 
     # Hardcoded soft start angles
     all_angles = HARDCODED_SOFT_START_ANGLES
+    robot.set_all_angles(HARDCODED_SOFT_START_ANGLES)
+    
     while running:
         user_input = rx_comms.get_user_input()
         if user_input:
             servo, angle = parse_user_input(user_input)
             
-            if servo >= 0:
+            if servo >= 0 and angle != 999:
                 all_angles[servo] = angle
                 #           lhr, lha, lhe, lk, laa, lae
                 robot.set_all_angles(all_angles)
+            else:
+                robot.set_all_angles(HARDCODED_SOFT_START_ANGLES)
 
