@@ -4,12 +4,10 @@ from instruments.ssh_rx_comms import *
 from instruments.servo_utility import *
 
 running = True
+DEBUG_PRINT_STATEMENT = False
 
 def parse_user_input(user_input):
     global joint_map
-
-    print (" ")
-    print("User Input: " + user_input)
 
     joint = user_input[:3]
     angle_str = user_input[3:].strip()
@@ -20,9 +18,13 @@ def parse_user_input(user_input):
         angle = 999  # Default fallback if angle is malformed
 
     servo = joint_map.get(joint, -1)  # -1 if joint not found
+    
+    if DEBUG_PRINT_STATEMENT:
+        print (" ")
+        print("User Input: " + user_input)
 
-    print("Servo: " + str(servo))
-    print("Angle: " + str(angle))
+        print("Servo: " + str(servo))
+        print("Angle: " + str(angle))
 
     return servo, angle
 
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     # Hardcoded soft start angles
     all_angles = HARDCODED_SOFT_START_ANGLES
     robot.set_all_angles(HARDCODED_SOFT_START_ANGLES)
-    
+
     while running:
         user_input = rx_comms.get_user_input()
         if user_input:

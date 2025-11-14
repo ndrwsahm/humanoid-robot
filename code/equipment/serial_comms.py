@@ -8,6 +8,8 @@ sys.path.insert(0, firmware_dir)
 
 from globals import *
 
+DEBUG_PRINT_STATEMENT = False
+
 class Serial_Comms:
     def __init__(self, port='COM6', baudrate=9600, timeout=1):
         self.port = port
@@ -30,8 +32,8 @@ class Serial_Comms:
             self.ser.reset_input_buffer()  # Clear old data
             full_cmd = command.strip() + '\n'
             self.ser.write(full_cmd.encode('utf-8'))
-            print(f"Sent from Transmitter Arduino: {command}")
-            time.sleep(0.1)
+            if DEBUG_PRINT_STATEMENT: print(f"Sent from Transmitter Arduino: {command}")
+            #time.sleep(0.1)
             return self.receive_response()
         else:
             print("Serial port is not open.")
@@ -56,7 +58,7 @@ class Serial_Comms:
                     else:
                         print("Malformed line:", response)
                 
-                    print(f"Response from Humanoid Receiver: {response}")
+                    if DEBUG_PRINT_STATEMENT: print(f"Response from Humanoid Receiver: {response}")
                 return joint, angle
             except Exception as e:
                 print(e)

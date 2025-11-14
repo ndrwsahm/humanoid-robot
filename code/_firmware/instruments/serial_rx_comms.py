@@ -28,7 +28,7 @@ class Serial_RX_Comms:
          if self.ser.in_waiting and self.ser:
             line = self.ser.readline().decode('utf-8', errors='ignore')
             #result = self.parse_user_input(line)
-            print(line)
+            #print(line)
             #if "error" in result:
             #   print("Error:", result["error"])
             #else:

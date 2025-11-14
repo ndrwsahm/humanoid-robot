@@ -14,6 +14,8 @@ from utilities.write_to_file import *
 from utilities.kinematics import *
 from utilities.movement_profiles import *
 
+DEBUG_PRINT_STATEMENT = False
+
 ssh_shell = False
 ssh_connection = False
 rf_connection = False
@@ -229,7 +231,7 @@ def run_startup_control_api():
 
         if ssh_shell:
             response = tx.receive_response()
-            if response:
+            if response and DEBUG_PRINT_STATEMENT:
                 print(response)
     return button, simulate, recal_servos
         
