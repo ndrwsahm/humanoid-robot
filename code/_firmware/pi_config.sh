@@ -27,3 +27,7 @@ echo "i2c-tools and smbus installed"
 echo "Installing Adafruit Servo-Kit..."
 pip3 install adafruit-circuitpython-servokit
 echo "Adafruit Servo-Kit installed."
+
+echo "Installing Accelerometer...."
+pip3 install mpu6050-raspberrypi --break-system-packages
+echo "Accelerometer installed."

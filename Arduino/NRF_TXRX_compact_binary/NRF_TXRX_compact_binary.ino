@@ -171,7 +171,6 @@ ServoCommand parseCommand(char* input)
 
 void sendSerial(ServoCommand message)
 {
-  //blinkLED(GREEN_LED_PIN);
   // Prep message for echo back to python
   char joint_buf[4];
   memcpy(joint_buf, message.joint, 3);
