@@ -102,14 +102,14 @@ class Manual_Control_GUI:
 
     def hide_kinematic_sliders(self):
         for al in ALL_POS:
-            self.leg_slider_pos_group[al].grid_remove()
-            self.leg_label_pos_group[al].grid_remove()
+            self.leg_slider_pos_group[al].grid_forget()
+            self.leg_label_pos_group[al].grid_forget()
         
-        self.shift_weight_scale.grid_remove()
-        self.shift_weight_label.grid_remove()
+        self.shift_weight_scale.grid_forget()
+        self.shift_weight_label.grid_forget()
 
-        self.shift_height_scale.grid_remove()
-        self.shift_height_label.grid_remove()
+        self.shift_height_scale.grid_forget()
+        self.shift_height_label.grid_forget()
       
     def show_angle_sliders(self):
         for j in range(6): # number of servos per leg
@@ -124,19 +124,21 @@ class Manual_Control_GUI:
 
     def hide_angle_sliders(self):
         for al in ALL_LEGS:
-            self.leg_slider_angle_group[al].grid_remove()
-            self.leg_label_angle_group[al].grid_remove()
+            self.leg_slider_angle_group[al].grid_forget()
+            self.leg_label_angle_group[al].grid_forget()
 
     def update(self):
         self.root.update_idletasks()
         self.root.update()
 
-        if self.mode == "Kinematics":
-            self.hide_angle_sliders()
-            self.show_kinematic_sliders()
-        elif self.mode == "Angles":
-            self.hide_kinematic_sliders()
-            self.show_angle_sliders()
+        if self.mode != getattr(self, "last_mode", None):
+            if self.mode == "Kinematics":
+                self.hide_angle_sliders()
+                self.show_kinematic_sliders()
+            elif self.mode == "Angles":
+                self.hide_kinematic_sliders()
+                self.show_angle_sliders()
+            self.last_mode = self.mode
 
         button_actions = {
             "recal_servos": (True, "recal_servos"),

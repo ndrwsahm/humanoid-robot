@@ -1,4 +1,5 @@
-HOSTNAME = "192.168.1.173"
+HOSTNAME = "192.168.1.173" # home
+#HOSTNAME = "192.168.82.45"  # phone hotspot
 USERNAME = "humanoid39"
 PASSWORD = "humanoid39"
 
@@ -11,6 +12,9 @@ PASSWORD = "humanoid39"
 
 FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/_firmware"
 FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\_firmware"
+
+ACCELEROMETER_REMOTE_LOCATION = "/home/humanoid39/Documents/_firmware/instruments"
+ACCELEROMETER = 'accelerometer'
 
 BAUDRATE = 115200
 COM_PORT = "COM8"

@@ -70,6 +70,18 @@ class SSH_TX_Comms:
         except Exception as e:
             print (e)
 
+    def run_test(self, file_path, file_name):
+        # Need to run script to wait for user input
+        full_file_path = 'python3 -u ' + file_path + '/' + file_name  + '.py\n'
+       
+        try:
+            self.invoke_shell()
+            print("Interactive shell started")
+            self.send_user_input(full_file_path)
+            # TODO need readback
+        except Exception as e:
+            print (e)
+
     def run_firmware(self, file_path):
         # Need to run script to wait for user input
         full_file_path = 'python3 ' + file_path + '/firmware.py\n'

@@ -63,3 +63,4 @@ if __name__ == "__main__":
     acc = MPU6050(0x68)
     while True:
         acc.get_data()
+        time.sleep(0.05)  # 20 Hz sampling

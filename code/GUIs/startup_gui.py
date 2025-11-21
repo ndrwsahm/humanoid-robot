@@ -61,7 +61,7 @@ class Startup_GUI:
         buttons = {
             "Uninstall Firmware":   (10, 175, "red", self.uninstall_firmware_button_click),
             "Install Firmware":     (200, 175, "blue", self.firmware_button_click),
-            "Run Firmware":         (100, 475, "blue", self.run_firmware_button_click),
+            "Test Accelerometer":   (100, 475, "blue", self.test_accelerometer_button_click),
             "Run Raspi Config":     (10, 375, "blue", self.run_raspi_config_button_click),
             "Reboot Pi":            (200, 375, "blue", self.run_reboot_button_click),
             "Manual Control":       (475, 275, "green", self.manual_control_button_click),
@@ -113,6 +113,7 @@ class Startup_GUI:
                 "uninstall_firmware": (True, "uninstall_firmware"),
                 "firmware": (True, "firmware"),
                 "run_firmware": (True, "run_firmware"),
+                "test_accelerometer": (True, "test_accelerometer"),
                 "manual_control": (False, "manual_control"),
                 "raspi_config": (True, "raspi_config"),
                 "reboot": (True, "reboot")
@@ -184,4 +185,5 @@ class Startup_GUI:
     def uninstall_firmware_button_click(self): self.selected_button = "uninstall_firmware"
     def run_raspi_config_button_click(self): self.selected_button = "raspi_config"
     def run_reboot_button_click(self): self.selected_button = "reboot"
+    def test_accelerometer_button_click(self): self.selected_button = "test_accelerometer"
     def exit_button_click(self): self.selected_button = "exit"; self.close()

@@ -166,6 +166,14 @@ def run_firmware(tx):
     tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
     ssh_shell = True
 
+def test_accelerometer(tx):
+    global ssh_shell
+    global DEBUG_PRINT_STATEMENT
+
+    DEBUG_PRINT_STATEMENT = True
+    tx.run_test(ACCELEROMETER_REMOTE_LOCATION, ACCELEROMETER)
+    ssh_shell = True
+
 def run_connect_ssh():
     global ssh_connection 
     
@@ -213,6 +221,7 @@ def run_startup_control_api():
     "send": lambda: tx.send_command(start_gui.get_command()),
     "firmware": lambda: tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION),
     "run_firmware": lambda: run_firmware(tx),
+    "test_accelerometer": lambda: test_accelerometer(tx),
     "uninstall_firmware": lambda: tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION),
     "raspi_config": lambda: tx.run_config(FIRMWARE_REMOTE_LOCATION),
     "reboot": lambda: tx.run_reboot(FIRMWARE_REMOTE_LOCATION)
