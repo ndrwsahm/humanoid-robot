@@ -12,8 +12,8 @@ class MPU6050:
 
         self.last_time = time.time()
         # Initialize angles
-        self.angle_x = 0.0
-        self.angle_y = 0.0
+        self.roll = 0.0
+        self.pitch = 0.0
 
     def get_data(self):
         accel_data = self.sensor.get_accel_data()
@@ -34,7 +34,7 @@ class MPU6050:
         print(f"{'Accelerometer':<15} | {accel_data['x']:>10.2f} | {accel_data['y']:>10.2f} | {accel_data['z']:>10.2f}")
         print(f"{'Gyroscope':<15} | {gyro_data['x']:>10.2f} | {gyro_data['y']:>10.2f} | {gyro_data['z']:>10.2f}")
         print("=" * 50)
-        print(f"Pitch: {self.angle_x:.2f}°, Roll: {self.angle_y:.2f}°")
+        print(f"Roll: {self.roll:.2f}°, Pitch: {self.pitch:.2f}°")
 
     def update_angle(self, accel_data, gyro_data):
         # Time delta
@@ -47,17 +47,17 @@ class MPU6050:
         gyro_y = gyro_data['y']
 
         # Integrate gyro to estimate angle
-        self.angle_x += gyro_x * dt
-        self.angle_y += gyro_y * dt
+        self.roll += gyro_x * dt
+        self.pitch += gyro_y * dt
 
         # Accelerometer angle (in degrees)
-        accel_angle_x = math.degrees(math.atan2(accel_data['y'], accel_data['z']))
-        accel_angle_y = math.degrees(math.atan2(-accel_data['x'], accel_data['z']))
+        accel_roll = math.degrees(math.atan2(accel_data['y'], accel_data['z']))
+        accel_pitch = math.degrees(math.atan2(-accel_data['x'], accel_data['y']))
 
         # Complementary filter (fusion of gyro + accel)
-        alpha = 0.96  # weight for gyro
-        self.angle_x = alpha * self.angle_x + (1 - alpha) * accel_angle_x
-        self.angle_y = alpha * self.angle_y + (1 - alpha) * accel_angle_y
+        alpha = 0.0  # weight for gyro
+        self.roll = alpha * self.roll + (1 - alpha) * accel_roll
+        self.pitch = alpha * self.pitch + (1 - alpha) * accel_pitch
 
 if __name__ == "__main__":
     acc = MPU6050(0x68)

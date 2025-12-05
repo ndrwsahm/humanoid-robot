@@ -184,11 +184,15 @@ class SSH_TX_Comms:
 
     def receive_response(self):
         output = None
-        while self.channel.recv_ready():
-            output = self.channel.recv(1024).decode('utf-8')
+        try:
+            while self.channel.recv_ready():
+                output = self.channel.recv(1024).decode('utf-8')
 
-        if output:    
-            return output
+            if output:    
+                return output
+            
+        except Exception as e:
+            print(e)
 
     def close(self):
         self.channel.send('quit\n')

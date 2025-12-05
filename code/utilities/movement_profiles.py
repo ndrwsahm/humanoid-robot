@@ -1,12 +1,13 @@
 import os
 import sys
+from globals import *
 
 utilities_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, utilities_dir)
 
 from utilities.kinematics import *
 
-STANDING_POS = [-1, 0, -13, -1, 0, -13]
+STANDING_POS = [-1, 0, -15, -1, 0, -15]
 NUM_FRAMES = 10
 
 def build_swing_phase(direction, center_x, height, step_length, leg):
@@ -52,12 +53,12 @@ def build_push_phase(direction, center_x, height, step_length, leg):
 # TODO each function will return nth dim array of angle arrays 
 def build_walk_array(direction, height, step_length, num_steps):
     for k in range(num_steps):
-        swing_phase_left = build_swing_phase(direction, -1, height, step_length, "left")
-        swing_phase_right = build_push_phase(direction, -1, height, step_length, "right")
+        swing_phase_left = build_swing_phase(direction, FOOT_X_CENTER, height, step_length, "left")
+        swing_phase_right = build_push_phase(direction, FOOT_X_CENTER, height, step_length, "right")
         combined_swing_phases = [swing_phase_left + swing_phase_right for swing_phase_left, swing_phase_right in zip(swing_phase_left, swing_phase_right)]
         
-        step_back_phase_left = build_push_phase(direction, -1, height, step_length, "left")
-        step_back_phase_right = build_swing_phase(direction, -1, height, step_length, "right")
+        step_back_phase_left = build_push_phase(direction, FOOT_X_CENTER, height, step_length, "left")
+        step_back_phase_right = build_swing_phase(direction, FOOT_X_CENTER, height, step_length, "right")
         combined_step_phase = [step_back_phase_left + step_back_phase_right for step_back_phase_left, step_back_phase_right in zip(step_back_phase_left, step_back_phase_right)]
 
         movement_array = combined_swing_phases + combined_step_phase

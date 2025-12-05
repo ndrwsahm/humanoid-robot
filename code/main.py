@@ -109,13 +109,17 @@ def run_manual_control_api(simulate, recal_servos):
         robot = Robot(pca, recal_servos)
     else:
         robot = None
-        # TODO how are you going to run firmware via RF????? FUCK.... also RF keeps crashing due to parsing issues, will randomly receive 000000000 instead of lha 180.0
+        # Run manual control on robot firmware
         tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
     
-    standing_array = build_stand_still_array(WALKING_HEIGHT)
-    left_leg_pos = compute_forward_kinematics(standing_array[0], "left")
-    right_leg_pos = compute_forward_kinematics(standing_array[0], "right")
-    starting_leg_pos = left_leg_pos + right_leg_pos
+    if recal_servos:
+        starting_leg_pos = last_all_leg_angles  # Set all angles to 90
+    
+    else:
+        standing_array = build_stand_still_array(WALKING_HEIGHT)
+        left_leg_pos = compute_forward_kinematics(standing_array[0], "left")
+        right_leg_pos = compute_forward_kinematics(standing_array[0], "right")
+        starting_leg_pos = left_leg_pos + right_leg_pos
 
     manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT, standing_array[0], starting_leg_pos, recal_servos)
 
@@ -123,8 +127,7 @@ def run_manual_control_api(simulate, recal_servos):
     while running:
         
         running, button = manual_control_gui.update()
-        #print(button)
-        # TODO create write file 
+
         if button == "recal_servos":
             print("Writing Cal Data to file...")
             write_cal_data(last_all_leg_angles)
@@ -192,8 +195,6 @@ def run_connect_nrf():
         except:
             print("No acknowledgement received from humanoid receiver!")
    
-        #serials.close()
-
 def close_all():
     global serials
 
