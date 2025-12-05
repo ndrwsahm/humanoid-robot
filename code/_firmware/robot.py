@@ -1,9 +1,9 @@
 try:
-    print("Ignore the failed commands starting from here if running without ssh")
+    print("Ignore the error commands starting from here if running without ssh")
     from _firmware.utility_functions import leg
     from _firmware.settings import *
 except:
-    print("Do not ignore the failed commands past this point if running with ssh")
+    print("Do not ignore the error commands past this point if running with ssh")
     from utility_functions import leg
     from settings import *
 

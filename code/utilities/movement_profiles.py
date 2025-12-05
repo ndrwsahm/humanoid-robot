@@ -1,5 +1,6 @@
 import os
 import sys
+
 from globals import *
 
 utilities_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -7,7 +8,7 @@ sys.path.insert(0, utilities_dir)
 
 from utilities.kinematics import *
 
-STANDING_POS = [-1, 0, -15, -1, 0, -15]
+STANDING_POS = [-1, 0, -15, -1, 0, -1]
 NUM_FRAMES = 10
 
 def build_swing_phase(direction, center_x, height, step_length, leg):
@@ -16,9 +17,9 @@ def build_swing_phase(direction, center_x, height, step_length, leg):
 
     #print("Swing X Z Pos....")
     if leg == "left":
-        y = -3
+        y = -FOOT_Y_SWING
     else:
-        y = 3
+        y = FOOT_Y_SWING
 
     # half circle equation z = sqrt(r^2 - x^2)
     for t in np.linspace(np.pi, 0, NUM_FRAMES):
@@ -36,9 +37,9 @@ def build_push_phase(direction, center_x, height, step_length, leg):
 
     #print("Back Step X Z Pos....")
     if leg == "left":
-        y = 2
+        y = FOOT_Y_PUSH
     else:
-        y = -2
+        y = -FOOT_Y_PUSH
 
     #Straight line from end of half circle to back
     for t in np.linspace(1, -1, NUM_FRAMES):

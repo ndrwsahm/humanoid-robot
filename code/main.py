@@ -102,6 +102,7 @@ def run_manual_control_api(simulate, recal_servos):
     global rf_connection
 
     last_all_leg_angles = [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+    standing_array = [[90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]]
 
     if simulate:
         # go thru local firmware folder to create objects
@@ -114,6 +115,7 @@ def run_manual_control_api(simulate, recal_servos):
     
     if recal_servos:
         starting_leg_pos = last_all_leg_angles  # Set all angles to 90
+        standing_array[0] = starting_leg_pos
     
     else:
         standing_array = build_stand_still_array(WALKING_HEIGHT)

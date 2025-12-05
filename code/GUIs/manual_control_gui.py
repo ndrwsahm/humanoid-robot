@@ -56,17 +56,19 @@ class Manual_Control_GUI:
         self.shift_height_label = tk.Label(self.root, text="Shift Height", width=35)
         self.shift_height_scale.set(WALKING_HEIGHT)
 
-        mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
-        mode_button.place(x=150, y=500)
+        if not self.cal_servo_mode:
+            mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
+            mode_button.place(x=150, y=500)
 
-        x = 10
-        y = 350
-        offset = 0
-        for k in range(len(self.movements)):
-            # TODO create second row automatically
-            self.movement_group.append(tk.Button(self.root, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
-            self.movement_group[k].place(x=x+offset, y=y)
-            offset += BUTTON_WIDTH + 200
+            x = 10
+            y = 350
+            offset = 0
+        
+            for k in range(len(self.movements)):
+                # TODO create second row automatically
+                self.movement_group.append(tk.Button(self.root, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
+                self.movement_group[k].place(x=x+offset, y=y)
+                offset += BUTTON_WIDTH + 200
 
         if self.cal_servo_mode:
             cal_button = tk.Button(self.root, text="Cal Servos", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.cal_servos_button_click)
@@ -126,6 +128,10 @@ class Manual_Control_GUI:
         for al in ALL_LEGS:
             self.leg_slider_angle_group[al].grid_forget()
             self.leg_label_angle_group[al].grid_forget()
+
+    def hide_walk_buttons(self):
+        for k in range(len(self.movements)):
+            self.movement_group[k].grid_forget()
 
     def update(self):
         self.root.update_idletasks()
