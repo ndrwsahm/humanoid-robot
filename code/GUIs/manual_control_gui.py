@@ -226,7 +226,7 @@ class Manual_Control_GUI:
 
     def get_movement_click(self, movement): self.selected_button = movement
     def get_mode(self): return self.mode
-    def cal_servos_button_click(self): self.selected_button = "stand"
+    def cal_servos_button_click(self): self.selected_button = "recal_servos"
     def stand_button_click(self): self.selected_button = "stand"
     def exit_button_click(self): self.selected_button = "exit", self.close()
     def close(self): self.root.destroy()

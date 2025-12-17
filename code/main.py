@@ -129,10 +129,12 @@ def run_manual_control_api(simulate, recal_servos):
     while running:
         
         running, button = manual_control_gui.update()
-
         if button == "recal_servos":
-            print("Writing Cal Data to file...")
-            write_cal_data(last_all_leg_angles)
+            if not recal_servos:
+                print("Writing Cal Data to file...")
+                write_cal_data(last_all_leg_angles)
+            else:
+                print("Simulate mode does not allow overwrite of cal data")
 
         elif button == "stand":
             print("Setting Standing Position")
