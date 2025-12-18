@@ -13,6 +13,7 @@ from equipment.serial_comms import *
 from utilities.write_to_file import *
 from utilities.kinematics import *
 from utilities.movement_profiles import *
+from utilities.camera_receiver import CameraReceiver
 
 DEBUG_PRINT_STATEMENT = False
 
@@ -170,16 +171,41 @@ def run_manual_control_api(simulate, recal_servos):
 def run_firmware(tx):
     global ssh_shell
 
-    tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
-    ssh_shell = True
+    if(tx.connection):
+        print("Running Firmware on Remote Pi...")
+        tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
+        ssh_shell = True
+
+    else:
+        print("No SSH Connection Established!")
+
+def run_test_camera(tx):
+    global ssh_shell
+    
+    if(tx.connection):
+        print("Starting Camera Sender Test...")
+        tx.run_test(INSTRUMENTS_REMOTE_LOCATION, CAMERA)
+        
+        print("Starting Camera Receiver...")
+        receiver = CameraReceiver(host="0.0.0.0", port=5000)
+        receiver.receive_data()
+
+        ssh_shell = True
+
+    else:
+        print("No SSH Connection Established!")
 
 def test_accelerometer(tx):
     global ssh_shell
     global DEBUG_PRINT_STATEMENT
 
-    DEBUG_PRINT_STATEMENT = True
-    tx.run_test(ACCELEROMETER_REMOTE_LOCATION, ACCELEROMETER)
-    ssh_shell = True
+    if(tx.connection):
+        DEBUG_PRINT_STATEMENT = True
+        tx.run_test(INSTRUMENTS_REMOTE_LOCATION, ACCELEROMETER)
+        ssh_shell = True
+
+    else:
+        print("No SSH Connection Established!")
 
 def run_connect_ssh():
     global ssh_connection 
@@ -227,6 +253,7 @@ def run_startup_control_api():
     "firmware": lambda: tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION),
     "run_firmware": lambda: run_firmware(tx),
     "test_accelerometer": lambda: test_accelerometer(tx),
+    "test_camera": lambda: run_test_camera(tx),
     "uninstall_firmware": lambda: tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION),
     "raspi_config": lambda: tx.run_config(FIRMWARE_REMOTE_LOCATION),
     "reboot": lambda: tx.run_reboot(FIRMWARE_REMOTE_LOCATION)

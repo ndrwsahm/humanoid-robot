@@ -42,10 +42,15 @@ class SSH_TX_Comms:
             stdin, stdout, stderr = self.ssh.exec_command("ls")
             print(stdout.readlines())
 
+            self.connection = True
+
             return True
  
         except:
             print("Unable to Connect!")
+
+            self.connection = False
+            
             return False
 
     def run_manual_control(self, file_path, rf_connection, recal_servos):

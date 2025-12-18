@@ -6,8 +6,9 @@ PASSWORD = "humanoid39"
 FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/_firmware"
 FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\_firmware"
 
-ACCELEROMETER_REMOTE_LOCATION = "/home/humanoid39/Documents/_firmware/instruments"
+INSTRUMENTS_REMOTE_LOCATION = "/home/humanoid39/Documents/_firmware/instruments"
 ACCELEROMETER = 'accelerometer'
+CAMERA = 'camera_sender'
 
 BAUDRATE = 115200
 COM_PORT = "COM8"

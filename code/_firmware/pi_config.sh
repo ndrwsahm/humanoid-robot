@@ -31,3 +31,15 @@ echo "Adafruit Servo-Kit installed."
 echo "Installing Accelerometer...."
 pip3 install mpu6050-raspberrypi --break-system-packages
 echo "Accelerometer installed."
+
+echo "Installing Open CV..."
+pip3 install opencv-python --break-system-packages
+echo "Open CV installed."
+
+echo "Installing Picamera2..."
+sudo apt install python3-picamera2
+echo "Picamera2 installed."
+
+echo "Installing Numpy..."
+pip3 install "numpy==1.26.4" --break-system-packages
+echo "Numpy installed."
