@@ -8,6 +8,7 @@ from _firmware.robot import *
 
 from GUIs.manual_control_gui import *
 from GUIs.startup_gui import *
+from GUIs.controller_mode_gui import *
 from equipment.ssh_tx_comms import *
 from equipment.serial_comms import *
 from utilities.write_to_file import *
@@ -64,7 +65,8 @@ def run_movement_profile(mc_gui, robot, simulate, last_angles, movement_array):
     # TODO this will execute the entirety of movement array
     # NOTE you will be locked into movement profile until it is complete
     for k in range(len(movement_array)):
-        mc_gui.set_all_slider_angles(movement_array[k])
+        if mc_gui != None:
+            mc_gui.set_all_slider_angles(movement_array[k])
         send_leg_commands_to_robot(robot, simulate, last_angles, movement_array[k])
         last_angles = movement_array[k]
         #time.sleep(0.001)
@@ -96,6 +98,39 @@ def run_kinematics(mc_gui, last_angles, mode):
         mc_gui.set_all_slider_angles(leg_angles)
 
     return leg_angles
+
+def run_controller_mode_api(simulate):
+    last_button = "none"   
+    last_all_leg_angles = [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+    standing_array = [[90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]]
+
+    if simulate:
+        # go thru local firmware folder to create objects
+        pca = servo_utility.PCA9865(0x41, simulate)
+        robot = Robot(pca, recal_servos)
+    else:
+        robot = None
+        # Run manual control on robot firmware
+        tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
+    
+    controller_mode_gui = Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT)
+
+    running = True
+    while running:
+        
+        running, button = controller_mode_gui.update()
+        if last_button != button and button != "none":
+            print(f"Main Button: {button}")
+            if button == "walk_forward":
+                print("Walking Forward...")
+                movement_array = build_walk_array(1, WALKING_HEIGHT, 2, 1)
+                last_all_leg_angles = run_movement_profile(None, robot, simulate, last_all_leg_angles, movement_array)
+            elif button == "walk_backward":
+                print("Walking Backward...")
+                movement_array = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
+                last_all_leg_angles = run_movement_profile(None, robot, simulate, last_all_leg_angles, movement_array)
+        last_button = button
+    return "exit"
 
 def run_manual_control_api(simulate, recal_servos):
     global tx
@@ -286,6 +321,9 @@ if __name__ == "__main__":
         elif pressed_button == "manual_control":
             pressed_button = run_manual_control_api(simulate, recal_servos)
 
+        elif pressed_button == "controller_mode":
+            pressed_button = run_controller_mode_api(simulate)
+        
     close_all()
 
     

@@ -1,4 +1,4 @@
-HOSTNAME = "192.168.1.173" # home
+HOSTNAME = "192.168.1.158" # home
 #HOSTNAME = "192.168.19.45"  # phone hotspot
 USERNAME = "humanoid39"
 PASSWORD = "humanoid39"

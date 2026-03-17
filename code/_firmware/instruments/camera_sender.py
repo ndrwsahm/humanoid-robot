@@ -2,10 +2,14 @@ import socket
 import pickle
 import cv2
 from picamera2 import Picamera2
+from libcamera import Transform
 
 class RPiCameraSender:
     def __init__(self, host="192.168.1.100", port=5000):
         self.picam2 = Picamera2()
+        config = self.picam2.create_video_configuration(transform=Transform(vflip=True))
+
+        self.picam2.configure(config)
         self.picam2.start()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
@@ -36,5 +40,5 @@ class RPiCameraSender:
         self.sock.close()
 
 if __name__ == "__main__":
-    sender = RPiCameraSender(host="192.168.1.163", port=5000)
+    sender = RPiCameraSender(host="192.168.1.151", port=5000)
     sender.stream_data()

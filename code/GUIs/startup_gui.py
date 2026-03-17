@@ -66,6 +66,7 @@ class Startup_GUI:
             "Run Raspi Config":     (10, 375, "blue", self.run_raspi_config_button_click),
             "Reboot Pi":            (200, 375, "blue", self.run_reboot_button_click),
             "Manual Control":       (475, 275, "green", self.manual_control_button_click),
+            "Controller Mode":       (675, 275, "green", self.controller_mode_button_click),
             "Exit":                 (475, 500, "green", self.exit_button_click)
         }
         for text, (x, y, color, cmd) in buttons.items():
@@ -181,6 +182,7 @@ class Startup_GUI:
     def ssh_button_click(self): self.selected_button = "ssh"
     def nrf_button_click(self): self.selected_button = "nrf"
     def manual_control_button_click(self): self.selected_button = "manual_control"; self.close()
+    def controller_mode_button_click(self): self.selected_button = "controller_mode"; self.close()
     def send_button_click(self): self.selected_button = "send"
     def firmware_button_click(self): self.selected_button = "firmware"
     def run_firmware_button_click(self): self.selected_button = "run_firmware"
