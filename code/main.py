@@ -1,5 +1,8 @@
 import sys
+import threading
 import time
+
+import pygame
 
 sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/')
 
@@ -21,6 +24,7 @@ DEBUG_PRINT_STATEMENT = False
 ssh_shell = False
 ssh_connection = False
 rf_connection = False
+camera_visible = False
 
 def check_is_none(angles, last_angles, leg):
     if angles is None:
@@ -100,6 +104,10 @@ def run_kinematics(mc_gui, last_angles, mode):
     return leg_angles
 
 def run_controller_mode_api(simulate):
+    global tx
+    global tx_camera
+    global receiver
+
     last_button = "none"   
     last_all_leg_angles = [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
     standing_array = [[90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]]
@@ -112,7 +120,8 @@ def run_controller_mode_api(simulate):
         robot = None
         # Run manual control on robot firmware
         tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
-    
+        run_test_camera(tx_camera, False) #TODO doesnt run with multiple ssh
+
     controller_mode_gui = Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT)
 
     running = True
@@ -129,11 +138,18 @@ def run_controller_mode_api(simulate):
                 print("Walking Backward...")
                 movement_array = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
                 last_all_leg_angles = run_movement_profile(None, robot, simulate, last_all_leg_angles, movement_array)
+            elif button == "camera":
+                print("Starting Camera Sender Test...")
+                receiver.camera_visible = not receiver.camera_visible
+            elif button == "accel":
+                print("Testing Accelerometer...")
+                test_accelerometer(tx)
         last_button = button
     return "exit"
 
 def run_manual_control_api(simulate, recal_servos):
     global tx
+
     global serials
     global rf_connection
 
@@ -214,21 +230,38 @@ def run_firmware(tx):
     else:
         print("No SSH Connection Established!")
 
-def run_test_camera(tx):
+def run_test_camera(tx, camera_visible):
     global ssh_shell
+    global receiver
     
     if(tx.connection):
         print("Starting Camera Sender Test...")
-        tx.run_test(INSTRUMENTS_REMOTE_LOCATION, CAMERA)
-        
+        #tx.run_test(INSTRUMENTS_REMOTE_LOCATION, CAMERA)
+        tx.run_camera(INSTRUMENTS_REMOTE_LOCATION, CAMERA)
+
         print("Starting Camera Receiver...")
         receiver = CameraReceiver(host="0.0.0.0", port=5000)
-        receiver.receive_data()
+        if camera_visible:
+            receiver.camera_visible = True
+        else:
+            receiver.camera_visible = False
+        threading.Thread(target=receiver.receive_data).start()
 
         ssh_shell = True
 
     else:
         print("No SSH Connection Established!")
+
+def close_camera_test():
+    global ssh_shell
+    global receiver
+
+    if ssh_shell:
+        print("Closing Camera Test...")
+        ssh_shell = False
+        receiver.cleanup()
+    else:
+        print("Camera Test is not running!")
 
 def test_accelerometer(tx):
     global ssh_shell
@@ -246,6 +279,7 @@ def run_connect_ssh():
     global ssh_connection 
     
     ssh_connection = tx.connect_ssh()
+    ssh_connection = tx_camera.connect_ssh()
 
 def run_connect_nrf():
     global serials
@@ -272,13 +306,15 @@ def close_all():
 
 def run_startup_control_api():
     global tx 
+    global tx_camera
     global serials
     global ssh_shell
     global ssh_connection
     global rf_connection
 
     start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE)
-    tx = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)
+    tx = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)  
+    tx_camera = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, INSTRUMENTS_REMOTE_LOCATION)
     serials = Serial_Comms(port=COM_PORT, baudrate=BAUDRATE)
     
     dispatch = {
@@ -288,7 +324,7 @@ def run_startup_control_api():
     "firmware": lambda: tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION),
     "run_firmware": lambda: run_firmware(tx),
     "test_accelerometer": lambda: test_accelerometer(tx),
-    "test_camera": lambda: run_test_camera(tx),
+    "test_camera": lambda: run_test_camera(tx_camera, True),
     "uninstall_firmware": lambda: tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION),
     "raspi_config": lambda: tx.run_config(FIRMWARE_REMOTE_LOCATION),
     "reboot": lambda: tx.run_reboot(FIRMWARE_REMOTE_LOCATION)

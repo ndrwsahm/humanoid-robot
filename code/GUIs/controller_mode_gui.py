@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import pygame as pg
+from globals import *
 
 COLUMN_WIDTH_PADDING = 20
 ROW_HEIGHT_PADDING = 10
@@ -16,8 +17,8 @@ BUTTON_NAMES = {
     3: (True, "walk_forward"),
     4: (True, "LB"),
     5: (True, "RB") ,
-    6: (True, "Back"),
-    7: (True, "Start"),
+    6: (True, "camera"),
+    7: (True, "accel"),
     8: (True, "Xbox"),
 }
 
@@ -37,7 +38,10 @@ class Controller_Mode_GUI:
 
         self.load_widgets()
         self.xbox_img = self.load_image(400, 300, "assets/xbox_controller.png")
-        self.place_image(50, 50)
+        #self.place_image(50, 50)
+        self.draw_image(0, 0)
+
+        self.idx = 0
 
         # --- Initialize pygame for controller input ---
         pg.init()
@@ -68,11 +72,60 @@ class Controller_Mode_GUI:
             print(f"Disconnected: ID {i}")
             del self.controllers[i]
 
-    def place_image(self, x, y):
-        label = tk.Label(self.root, image=self.xbox_img)
-        label.image = self.xbox_img
-        label.place(x=x, y=y)
+    def draw_button_press(self, button):
+        r = 10
 
+        # Remove previous highlight
+        if self.idx > 50000:
+            self.canvas.delete("btn")
+            self.idx = 0
+            print("Cleared highlights")
+
+        if button == 0:   # A
+            x, y = 300, 115
+            color = "green"
+        elif button == 1: # B
+            x, y = 325, 92
+            color = "red"
+        elif button == 2: # X
+            x, y = 275, 90
+            color = "blue"
+        elif button == 3: # Y
+            x, y = 300, 65
+            color = "yellow"
+        elif button == 4: # LB
+            x, y = 100, 25
+            color = "purple"
+        elif button == 5: # RB
+            x, y = 300, 25
+            color = "orange"
+        elif button == 6: # Back
+            x, y = 175, 90
+            color = "gray"
+        elif button == 7: # Start
+            x, y = 225, 90
+            color = "gray"
+        elif button == 8: # Xbox
+            x, y = 200, 90
+            color = "green"
+        else:
+            x, y = -100, -100  # Off-screen for unmapped buttons
+            color = "black"
+            self.idx += 1
+
+        # Draw the new highlight
+        self.canvas.create_oval(
+            x-r, y-r, x+r, y+r,
+            fill=color,
+            outline="",
+            tag="btn"
+        )
+
+    def draw_image(self, x, y):
+        self.canvas = tk.Canvas(self.root, width=self.xbox_img.width()+50, height=self.xbox_img.height()+50)
+        self.canvas.pack(anchor=tk.NW)
+        self.canvas.create_image(x, y, anchor=tk.NW, image=self.xbox_img)   
+        
     def load_image(self, img_width, img_height, path):
         # Load and resize the image
         image = Image.open(path)
@@ -106,10 +159,13 @@ class Controller_Mode_GUI:
             
             if self.exit_application:
                 return False, self.selected_button
-        
+
+            # Gets button press
             self.button = self.events()
+            self.draw_button_press(self.button)
             result = BUTTON_NAMES.get(self.button, (True, "none"))
             
+            # Resets 
             self.selected_button = "none" # Reset after handling
             self.rescan_controllers()
 
@@ -132,7 +188,7 @@ class Controller_Mode_GUI:
                 print(f"Controller {self.controller_number} button pressed: {event.button}")
     
         return button
-        
+    
     def close(self):
         self.root.destroy()
         self.exit_application = True

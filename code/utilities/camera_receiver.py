@@ -3,6 +3,8 @@ import pickle
 import cv2
 import numpy as np
 import time
+from importlib import import_module
+main = import_module("__main__")
 
 class CameraReceiver:
     def __init__(self, host="0.0.0.0", port=5000):
@@ -17,6 +19,8 @@ class CameraReceiver:
         self.prev_time = time.time()
         self.frame_count = 0
         self.fps = 0
+
+        self.camera_visible = False
 
     def receive_data(self):
         while True:
@@ -54,23 +58,28 @@ class CameraReceiver:
                 self.frame_count = 0
                 self.prev_time = current_time
 
-            # --- Overlay FPS and quit text ---
-            cv2.putText(frame, f"FPS: {self.fps:.2f}", (10, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            cv2.putText(frame, "Press Q to quit", (10, 60),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+            if self.camera_visible:
+                # --- Overlay FPS and quit text ---
+                cv2.putText(frame, f"FPS: {self.fps:.2f}", (10, 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cv2.putText(frame, "Press Q to quit", (10, 60),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
 
-            # Show frame
-            cv2.imshow("CPU Live Feed", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                # Show frame
+                cv2.imshow("CPU Live Feed", frame)
+                
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+            else:
+                cv2.destroyAllWindows()
 
         self.cleanup()
 
     def cleanup(self):
         self.conn.close()
         cv2.destroyAllWindows()
-
+    
 if __name__ == "__main__":
     receiver = CameraReceiver(host="0.0.0.0", port=5000)
     receiver.receive_data()

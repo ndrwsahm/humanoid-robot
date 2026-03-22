@@ -86,7 +86,16 @@ class SSH_TX_Comms:
             # TODO need readback
         except Exception as e:
             print (e)
-
+    
+    def run_camera(self, file_path, file_name):
+        # Need to run script to wait for user input
+        full_file_path = 'python3 -u ' + file_path + '/' + file_name  + '.py\n'
+       
+        try:
+            self.send_command(full_file_path)
+        except Exception as e:
+            print (e)
+            
     def run_firmware(self, file_path):
         # Need to run script to wait for user input
         full_file_path = 'python3 ' + file_path + '/firmware.py\n'
