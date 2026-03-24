@@ -8,14 +8,16 @@ ROW_HEIGHT_PADDING = 10
 BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
 
-class Manual_Control_GUI:
-    def __init__(self, width, height, starting_angles, starting_pos, cal_servo_mode):
-        self.root = tk.Tk()
-        self.root.title("Slider Example")
-        self.root.geometry(str(width) + "x" + str(height))
+class Manual_Control_GUI(tk.Frame):
+    def __init__(self, width, height, starting_angles, starting_pos, cal_servo_mode, parent_root):
+        super().__init__(parent_root) 
 
         self.width = width
         self.height = height
+
+        self.config(width=self.width, height=self.height)
+        self.pack_propagate(False)
+        self.grid_propagate(False) 
 
         self.cal_servo_mode = cal_servo_mode
         self.selected_button = "none"
@@ -40,24 +42,24 @@ class Manual_Control_GUI:
     def load(self):
         # Anlge Track Sliders
         for al in ALL_LEGS:
-            self.leg_slider_angle_group.append(ttk.Scale(self.root, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_angle_value(al)))
-            self.leg_label_angle_group.append(tk.Label(self.root, text=self.leg_text_angle_group[al], width=35))
+            self.leg_slider_angle_group.append(ttk.Scale(self, from_=0, to=180, orient="horizontal", command=lambda x: self.get_slider_angle_value(al)))
+            self.leg_label_angle_group.append(tk.Label(self, text=self.leg_text_angle_group[al], width=35))
 
-        self.empty_label = tk.Label(self.root, text = "")
+        self.empty_label = tk.Label(self, text = "")
 
         for al in ALL_POS:
-            self.leg_slider_pos_group.append(ttk.Scale(self.root, from_=MIN_POS[al], to=MAX_POS[al], orient="horizontal", command=lambda x: self.get_slider_pos_value(al)))
-            self.leg_label_pos_group.append(tk.Label(self.root, text=self.leg_text_pos_group[al], width=35))
+            self.leg_slider_pos_group.append(ttk.Scale(self, from_=MIN_POS[al], to=MAX_POS[al], orient="horizontal", command=lambda x: self.get_slider_pos_value(al)))
+            self.leg_label_pos_group.append(tk.Label(self, text=self.leg_text_pos_group[al], width=35))
         
-        self.shift_weight_scale = ttk.Scale(self.root, from_=SHIFT_WEIGTH_MIN, to=SHIFT_WEIGTH_MAX, orient="horizontal", command=self.get_slider_weight_val)
-        self.shift_weight_label = tk.Label(self.root, text="Shift Weight", width=35)
+        self.shift_weight_scale = ttk.Scale(self, from_=SHIFT_WEIGTH_MIN, to=SHIFT_WEIGTH_MAX, orient="horizontal", command=self.get_slider_weight_val)
+        self.shift_weight_label = tk.Label(self, text="Shift Weight", width=35)
         self.shift_weight_scale.set(0)
-        self.shift_height_scale = ttk.Scale(self.root, from_=SHIFT_HEIGTH_MAX, to=SHIFT_HEIGTH_MIN, orient="vertical", command=self.get_slider_height_val)
-        self.shift_height_label = tk.Label(self.root, text="Shift Height", width=35)
+        self.shift_height_scale = ttk.Scale(self, from_=SHIFT_HEIGTH_MAX, to=SHIFT_HEIGTH_MIN, orient="vertical", command=self.get_slider_height_val)
+        self.shift_height_label = tk.Label(self, text="Shift Height", width=35)
         self.shift_height_scale.set(WALKING_HEIGHT)
 
         if not self.cal_servo_mode:
-            mode_button = tk.Button(self.root, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
+            mode_button = tk.Button(self, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
             mode_button.place(x=150, y=500)
 
             x = 10
@@ -66,16 +68,16 @@ class Manual_Control_GUI:
         
             for k in range(len(self.movements)):
                 # TODO create second row automatically
-                self.movement_group.append(tk.Button(self.root, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
+                self.movement_group.append(tk.Button(self, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
                 self.movement_group[k].place(x=x+offset, y=y)
                 offset += BUTTON_WIDTH + 200
 
         if self.cal_servo_mode:
-            cal_button = tk.Button(self.root, text="Cal Servos", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.cal_servos_button_click)
+            cal_button = tk.Button(self, text="Cal Servos", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.cal_servos_button_click)
             cal_button.place(x=300, y=350)
 
         # Exit Button
-        exit_button = tk.Button(self.root, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
+        exit_button = tk.Button(self, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
         exit_button.place(x=450, y=500)
 
     def new(self, angles, pos):
@@ -93,7 +95,7 @@ class Manual_Control_GUI:
             self.leg_label_pos_group[j].grid(row=j, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
             self.leg_label_pos_group[j+3].grid(row=j, column=5, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
 
-        self.empty_label = tk.Label(self.root, text="           ")
+        self.empty_label = tk.Label(self, text="           ")
         self.empty_label.grid(row=3,column=3,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
    
         self.shift_weight_scale.grid(row=4,column=1,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
@@ -121,7 +123,7 @@ class Manual_Control_GUI:
             self.leg_label_angle_group[j].grid(row=j, column=2, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
             self.leg_label_angle_group[j+6].grid(row=j, column=5, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
 
-        self.empty_label = tk.Label(self.root, text="           ")
+        self.empty_label = tk.Label(self, text="           ")
         self.empty_label.grid(row=3,column=3,padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
 
     def hide_angle_sliders(self):
@@ -133,9 +135,9 @@ class Manual_Control_GUI:
         for k in range(len(self.movements)):
             self.movement_group[k].grid_forget()
 
-    def update(self):
-        self.root.update_idletasks()
-        self.root.update()
+    def gui_update(self):
+        self.update_idletasks()
+        self.update()
 
         if self.mode != getattr(self, "last_mode", None):
             if self.mode == "Kinematics":
@@ -228,7 +230,7 @@ class Manual_Control_GUI:
     def get_mode(self): return self.mode
     def cal_servos_button_click(self): self.selected_button = "recal_servos"
     def stand_button_click(self): self.selected_button = "stand"
-    def exit_button_click(self): self.selected_button = "exit", self.close()
-    def close(self): self.root.destroy()
+    def exit_button_click(self): self.selected_button = "exit"; self.close()
+    def close(self): self.destroy()
     
    

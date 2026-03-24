@@ -25,7 +25,7 @@ sudo apt install -y i2c-tools python-smbus
 echo "i2c-tools and smbus installed"
 
 echo "Installing Adafruit Servo-Kit..."
-pip3 install adafruit-circuitpython-servokit
+pip3 install adafruit-circuitpython-servokit --break-system-packages
 echo "Adafruit Servo-Kit installed."
 
 echo "Installing Accelerometer...."

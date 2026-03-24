@@ -22,19 +22,23 @@ BUTTON_NAMES = {
     8: (True, "Xbox"),
 }
 
-class Controller_Mode_GUI:
-    def __init__(self, width, height):
-        self.root = tk.Tk()
-        self.root.title("Controller Mode Example")
-        self.root.geometry(str(width) + "x" + str(height))
+class Controller_Mode_GUI(tk.Frame):
+    def __init__(self, width, height, parent_root):
+        super().__init__(parent_root) 
 
         self.width = width
         self.height = height
+
+        self.config(width=self.width, height=self.height)
+        self.pack_propagate(False)
 
         self.exit_application = False
         self.selected_button = "none"
         self.last_button = "none"
         self.key_pressed = None
+
+        self.canvas = tk.Canvas(self, width=500, height=400)
+        self.canvas.pack(anchor=tk.NW)
 
         self.load_widgets()
         self.xbox_img = self.load_image(400, 300, "assets/xbox_controller.png")
@@ -122,8 +126,8 @@ class Controller_Mode_GUI:
         )
 
     def draw_image(self, x, y):
-        self.canvas = tk.Canvas(self.root, width=self.xbox_img.width()+50, height=self.xbox_img.height()+50)
-        self.canvas.pack(anchor=tk.NW)
+        #self.canvas = tk.Canvas(self, width=self.xbox_img.width()+50, height=self.xbox_img.height()+50)
+        #self.canvas.pack(anchor=tk.NW)
         self.canvas.create_image(x, y, anchor=tk.NW, image=self.xbox_img)   
         
     def load_image(self, img_width, img_height, path):
@@ -144,18 +148,18 @@ class Controller_Mode_GUI:
             self.create_button(text, x, y, color, cmd)
 
     def create_button(self, text, x, y, color, command, width=BUTTON_WIDTH, height=BUTTON_HEIGHT):
-        button = tk.Button(self.root, text=text, bg=color, fg="white", font=("Arial", 14),
+        button = tk.Button(self, text=text, bg=color, fg="white", font=("Arial", 14),
                          width=width, height=height, command=command)
     
         button.place(x=x, y=y)
         return button
     
-    def update(self):
+    def gui_update(self):
         if self.exit_application:
             return False, self.selected_button
         else:
-            self.root.update_idletasks()
-            self.root.update()
+            self.update_idletasks()
+            self.update()
             
             if self.exit_application:
                 return False, self.selected_button
@@ -190,7 +194,7 @@ class Controller_Mode_GUI:
         return button
     
     def close(self):
-        self.root.destroy()
+        self.destroy()
         self.exit_application = True
         print("close")
 

@@ -14,6 +14,7 @@ from GUIs.startup_gui import *
 from GUIs.controller_mode_gui import *
 from equipment.ssh_tx_comms import *
 from equipment.serial_comms import *
+from equipment.ssh_manager import *
 from utilities.write_to_file import *
 from utilities.kinematics import *
 from utilities.movement_profiles import *
@@ -103,52 +104,166 @@ def run_kinematics(mc_gui, last_angles, mode):
 
     return leg_angles
 
-def run_controller_mode_api(simulate):
-    global tx
+def run_firmware(tx):
+    global ssh_shell
+
+    if(tx.connection):
+        print("Running Firmware on Remote Pi...")
+        tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
+        ssh_shell = True
+
+    else:
+        print("No SSH Connection Established!")
+
+def run_test_camera(tx, visible):
+    if not tx.connection:
+        print("Camera Pi not connected!")
+        return
+
+    print("Starting camera sender...")
+    tx.send_command(f"python3 {INSTRUMENTS_REMOTE_LOCATION_CAMERA}/{CAMERA}.py &")
+
+    print("Starting camera receiver...")
+    receiver = CameraReceiver(host="0.0.0.0", port=5000)
+    receiver.camera_visible = visible
+    threading.Thread(target=receiver.receive_data, daemon=True).start()
+
+    return receiver
+
+"""
+def run_test_camera(camera_visible):
+    global ssh_shell
     global tx_camera
     global receiver
+    
+    if(tx_camera.connection):
+        print("Starting Camera Sender Test...")
+        #tx.run_test(INSTRUMENTS_REMOTE_LOCATION, CAMERA)
+        tx_camera.run_camera(INSTRUMENTS_REMOTE_LOCATION_CAMERA, CAMERA)
 
-    last_button = "none"   
-    last_all_leg_angles = [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
-    standing_array = [[90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]]
+        print("Starting Camera Receiver...")
+        receiver = CameraReceiver(host="0.0.0.0", port=5000)
+        if camera_visible:
+            receiver.camera_visible = True
+        else:
+            receiver.camera_visible = False
+        threading.Thread(target=receiver.receive_data).start()
 
-    if simulate:
-        # go thru local firmware folder to create objects
-        pca = servo_utility.PCA9865(0x41, simulate)
-        robot = Robot(pca, recal_servos)
+        ssh_shell = True
+
     else:
-        robot = None
-        # Run manual control on robot firmware
-        tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
-        run_test_camera(tx_camera, False) #TODO doesnt run with multiple ssh
+        print("No SSH Connection Established!")
+"""
+def close_camera_test():
+    global ssh_shell
+    global receiver
 
-    controller_mode_gui = Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT)
+    if ssh_shell:
+        print("Closing Camera Test...")
+        ssh_shell = False
+        receiver.cleanup()
+    else:
+        print("Camera Test is not running!")
 
+def test_accelerometer(tx):
+    global ssh_shell
+    global DEBUG_PRINT_STATEMENT
+
+    if(tx.connection):
+        DEBUG_PRINT_STATEMENT = True
+        tx.run_test(INSTRUMENTS_REMOTE_LOCATION, ACCELEROMETER)
+        ssh_shell = True
+
+    else:
+        print("No SSH Connection Established!")
+
+def run_connect_ssh(ssh):
+    ssh.tx_robot.connect_ssh()
+    ssh.tx_camera.connect_ssh()
+
+def run_connect_nrf():
+    global serials
+    global rf_connection
+    
+    serials_connection = serials.connect()
+
+    if serials_connection:
+        try:
+            joint, rf_connection = serials.send_command("CMD 39 STA 1.0") # Check status of LED
+            #print(rf_connection)
+        except:
+            print("No acknowledgement received from humanoid receiver!")
+   
+def close_all():
+    global serials
+
+    serials_connection = serials.connect()
+
+    if serials_connection:
+
+        serials.send_command("CMD 39 DIS 0.0")
+        serials.close()
+
+def run_startup_control_api():
+    global serials
+    global rf_connection
+
+    start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE)
+    
+    # Create SSH Manager and add targets
+    ssh = SSHManager()
+    ssh.add_target("pi_robot", HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)
+    ssh.add_target("pi_camera", HOSTNAME_CAMERA, USERNAME_CAMERA, PASSWORD_CAMERA, INSTRUMENTS_REMOTE_LOCATION_CAMERA)
+
+    ssh.tx_robot = ssh.targets["pi_robot"]
+    ssh.tx_camera = ssh.targets["pi_camera"]
+    ssh.select_general("pi_robot")   # default
+
+    # Create serial for RF communication
+    serials = Serial_Comms(port=COM_PORT, baudrate=BAUDRATE)
+    
+    dispatch = {
+    "ssh": lambda: run_connect_ssh(ssh),
+    "nrf": lambda: run_connect_nrf(),
+    "send": lambda: ssh.tx_general.send_command(start_gui.get_command()),
+    "firmware": lambda: ssh.tx_general.install_firmware(FIRMWARE_LOCAL_LOCATION, ssh.tx_general.file_location_on_pi),
+    "run_firmware": lambda: run_firmware(ssh.tx_general),
+    "test_accelerometer": lambda: test_accelerometer(ssh.tx_robot),
+    "test_camera": lambda: run_test_camera(ssh.tx_camera, True),
+    "uninstall_firmware": lambda: ssh.tx_general.uninstall_firmware(ssh.tx_general.file_location_on_pi),
+    "raspi_config": lambda: ssh.tx_general.run_config(ssh.tx_general.file_location_on_pi),
+    "reboot": lambda: ssh.tx_general.run_reboot(ssh.tx_general.file_location_on_pi)
+    }
+    
     running = True
     while running:
-        
-        running, button = controller_mode_gui.update()
-        if last_button != button and button != "none":
-            print(f"Main Button: {button}")
-            if button == "walk_forward":
-                print("Walking Forward...")
-                movement_array = build_walk_array(1, WALKING_HEIGHT, 2, 1)
-                last_all_leg_angles = run_movement_profile(None, robot, simulate, last_all_leg_angles, movement_array)
-            elif button == "walk_backward":
-                print("Walking Backward...")
-                movement_array = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
-                last_all_leg_angles = run_movement_profile(None, robot, simulate, last_all_leg_angles, movement_array)
-            elif button == "camera":
-                print("Starting Camera Sender Test...")
-                receiver.camera_visible = not receiver.camera_visible
-            elif button == "accel":
-                print("Testing Accelerometer...")
-                test_accelerometer(tx)
-        last_button = button
-    return "exit"
+        simulate = start_gui.get_simulate_value()
+        recal_servos = start_gui.get_recal_value()
+        pi_selection = start_gui.get_pi_selector_value()
+        ssh.select_general(pi_selection)   # default
+
+        # TODO update with correct names
+        if pi_selection == "pi_robot":
+            start_gui.update_hostname(ssh.tx_robot.hostname)
+            start_gui.update_username(ssh.tx_robot.username)
+        elif pi_selection == "pi_camera":
+            start_gui.update_hostname(ssh.tx_camera.hostname)
+            start_gui.update_username(ssh.tx_camera.username)
+
+        running, button = start_gui.update(ssh.tx_general.connection, rf_connection)
+
+        action = dispatch.get(button)
+        if action:
+            action()
+
+        if ssh.tx_general.connection:
+            response = ssh.tx_general.receive_response()
+            if response and DEBUG_PRINT_STATEMENT:
+                print(response)
+    return button, simulate, recal_servos
 
 def run_manual_control_api(simulate, recal_servos):
-    global tx
+    global ssh
 
     global serials
     global rf_connection
@@ -219,133 +334,48 @@ def run_manual_control_api(simulate, recal_servos):
 
     return button
 
-def run_firmware(tx):
-    global ssh_shell
-
-    if(tx.connection):
-        print("Running Firmware on Remote Pi...")
-        tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
-        ssh_shell = True
-
-    else:
-        print("No SSH Connection Established!")
-
-def run_test_camera(tx, camera_visible):
-    global ssh_shell
-    global receiver
-    
-    if(tx.connection):
-        print("Starting Camera Sender Test...")
-        #tx.run_test(INSTRUMENTS_REMOTE_LOCATION, CAMERA)
-        tx.run_camera(INSTRUMENTS_REMOTE_LOCATION, CAMERA)
-
-        print("Starting Camera Receiver...")
-        receiver = CameraReceiver(host="0.0.0.0", port=5000)
-        if camera_visible:
-            receiver.camera_visible = True
-        else:
-            receiver.camera_visible = False
-        threading.Thread(target=receiver.receive_data).start()
-
-        ssh_shell = True
-
-    else:
-        print("No SSH Connection Established!")
-
-def close_camera_test():
-    global ssh_shell
+def run_controller_mode_api(simulate):
+    global tx
     global receiver
 
-    if ssh_shell:
-        print("Closing Camera Test...")
-        ssh_shell = False
-        receiver.cleanup()
+    last_button = "none"   
+    last_all_leg_angles = [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+    standing_array = [[90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]]
+
+    if simulate:
+        # go thru local firmware folder to create objects
+        pca = servo_utility.PCA9865(0x41, simulate)
+        robot = Robot(pca, recal_servos)
     else:
-        print("Camera Test is not running!")
+        robot = None
+        # Run manual control on robot firmware
+        tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
+        run_test_camera(False) #TODO doesnt run with multiple ssh
 
-def test_accelerometer(tx):
-    global ssh_shell
-    global DEBUG_PRINT_STATEMENT
+    controller_mode_gui = Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT)
 
-    if(tx.connection):
-        DEBUG_PRINT_STATEMENT = True
-        tx.run_test(INSTRUMENTS_REMOTE_LOCATION, ACCELEROMETER)
-        ssh_shell = True
-
-    else:
-        print("No SSH Connection Established!")
-
-def run_connect_ssh():
-    global ssh_connection 
-    
-    ssh_connection = tx.connect_ssh()
-    ssh_connection = tx_camera.connect_ssh()
-
-def run_connect_nrf():
-    global serials
-    global rf_connection
-    
-    serials_connection = serials.connect()
-
-    if serials_connection:
-        try:
-            joint, rf_connection = serials.send_command("CMD 39 STA 1.0") # Check status of LED
-            #print(rf_connection)
-        except:
-            print("No acknowledgement received from humanoid receiver!")
-   
-def close_all():
-    global serials
-
-    serials_connection = serials.connect()
-
-    if serials_connection:
-
-        serials.send_command("CMD 39 DIS 0.0")
-        serials.close()
-
-def run_startup_control_api():
-    global tx 
-    global tx_camera
-    global serials
-    global ssh_shell
-    global ssh_connection
-    global rf_connection
-
-    start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE)
-    tx = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)  
-    tx_camera = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, INSTRUMENTS_REMOTE_LOCATION)
-    serials = Serial_Comms(port=COM_PORT, baudrate=BAUDRATE)
-    
-    dispatch = {
-    "ssh": lambda: run_connect_ssh(),
-    "nrf": lambda: run_connect_nrf(),
-    "send": lambda: tx.send_command(start_gui.get_command()),
-    "firmware": lambda: tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION),
-    "run_firmware": lambda: run_firmware(tx),
-    "test_accelerometer": lambda: test_accelerometer(tx),
-    "test_camera": lambda: run_test_camera(tx_camera, True),
-    "uninstall_firmware": lambda: tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION),
-    "raspi_config": lambda: tx.run_config(FIRMWARE_REMOTE_LOCATION),
-    "reboot": lambda: tx.run_reboot(FIRMWARE_REMOTE_LOCATION)
-    }
-    
     running = True
     while running:
-        simulate = start_gui.get_simulate_value()
-        recal_servos = start_gui.get_recal_value()
-
-        running, button = start_gui.update(ssh_connection, rf_connection)
-
-        action = dispatch.get(button)
-        if action:
-            action()
-
-        if ssh_shell:
-            response = tx.receive_response()
-            if response and DEBUG_PRINT_STATEMENT:
-                print(response)
-    return button, simulate, recal_servos
+        
+        running, button = controller_mode_gui.update()
+        if last_button != button and button != "none":
+            print(f"Main Button: {button}")
+            if button == "walk_forward":
+                print("Walking Forward...")
+                movement_array = build_walk_array(1, WALKING_HEIGHT, 2, 1)
+                last_all_leg_angles = run_movement_profile(None, robot, simulate, last_all_leg_angles, movement_array)
+            elif button == "walk_backward":
+                print("Walking Backward...")
+                movement_array = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
+                last_all_leg_angles = run_movement_profile(None, robot, simulate, last_all_leg_angles, movement_array)
+            elif button == "camera":
+                print("Starting Camera Sender Test...")
+                receiver.camera_visible = not receiver.camera_visible
+            elif button == "accel":
+                print("Testing Accelerometer...")
+                test_accelerometer(tx)
+        last_button = button
+    return "exit"
         
 if __name__ == "__main__":
     pressed_button = "start"

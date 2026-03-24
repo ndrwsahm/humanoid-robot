@@ -1,12 +1,21 @@
-HOSTNAME = "192.168.1.158" # home
-#HOSTNAME = "192.168.19.45"  # phone hotspot
-USERNAME = "humanoid39"
-PASSWORD = "humanoid39"
+HOSTNAME = "192.168.1.160" # zero
 
-FIRMWARE_REMOTE_LOCATION = "/home/humanoid39/Documents/_firmware"
+USERNAME = "humanoid39zero"
+PASSWORD = "humanoid39zero"
+
+HOSTNAME_CAMERA = "192.168.1.158" # pi 3
+#HOSTNAME = "192.168.19.45"  # phone hotspot
+USERNAME_CAMERA = "humanoid39"
+PASSWORD_CAMERA = "humanoid39"
+
 FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\_firmware"
 
-INSTRUMENTS_REMOTE_LOCATION = "/home/humanoid39/Documents/_firmware/instruments"
+FIRMWARE_REMOTE_LOCATION_CAMERA = "/home/" + USERNAME_CAMERA + "/Documents/_firmware"
+FIRMWARE_REMOTE_LOCATION = "/home/" + USERNAME + "/Documents/_firmware"
+
+INSTRUMENTS_REMOTE_LOCATION_CAMERA = "/home/" + USERNAME_CAMERA + "/Documents/_firmware/instruments"
+INSTRUMENTS_REMOTE_LOCATION = "/home/" + USERNAME + "/Documents/_firmware/instruments"
+
 ACCELEROMETER = 'accelerometer'
 CAMERA = 'camera_sender'
 
