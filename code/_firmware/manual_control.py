@@ -42,13 +42,14 @@ if __name__ == "__main__":
             print("False")
         #           lhr, lha, lhe, lk, laa, lae
         #robot.set_all_angles([90,80,60,100,100,70,90,100,120,90,100,100])
-        if(sys.argv[1] == "ssh"):
-            print("Creating SSH Comms Object...")
-            rx_comms = SSH_RX_Comms()
-        else:
-            print("Creating RF Comms Object...")
-            rx_comms = Serial_RX_Comms()
-        
+        #if(sys.argv[1] == "ssh"):
+        #    print("Creating SSH Comms Object...")
+        #    rx_comms = SSH_RX_Comms()
+        #else:
+        #    print("Creating RF Comms Object...")
+        #    rx_comms = Serial_RX_Comms()
+        print("Using STDIN for command input...")
+        rx_comms = SSH_RX_Comms()  # but modify SSH_RX_Comms to rea
         
     except Exception as e:
         print(e)

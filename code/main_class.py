@@ -22,7 +22,7 @@ from utilities.movement_profiles import *
 from utilities.camera_receiver import CameraReceiver
 
 DEBUG_PRINT_STATEMENT = False
-
+    
 class RobotControllerAPI:
     def __init__(self):
         
@@ -61,18 +61,20 @@ class RobotControllerAPI:
         # Camera receiver
         self.receiver = None
 
+        self.manual_control_started = False
+
         # Command dispatch dictionary
         self.dispatch = {
         "ssh": lambda: self.run_connect_ssh(),
         #"nrf": lambda: run_connect_nrf(),
-        #"send": lambda: ssh.tx_general.send_command(start_gui.get_command()),
+        "send": lambda: self.ssh.tx_general.send_command(self.screens["startup"].get_command()),
         "firmware": lambda: self.ssh.tx_general.install_firmware(FIRMWARE_LOCAL_LOCATION, self.ssh.tx_general.file_location_on_pi),
-        #"run_firmware": lambda: run_firmware(ssh.tx_general),
+        "run_firmware": lambda: self.ssh.tx_general.run_firmware(self.ssh.tx_general.file_location_on_pi),
         "test_accelerometer": lambda: self.run_test_accelerometer(),
         "test_camera": lambda: self.run_test_camera(True),
-        #"uninstall_firmware": lambda: ssh.tx_general.uninstall_firmware(ssh.tx_general.file_location_on_pi),
+        "uninstall_firmware": lambda: self.ssh.tx_general.uninstall_firmware(self.ssh.tx_general.file_location_on_pi),
         "raspi_config": lambda: self.ssh.tx_general.run_config(self.ssh.tx_general.file_location_on_pi),
-        #"reboot": lambda: ssh.tx_general.run_reboot(ssh.tx_general.file_location_on_pi)
+        "reboot": lambda: self.ssh.tx_general.run_reboot(self.ssh.tx_general.file_location_on_pi)
         }
 
     def new(self):
@@ -84,12 +86,38 @@ class RobotControllerAPI:
     def events(self, button):
         if self.current_screen == "startup":
             if button == "manual_control":
+                if self.simulate:
+                    pca = servo_utility.PCA9865(0x41, True)
+                    self.robot = Robot(pca, self.recal_servos)
+                else:
+                    self.robot = None
+                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION, self.recal_servos)
+
+                self.manual_control_started = True
                 self.switch_screen("manual")
+                
             elif button == "controller_mode":
                 self.switch_screen("controller")
 
         elif self.current_screen == "manual":
-            if button == "exit":
+
+            if button == "walk_forward":
+                movement = build_walk_array(1, WALKING_HEIGHT, 2, 1)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "walk_backward":
+                movement = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "stand":
+                movement = build_stand_still_array(WALKING_HEIGHT)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "exit":
+                self.manual_control_started = False
                 self.switch_screen("startup")
 
         elif self.current_screen == "controller":
@@ -122,14 +150,48 @@ class RobotControllerAPI:
                 screen.update_location(self.ssh.tx_camera.file_location_on_pi)
 
         elif self.current_screen == "manual":
+
+            screen = self.screens["manual"]
+
+            # 1. Read mode (Angles / Kinematics)
+            mode = screen.get_mode()
+
+            # 2. Compute kinematics
+            if mode == "Angles":
+                leg_angles = screen.get_all_slider_angles()
+                left_pos = compute_forward_kinematics(leg_angles, "left")
+                right_pos = compute_forward_kinematics(leg_angles, "right")
+                screen.set_all_slider_pos(left_pos + right_pos)
+
+            elif mode == "Kinematics":
+                leg_pos = screen.get_all_slider_pos()
+                left_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
+                right_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
+
+                # handle None values
+                left_angles = self.check_is_none(left_angles, self.last_all_leg_angles, "left")
+                right_angles = self.check_is_none(right_angles, self.last_all_leg_angles, "right")
+
+                leg_angles = left_angles + right_angles
+                screen.set_all_slider_angles(leg_angles)
+
+            # 3. Send servo commands
+            if self.simulate:
+                self.robot.set_all_angles(leg_angles)
+                self.robot.update()
+            else:
+                self.last_all_leg_angles = self.send_leg_commands(leg_angles)
+
+
+        """elif self.current_screen == "manual":
             if self.simulate:
                 # Intialize simulated robot from firmware folder
                 pca = servo_utility.PCA9685(0x41, self.simulate)
                 robot = Robot(pca, self.recal_servos)
             else:
                 robot = None
-                self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION, self.rf_connection, self.recal_servos)
-
+                self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION, self.recal_servos)
+        """
         if self.ssh.tx_camera.connection:
             response = self.ssh.tx_camera.receive_response()
             if response:
@@ -202,6 +264,40 @@ class RobotControllerAPI:
 
         else:
             print("No SSH Connection Established!")
+
+    def send_leg_commands(self, all_leg_angles):
+        try:
+            # Simulation mode
+            if self.simulate:
+                self.robot.set_all_angles(all_leg_angles)
+                self.robot.update()
+                return all_leg_angles
+
+            # Real robot mode
+            for k in range(NUMBER_OF_SERVOS):
+                if self.last_all_leg_angles[k] != all_leg_angles[k]:
+                    cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
+                    self.ssh.tx_robot.send_user_input(cmd)
+
+            response = self.ssh.tx_robot.receive_response()
+            if response:
+                print(response)
+
+            return all_leg_angles
+
+        except Exception as e:
+            print("Sending command error:", e)
+            return self.last_all_leg_angles
+        
+    def check_is_none(self, angles, last_angles, leg):
+        if angles is None:
+            angles = [90, 90, 90, 90, 90, 90]
+            for k in range(6):
+                if leg == "right":
+                    angles[k] = last_angles[k+6]
+                else:
+                    angles[k] = last_angles[k]
+        return angles
 
 if __name__ == "__main__":
     api = RobotControllerAPI()

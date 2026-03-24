@@ -55,12 +55,10 @@ class SSH_TX_Comms:
             
             return False
 
-    def run_manual_control(self, file_path, rf_connection, recal_servos):
+    def run_manual_control(self, file_path, recal_servos):
         # Need to run script to wait for user input
-        if rf_connection:
-            arg1 = 'nrf'
-        else:
-            arg1 = 'ssh'
+
+        arg1 = 'ssh'
 
         if recal_servos:
             arg2 = 'recal'
@@ -99,6 +97,15 @@ class SSH_TX_Comms:
             print (e)
 
     def run_firmware(self, file_path):
+        try:
+            command = f"python3 -u {file_path}/firmware.py"
+            self.send_user_input(command + "\n")
+            print(f"Running firmware at: {command}")
+        except Exception as e:
+            print(e)
+
+    """
+    def run_firmware(self, file_path):
         # Need to run script to wait for user input
         full_file_path = 'python3 ' + file_path + '/firmware.py\n'
 
@@ -110,7 +117,7 @@ class SSH_TX_Comms:
 
         except Exception as e:
             print (e)
-
+    """
     def run_config(self, file_path):
         print("Running chmod..")
         self.send_user_input(f"chmod +x {file_path}/pi_config.sh\n")
@@ -120,27 +127,14 @@ class SSH_TX_Comms:
         self.send_user_input(f"bash {file_path}/pi_config.sh\n")
         print("Bash finished")
 
-    """def run_config(self, file_path):
-        print("Running chmod..")
-        full_file_path = 'chmod +x ' + file_path + '/pi_config.sh'
-        self.send_command(full_file_path)
-        print("Chmod finished")
-
-        print("Running bash...")
-        full_file_path = 'bash ' + file_path + '/pi_config.sh'
-        self.send_command(full_file_path)
-        print("Bash finished")"""
-
     def run_reboot(self, file_path):
         print("Running chmod..")
-        full_file_path = 'chmod +x ' + file_path + '/rebot.sh'
-        self.send_command(full_file_path)
+        self.send_user_input(f"chmod +x {file_path}/rebot.sh\n")
         print("Chmod finished")
 
-        print("Running bash...May take several minutes be patient...")
-        full_file_path = 'bash ' + file_path + '/pi_config.sh'
-        self.send_command(full_file_path)
-        print("Bash finished")
+        print("Running reboot script...")
+        self.send_user_input(f"bash {file_path}/rebot.sh\n")
+        print("Reboot command sent")
 
     def send_command(self, command):
         stdin, stdout, stderr = self.ssh.exec_command(command)
@@ -186,6 +180,15 @@ class SSH_TX_Comms:
 
     def uninstall_firmware(self, remote_path):
         try:
+            print(f"Removing firmware directory: {remote_path}")
+            self.send_user_input(f"rm -rf {remote_path}\n")
+            print("Firmware removed.")
+        except Exception as e:
+            print(e)
+
+    """
+    def uninstall_firmware(self, remote_path):
+        try:
             sftp = self.ssh.open_sftp()
             
             self.send_command("rm -r " + remote_path + "/*")
@@ -200,6 +203,7 @@ class SSH_TX_Comms:
             sftp.close()
         except Exception as e:
             print(e)
+    """
 
     def create_folder_if_not_exist(self, remote_path):
         self.send_command("mkdir -p " + remote_path)
