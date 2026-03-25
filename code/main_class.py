@@ -105,18 +105,13 @@ class RobotControllerAPI:
         self.dispatch = {
             "ssh": lambda: self.run_connect_ssh(),
             "send": lambda: self.ssh.tx_general.send_command(self.screens["startup"].get_command()),
-            "firmware": lambda: self.ssh.tx_general.install_firmware(
-                FIRMWARE_LOCAL_LOCATION, self.ssh.tx_general.file_location_on_pi),
-            "run_firmware": lambda: self.ssh.tx_general.run_firmware(
-                self.ssh.tx_general.file_location_on_pi),
+            "firmware": lambda: self.ssh.tx_general.install_firmware(FIRMWARE_LOCAL_LOCATION, self.ssh.tx_general.file_location_on_pi),
+            "run_firmware": lambda: self.ssh.tx_general.run_firmware(self.ssh.tx_general.file_location_on_pi),
             "test_accelerometer": lambda: self.run_test_accelerometer(),
             "test_camera": lambda: self.run_test_camera(True),
-            "uninstall_firmware": lambda: self.ssh.tx_general.uninstall_firmware(
-                self.ssh.tx_general.file_location_on_pi),
-            "raspi_config": lambda: self.ssh.tx_general.run_config(
-                self.ssh.tx_general.file_location_on_pi),
-            "reboot": lambda: self.ssh.tx_general.run_reboot(
-                self.ssh.tx_general.file_location_on_pi)
+            "uninstall_firmware": lambda: self.ssh.tx_general.uninstall_firmware(self.ssh.tx_general.file_location_on_pi),
+            "raspi_config": lambda: self.ssh.tx_general.run_config(self.ssh.tx_general.file_location_on_pi),
+            "reboot": lambda: self.ssh.tx_general.run_reboot(self.ssh.tx_general.file_location_on_pi)
         }
 
     # ----------------------------------------------------------
@@ -152,6 +147,19 @@ class RobotControllerAPI:
                 self.switch_screen("manual")
 
             elif button == "controller_mode":
+
+                # SIMULATE MODE
+                if self.simulate:
+                    pca = servo_utility.PCA9865(0x41, True)
+                    self.robot = Robot(pca, self.recal_servos)
+
+                # REAL ROBOT MODE
+                else:
+                    self.robot = None
+                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION,
+                                                         self.recal_servos)
+                    
+                self.manual_control_started = True    
                 self.switch_screen("controller")
 
         # -------------------------------
@@ -186,6 +194,30 @@ class RobotControllerAPI:
         # CONTROLLER MODE EVENTS
         # -------------------------------
         elif self.current_screen == "controller":
+            #if self.receiver == None:
+            #        self.run_test_camera(False)
+
+            if button == "walk_forward":
+                movement = build_walk_array(1, WALKING_HEIGHT, 2, 1)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "walk_backward":
+                movement = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "stand":
+                movement = build_stand_still_array(WALKING_HEIGHT)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "camera":
+                    self.receiver.camera_visible = not self.receiver.camera_visible
+            
+            elif button == "accel":
+                self.run_test_accelerometer()
+                
             if button == "exit":
                 self.switch_screen("startup")
 
@@ -366,7 +398,8 @@ class RobotControllerAPI:
             # Real robot mode
             for k in range(NUMBER_OF_SERVOS):
                 if self.last_all_leg_angles[k] != all_leg_angles[k]:
-                    cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
+                    cmd = f"{ALL_LEG_NAMES[k]}{int(all_leg_angles[k])}\n"
+                    #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
 
             response = self.ssh.tx_robot.receive_response()
@@ -378,7 +411,7 @@ class RobotControllerAPI:
         except Exception as e:
             print("Sending command error:", e)
             return self.last_all_leg_angles
-
+        
     # ----------------------------------------------------------
     # HANDLE NONE VALUES IN IK
     # ----------------------------------------------------------

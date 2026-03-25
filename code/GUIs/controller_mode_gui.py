@@ -154,6 +154,12 @@ class Controller_Mode_GUI(tk.Frame):
         button.place(x=x, y=y)
         return button
     
+    def get_controller_action(self):
+        # Returns the last button pressed this frame
+        button = self.events()
+        result = BUTTON_NAMES.get(button, (True, "none"))
+        return result[1]   # return the action string
+
     def gui_update(self):
         if self.exit_application:
             return False, self.selected_button
