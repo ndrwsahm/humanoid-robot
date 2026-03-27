@@ -15,51 +15,28 @@ def get_throttled():
 
 class RPiCameraSender:
     def __init__(self, host="192.168.1.100", port=5000):
-        try:
-            self.picam2 = Picamera2()
-            config = self.picam2.create_video_configuration(transform=Transform(vflip=True))
-            self.picam2.configure(config)
-            self.picam2.start()
-        except Exception as e:
-            print("CAMERA_INIT_FAILED:", e)
-            print(subprocess.check_output(["vcgencmd", "get_throttled"]).decode())
-            return
+        self.picam2 = Picamera2()
+        config = self.picam2.create_video_configuration(transform=Transform(vflip=True))
+        self.picam2.configure(config)
+        self.picam2.start()
+ 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
 
     def stream_data(self):
         while True:
-            try:
-               frame = self.picam2.capture_array()
-            except Exception as e:
-                print(f"Error capturing frame: {e}")
-                throttled = get_throttled()
-                error_msg = {
-                    "error": "CAMERA_CAPTURE_FAILED",
-                    "throttled": throttled,
-                    "exception": str(e)
-                }
-                payload = pickle.dumps(error_msg)
-                self.sock.sendall(len(payload).to_bytes(4, "big"))
-                self.sock.sendall(payload)
-                continue
+     
+            frame = self.picam2.capture_array()
 
             # --- Compress frame as JPEG ---
             success, buffer = cv2.imencode(".jpg", frame)
             if not success:
-                throttled = get_throttled()
-                error_msg = {
-                    "error": "ENCODE_FAILED",
-                    "throttled": throttled
-                }
-                payload = pickle.dumps(error_msg)
-                self.sock.sendall(len(payload).to_bytes(4, "big"))
-                self.sock.sendall(payload)
                 continue
 
             # Package metadata + compressed frame
             data = {"frame": buffer}
 
+            #cv2.imshow("Camera Sender - Press 'q' to quit", frame)
             # Serialize with pickle
             payload = pickle.dumps(data)
 

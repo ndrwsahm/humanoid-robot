@@ -194,8 +194,8 @@ class RobotControllerAPI:
         # CONTROLLER MODE EVENTS
         # -------------------------------
         elif self.current_screen == "controller":
-            #if self.receiver == None:
-            #        self.run_test_camera(False)
+            if self.receiver == None:
+                    self.run_test_camera(False)
 
             if button == "walk_forward":
                 movement = build_walk_array(1, WALKING_HEIGHT, 2, 1)
@@ -364,15 +364,16 @@ class RobotControllerAPI:
             return
         
         print("Starting camera sender...")
-        self.ssh.tx_camera.send_command(
-            f"python3 {INSTRUMENTS_REMOTE_LOCATION_CAMERA}/{CAMERA}.py &")
-
-        print("Starting camera receiver...")
+        self.ssh.tx_camera.run_test(INSTRUMENTS_REMOTE_LOCATION_CAMERA, CAMERA)
+        
         if self.receiver is None:
+            print("Starting camera receiver...")
             self.receiver = CameraReceiver(host="0.0.0.0", port=5000)
             self.receiver.camera_visible = display_gui
             threading.Thread(target=self.receiver.receive_data, daemon=True).start()
         else:
+            print("Camera receiver already running.")
+            print("Toggling camera visibility.")
             self.receiver.camera_visible = display_gui
 
     # ----------------------------------------------------------

@@ -11,6 +11,9 @@ class CameraReceiver:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((host, port))
         self.sock.listen(1)
+        print("Waiting for connection...")
+        self.conn, _ = self.sock.accept()
+        print("Connected!")
 
         # FPS tracking
         self.prev_time = time.time()
@@ -20,21 +23,9 @@ class CameraReceiver:
         self.camera_visible = False
 
     def receive_data(self):
-        print("Waiting for connection...")
-        self.conn, _ = self.sock.accept()
-        print("Connected!")
-
-        self.conn.settimeout(0.5)
-
         while True:
             # Read length prefix
-            try:
-                length_bytes = self.conn.recv(4)
-            except socket.timeout:
-                continue
-            except Exception as e:
-                print(f"Socket error: {e}")
-                break
+            length_bytes = self.conn.recv(4)
             if not length_bytes:
                 break
             length = int.from_bytes(length_bytes, "big")
@@ -50,13 +41,6 @@ class CameraReceiver:
             # Deserialize
             data = pickle.loads(payload)
             buffer = data["frame"]
-
-            if "error" in data:
-                print(f"Error from sender: {data['error']}")
-                print(f"Throttled status: {data.get('throttled', 'N/A')}")
-                if "exception" in data:
-                    print(f"Exception details: {data['exception']}")
-                continue
             
             # Convert buffer back into an image
             frame = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
