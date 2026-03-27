@@ -4,18 +4,28 @@ import cv2
 from picamera2 import Picamera2
 from libcamera import Transform
 
+import subprocess
+
+def get_throttled():
+    try:
+        out = subprocess.check_output(["vcgencmd", "get_throttled"]).decode().strip()
+        return out
+    except:
+        return "throttled=ERROR"
+
 class RPiCameraSender:
     def __init__(self, host="192.168.1.100", port=5000):
         self.picam2 = Picamera2()
         config = self.picam2.create_video_configuration(transform=Transform(vflip=True))
-
         self.picam2.configure(config)
         self.picam2.start()
+ 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
 
     def stream_data(self):
         while True:
+     
             frame = self.picam2.capture_array()
 
             # --- Compress frame as JPEG ---
@@ -24,10 +34,9 @@ class RPiCameraSender:
                 continue
 
             # Package metadata + compressed frame
-            data = {
-                "frame": buffer,   # compressed numpy array
-            }
+            data = {"frame": buffer}
 
+            #cv2.imshow("Camera Sender - Press 'q' to quit", frame)
             # Serialize with pickle
             payload = pickle.dumps(data)
 

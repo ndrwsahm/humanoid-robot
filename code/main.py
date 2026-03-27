@@ -1,365 +1,435 @@
 import sys
 import threading
-import time
-
-import pygame
-
 sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/')
 
+# Simulated Firmware
 from _firmware.instruments import servo_utility
 from _firmware.robot import *
 
-from GUIs.manual_control_gui import *
+# Import GUIs
 from GUIs.startup_gui import *
+from GUIs.manual_control_gui import *
 from GUIs.controller_mode_gui import *
+
+# Import equipment
 from equipment.ssh_tx_comms import *
-from equipment.serial_comms import *
-from utilities.write_to_file import *
+from equipment.ssh_manager import *
+from globals import *
+
+# Import utilities
 from utilities.kinematics import *
 from utilities.movement_profiles import *
 from utilities.camera_receiver import CameraReceiver
 
 DEBUG_PRINT_STATEMENT = False
-
-ssh_shell = False
-ssh_connection = False
-rf_connection = False
-camera_visible = False
-
-def check_is_none(angles, last_angles, leg):
-    if angles is None:
-        angles = [90, 90, 90, 90, 90, 90]
-        for k in range(6):
-            if leg == "right":
-                angles[k] = last_angles[k+6]
-            else:
-                angles[k] = last_angles[k]
-    return angles
-
-def send_leg_commands_to_robot(robot, simulate, last_all_leg_angles, all_leg_angles):
-    global tx, serials, rf_connection, ssh_connection
-
-    try:
-        if simulate:
-            robot.set_all_angles(all_leg_angles)
-            robot.update()
-            return all_leg_angles  # update and return new state
-
-        for k in range(NUMBER_OF_SERVOS):
-            if last_all_leg_angles[k] != all_leg_angles[k]:
-                cmd = f"CMD {ID} {ALL_LEG_NAMES[k]} {all_leg_angles[k]}"
-                if rf_connection:
-                    response = serials.send_command(cmd)
-                else:
-                    tx.send_user_input(f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n")
-
-        if ssh_connection:
-            response = tx.receive_response()
-            if response:
-                print(response)
-
-        return all_leg_angles  # update and return new state
-
-    except Exception as e:
-        print("Sending command error...")
-        print(e)
-        return last_all_leg_angles  # fallback to previous state
-
-def run_movement_profile(mc_gui, robot, simulate, last_angles, movement_array):
-    # TODO this will execute the entirety of movement array
-    # NOTE you will be locked into movement profile until it is complete
-    for k in range(len(movement_array)):
-        if mc_gui != None:
-            mc_gui.set_all_slider_angles(movement_array[k])
-        send_leg_commands_to_robot(robot, simulate, last_angles, movement_array[k])
-        last_angles = movement_array[k]
-        #time.sleep(0.001)
-
-    return last_angles
-
-def run_kinematics(mc_gui, last_angles, mode):
-    if mode == "Angles":
-        # TODO this is bugged out and doesnt work as intended
-        #print("Loading Angle Control...")
-        leg_angles = mc_gui.get_all_slider_angles()
-        left_leg_pos = compute_forward_kinematics(leg_angles, "left")
-        right_leg_pos = compute_forward_kinematics(leg_angles, "right")
-        mc_gui.set_all_slider_pos(left_leg_pos + right_leg_pos)
-        # TODO compute forward kinematics and set pos values 
-        #print(leg_angles)
-
-    elif mode == "Kinematics":
-        #print("Loading Kinematic Control...")
-        leg_pos = mc_gui.get_all_slider_pos()  
-        #print("Leg Pos...", leg_pos) 
-        left_leg_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
-        right_leg_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
-
-        left_leg_angles = check_is_none(left_leg_angles, last_angles, "left")
-        right_leg_angles = check_is_none(right_leg_angles, last_angles, "right")
-        leg_angles = left_leg_angles + right_leg_angles
-
-        mc_gui.set_all_slider_angles(leg_angles)
-
-    return leg_angles
-
-def run_controller_mode_api(simulate):
-    global tx
-    global tx_camera
-    global receiver
-
-    last_button = "none"   
-    last_all_leg_angles = [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
-    standing_array = [[90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]]
-
-    if simulate:
-        # go thru local firmware folder to create objects
-        pca = servo_utility.PCA9865(0x41, simulate)
-        robot = Robot(pca, recal_servos)
-    else:
-        robot = None
-        # Run manual control on robot firmware
-        tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
-        run_test_camera(tx_camera, False) #TODO doesnt run with multiple ssh
-
-    controller_mode_gui = Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT)
-
-    running = True
-    while running:
-        
-        running, button = controller_mode_gui.update()
-        if last_button != button and button != "none":
-            print(f"Main Button: {button}")
-            if button == "walk_forward":
-                print("Walking Forward...")
-                movement_array = build_walk_array(1, WALKING_HEIGHT, 2, 1)
-                last_all_leg_angles = run_movement_profile(None, robot, simulate, last_all_leg_angles, movement_array)
-            elif button == "walk_backward":
-                print("Walking Backward...")
-                movement_array = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
-                last_all_leg_angles = run_movement_profile(None, robot, simulate, last_all_leg_angles, movement_array)
-            elif button == "camera":
-                print("Starting Camera Sender Test...")
-                receiver.camera_visible = not receiver.camera_visible
-            elif button == "accel":
-                print("Testing Accelerometer...")
-                test_accelerometer(tx)
-        last_button = button
-    return "exit"
-
-def run_manual_control_api(simulate, recal_servos):
-    global tx
-
-    global serials
-    global rf_connection
-
-    last_all_leg_angles = [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
-    standing_array = [[90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]]
-
-    if simulate:
-        # go thru local firmware folder to create objects
-        pca = servo_utility.PCA9865(0x41, simulate)
-        robot = Robot(pca, recal_servos)
-    else:
-        robot = None
-        # Run manual control on robot firmware
-        tx.run_manual_control(FIRMWARE_REMOTE_LOCATION, rf_connection, recal_servos)
     
-    if recal_servos:
-        starting_leg_pos = last_all_leg_angles  # Set all angles to 90
-        standing_array[0] = starting_leg_pos
-    
-    else:
-        standing_array = build_stand_still_array(WALKING_HEIGHT)
-        left_leg_pos = compute_forward_kinematics(standing_array[0], "left")
-        right_leg_pos = compute_forward_kinematics(standing_array[0], "right")
+
+class RobotControllerAPI:
+    """
+    Main application controller.
+    Handles:
+    - GUI screen switching
+    - SSH communication
+    - Simulated robot mode
+    - Manual control logic (sliders, kinematics, walking)
+    - Controller mode
+    - Camera streaming
+    """
+    def __init__(self):
+
+        # Create main Tkinter window
+        self.root = tk.Tk()
+        self.root.title("Humanoid Robot Controller")
+
+        # -------------------------------
+        # INITIAL ROBOT STATE
+        # -------------------------------
+
+        # Last known servo angles (12 servos)
+        self.last_all_leg_angles = [90] * 12
+
+        # Build standing pose
+        self.standing_array = build_stand_still_array(WALKING_HEIGHT)
+
+        # Compute starting foot positions
+        left_leg_pos = compute_forward_kinematics(self.standing_array[0], "left")
+        right_leg_pos = compute_forward_kinematics(self.standing_array[0], "right")
         starting_leg_pos = left_leg_pos + right_leg_pos
 
-    manual_control_gui = Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT, standing_array[0], starting_leg_pos, recal_servos)
+        recal_servos = 0  # Placeholder for future calibration logic
 
-    running = True
-    while running:
-        
-        running, button = manual_control_gui.update()
-        if button == "recal_servos":
-            if not recal_servos:
-                print("Writing Cal Data to file...")
-                write_cal_data(last_all_leg_angles)
-            else:
-                print("Simulate mode does not allow overwrite of cal data")
+        # -------------------------------
+        # GUI SCREENS
+        # -------------------------------
+        self.screens = {
+            "startup": Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME,
+                                   FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE, self.root),
 
-        elif button == "stand":
-            print("Setting Standing Position")
+            "manual": Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT,
+                                         self.standing_array[0], starting_leg_pos,
+                                         recal_servos, self.root),
+
+            "controller": Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT, self.root),
+        }
+
+        self.current_screen = "startup"
+        self.running = True
+
+        # Show startup screen
+        self.screens[self.current_screen].pack(fill="both", expand=True)
+
+        # -------------------------------
+        # SSH MANAGER SETUP
+        # -------------------------------
+        self.ssh = SSHManager()
+        self.ssh.add_target("pi_robot", HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)
+        self.ssh.add_target("pi_camera", HOSTNAME_CAMERA, USERNAME_CAMERA,
+                            PASSWORD_CAMERA, FIRMWARE_REMOTE_LOCATION_CAMERA)
+
+        # Convenience handles
+        self.ssh.tx_robot = self.ssh.targets["pi_robot"]
+        self.ssh.tx_camera = self.ssh.targets["pi_camera"]
+
+        # Default SSH target
+        self.ssh.select_general("pi_robot")
+
+        # Camera receiver thread
+        self.receiver = None
+
+        # Manual control state flag
+        self.manual_control_started = False
+
+        # -------------------------------
+        # COMMAND DISPATCH TABLE
+        # -------------------------------
+        self.dispatch = {
+            "ssh": lambda: self.run_connect_ssh(),
+            "send": lambda: self.ssh.tx_general.send_command(self.screens["startup"].get_command()),
+            "firmware": lambda: self.ssh.tx_general.install_firmware(FIRMWARE_LOCAL_LOCATION, self.ssh.tx_general.file_location_on_pi),
+            "run_firmware": lambda: self.ssh.tx_general.run_firmware(self.ssh.tx_general.file_location_on_pi),
+            "test_accelerometer": lambda: self.run_test_accelerometer(),
+            "test_camera": lambda: self.run_test_camera(True),
+            "uninstall_firmware": lambda: self.ssh.tx_general.uninstall_firmware(self.ssh.tx_general.file_location_on_pi),
+            "raspi_config": lambda: self.ssh.tx_general.run_config(self.ssh.tx_general.file_location_on_pi),
+            "reboot": lambda: self.ssh.tx_general.run_reboot(self.ssh.tx_general.file_location_on_pi)
+        }
+
+    # ----------------------------------------------------------
+    # UNUSED PLACEHOLDERS (future expansion)
+    # ----------------------------------------------------------
+    def new(self): pass
+    def load(self): pass
+
+    # ----------------------------------------------------------
+    # EVENT HANDLING (button presses)
+    # ----------------------------------------------------------
+    def events(self, button):
+
+        # -------------------------------
+        # STARTUP SCREEN EVENTS
+        # -------------------------------
+        if self.current_screen == "startup":
+
+            if button == "manual_control":
+
+                # SIMULATE MODE
+                if self.simulate:
+                    pca = servo_utility.PCA9865(0x41, True)
+                    self.robot = Robot(pca, self.recal_servos)
+
+                # REAL ROBOT MODE
+                else:
+                    self.robot = None
+                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION,
+                                                         self.recal_servos)
+
+                self.manual_control_started = True
+                self.switch_screen("manual")
+
+            elif button == "controller_mode":
+
+                # SIMULATE MODE
+                if self.simulate:
+                    pca = servo_utility.PCA9865(0x41, True)
+                    self.robot = Robot(pca, self.recal_servos)
+
+                # REAL ROBOT MODE
+                else:
+                    self.robot = None
+                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION,
+                                                         self.recal_servos)
+                    
+                self.manual_control_started = True    
+                self.switch_screen("controller")
+
+        # -------------------------------
+        # MANUAL CONTROL EVENTS
+        # -------------------------------
+        elif self.current_screen == "manual":
+
+            # Walking forward
+            if button == "walk_forward":
+                movement = build_walk_array(1, WALKING_HEIGHT, 2, 1)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            # Walking backward
+            elif button == "walk_backward":
+                movement = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            # Standing still
+            elif button == "stand":
+                movement = build_stand_still_array(WALKING_HEIGHT)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            # Exit manual mode
+            elif button == "exit":
+                self.manual_control_started = False
+                self.switch_screen("startup")
+
+        # -------------------------------
+        # CONTROLLER MODE EVENTS
+        # -------------------------------
+        elif self.current_screen == "controller":
+            if self.receiver == None:
+                    self.run_test_camera(False)
+
+            if button == "walk_forward":
+                movement = build_walk_array(1, WALKING_HEIGHT, 2, 1)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "walk_backward":
+                movement = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "stand":
+                movement = build_stand_still_array(WALKING_HEIGHT)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "camera":
+                    self.receiver.camera_visible = not self.receiver.camera_visible
             
-            movement_array = build_stand_still_array(WALKING_HEIGHT)
-            last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
+            elif button == "accel":
+                self.run_test_accelerometer()
+                
+            if button == "exit":
+                self.switch_screen("startup")
 
-        elif button == "walk_forward":
-            print("Walking Forward...")
-            movement_array = build_walk_array(1, WALKING_HEIGHT, 2, 1)
-            last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
-
-        elif button == "walk_backward":
-            print("Walking Backward...")
-            movement_array = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
-            last_all_leg_angles = run_movement_profile(manual_control_gui, robot, simulate, last_all_leg_angles, movement_array)
-
-        else:
-            pass
-
-        try:
-            mode = manual_control_gui.get_mode()
-
-            all_leg_angles = run_kinematics(manual_control_gui, last_all_leg_angles, mode)
-            last_all_leg_angles = send_leg_commands_to_robot(robot, simulate, last_all_leg_angles, all_leg_angles)
-           
-        except Exception as e:
-            print(e)
-            return 'exit'
-
-    return button
-
-def run_firmware(tx):
-    global ssh_shell
-
-    if(tx.connection):
-        print("Running Firmware on Remote Pi...")
-        tx.run_firmware(FIRMWARE_REMOTE_LOCATION)
-        ssh_shell = True
-
-    else:
-        print("No SSH Connection Established!")
-
-def run_test_camera(tx, camera_visible):
-    global ssh_shell
-    global receiver
-    
-    if(tx.connection):
-        print("Starting Camera Sender Test...")
-        #tx.run_test(INSTRUMENTS_REMOTE_LOCATION, CAMERA)
-        tx.run_camera(INSTRUMENTS_REMOTE_LOCATION, CAMERA)
-
-        print("Starting Camera Receiver...")
-        receiver = CameraReceiver(host="0.0.0.0", port=5000)
-        if camera_visible:
-            receiver.camera_visible = True
-        else:
-            receiver.camera_visible = False
-        threading.Thread(target=receiver.receive_data).start()
-
-        ssh_shell = True
-
-    else:
-        print("No SSH Connection Established!")
-
-def close_camera_test():
-    global ssh_shell
-    global receiver
-
-    if ssh_shell:
-        print("Closing Camera Test...")
-        ssh_shell = False
-        receiver.cleanup()
-    else:
-        print("Camera Test is not running!")
-
-def test_accelerometer(tx):
-    global ssh_shell
-    global DEBUG_PRINT_STATEMENT
-
-    if(tx.connection):
-        DEBUG_PRINT_STATEMENT = True
-        tx.run_test(INSTRUMENTS_REMOTE_LOCATION, ACCELEROMETER)
-        ssh_shell = True
-
-    else:
-        print("No SSH Connection Established!")
-
-def run_connect_ssh():
-    global ssh_connection 
-    
-    ssh_connection = tx.connect_ssh()
-    ssh_connection = tx_camera.connect_ssh()
-
-def run_connect_nrf():
-    global serials
-    global rf_connection
-    
-    serials_connection = serials.connect()
-
-    if serials_connection:
-        try:
-            joint, rf_connection = serials.send_command("CMD 39 STA 1.0") # Check status of LED
-            #print(rf_connection)
-        except:
-            print("No acknowledgement received from humanoid receiver!")
-   
-def close_all():
-    global serials
-
-    serials_connection = serials.connect()
-
-    if serials_connection:
-
-        serials.send_command("CMD 39 DIS 0.0")
-        serials.close()
-
-def run_startup_control_api():
-    global tx 
-    global tx_camera
-    global serials
-    global ssh_shell
-    global ssh_connection
-    global rf_connection
-
-    start_gui = Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME, FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE)
-    tx = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)  
-    tx_camera = SSH_TX_Comms(HOSTNAME, USERNAME, PASSWORD, INSTRUMENTS_REMOTE_LOCATION)
-    serials = Serial_Comms(port=COM_PORT, baudrate=BAUDRATE)
-    
-    dispatch = {
-    "ssh": lambda: run_connect_ssh(),
-    "nrf": lambda: run_connect_nrf(),
-    "send": lambda: tx.send_command(start_gui.get_command()),
-    "firmware": lambda: tx.install_firmware(FIRMWARE_LOCAL_LOCATION, FIRMWARE_REMOTE_LOCATION),
-    "run_firmware": lambda: run_firmware(tx),
-    "test_accelerometer": lambda: test_accelerometer(tx),
-    "test_camera": lambda: run_test_camera(tx_camera, True),
-    "uninstall_firmware": lambda: tx.uninstall_firmware(FIRMWARE_REMOTE_LOCATION),
-    "raspi_config": lambda: tx.run_config(FIRMWARE_REMOTE_LOCATION),
-    "reboot": lambda: tx.run_reboot(FIRMWARE_REMOTE_LOCATION)
-    }
-    
-    running = True
-    while running:
-        simulate = start_gui.get_simulate_value()
-        recal_servos = start_gui.get_recal_value()
-
-        running, button = start_gui.update(ssh_connection, rf_connection)
-
-        action = dispatch.get(button)
+        # -------------------------------
+        # DISPATCH COMMANDS
+        # -------------------------------
+        action = self.dispatch.get(button)
         if action:
             action()
 
-        if ssh_shell:
-            response = tx.receive_response()
-            if response and DEBUG_PRINT_STATEMENT:
+    # ----------------------------------------------------------
+    # MAIN UPDATE LOOP (runs every frame)
+    # ----------------------------------------------------------
+    def screen_update(self):
+        screen = self.screens[self.current_screen]
+
+        # -------------------------------
+        # STARTUP SCREEN UPDATE
+        # -------------------------------
+        if self.current_screen == "startup":
+
+            # Read GUI values
+            self.simulate = screen.get_simulate_value()
+            self.recal_servos = screen.get_recal_value()
+            pi_selection = screen.get_pi_selector_value()
+
+            # Update SSH target
+            self.ssh.select_general(pi_selection)
+
+            # Update GUI labels
+            if pi_selection == "pi_robot":
+                screen.update_hostname(self.ssh.tx_robot.hostname)
+                screen.update_username(self.ssh.tx_robot.username)
+                screen.update_location(self.ssh.tx_robot.file_location_on_pi)
+            else:
+                screen.update_hostname(self.ssh.tx_camera.hostname)
+                screen.update_username(self.ssh.tx_camera.username)
+                screen.update_location(self.ssh.tx_camera.file_location_on_pi)
+
+        # -------------------------------
+        # MANUAL CONTROL UPDATE LOOP
+        # -------------------------------
+        elif self.current_screen == "manual":
+
+            screen = self.screens["manual"]
+
+            # 1. Read mode
+            mode = screen.get_mode()
+
+            # 2. Compute kinematics
+            if mode == "Angles":
+                leg_angles = screen.get_all_slider_angles()
+                left_pos = compute_forward_kinematics(leg_angles, "left")
+                right_pos = compute_forward_kinematics(leg_angles, "right")
+                screen.set_all_slider_pos(left_pos + right_pos)
+
+            elif mode == "Kinematics":
+                leg_pos = screen.get_all_slider_pos()
+                left_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
+                right_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
+
+                # Replace None values with last known angles
+                left_angles = self.check_is_none(left_angles, self.last_all_leg_angles, "left")
+                right_angles = self.check_is_none(right_angles, self.last_all_leg_angles, "right")
+
+                leg_angles = left_angles + right_angles
+                screen.set_all_slider_angles(leg_angles)
+
+            # 3. Send servo commands
+            if self.simulate:
+                self.robot.set_all_angles(leg_angles)
+                self.robot.update()
+            else:
+                self.last_all_leg_angles = self.send_leg_commands(leg_angles)
+
+        # -------------------------------
+        # SSH RESPONSE HANDLING
+        # -------------------------------
+        if self.ssh.tx_camera.connection:
+            response = self.ssh.tx_camera.receive_response()
+            if response:
+                print(f"Received response: {response}")
+
+        if self.ssh.tx_robot.connection:
+            response = self.ssh.tx_robot.receive_response()
+            if response:
+                print(f"Received response: {response}")
+
+        return screen.gui_update()
+
+    # ----------------------------------------------------------
+    # DRAW (optional per-screen drawing)
+    # ----------------------------------------------------------
+    def draw(self):
+        screen = self.screens[self.current_screen]
+        if hasattr(screen, "draw"):
+            screen.draw()
+
+    # ----------------------------------------------------------
+    # MAIN APPLICATION LOOP
+    # ----------------------------------------------------------
+    def run(self):
+        self.new()
+        while self.running:
+            self.running, button = self.screen_update()
+            self.events(button)
+            self.draw()
+
+    # ----------------------------------------------------------
+    # SCREEN SWITCHING
+    # ----------------------------------------------------------
+    def switch_screen(self, screen_name):
+        self.screens[self.current_screen].pack_forget()
+        self.current_screen = screen_name
+        self.screens[self.current_screen].pack(fill="both", expand=True)
+
+    # ----------------------------------------------------------
+    # SSH CONNECTION HANDLING
+    # ----------------------------------------------------------
+    def run_connect_ssh(self):
+        try:
+            self.ssh.tx_robot.connect_ssh()
+            self.ssh.tx_camera.connect_ssh()
+
+            self.ssh.tx_robot.connection = True
+            self.ssh.tx_camera.connection = True
+
+            if self.ssh.tx_robot.connection and self.ssh.tx_camera.connection:
+                print("Successfully connected to both Raspberry Pis via SSH.")
+                self.screens["startup"].ssh_connection = True
+            else:
+                print("Failed to connect to one or both Raspberry Pis via SSH.")
+                self.screens["startup"].ssh_connection = False
+
+        except Exception as e:
+            print(f"Error occurred while connecting via SSH: {e}")
+
+    # ----------------------------------------------------------
+    # CAMERA TESTING
+    # ----------------------------------------------------------
+    def run_test_camera(self, display_gui):
+        if not self.ssh.tx_camera.connection:
+            print("Camera Pi not connected!")
+            return
+        
+        print("Starting camera sender...")
+        self.ssh.tx_camera.run_test(INSTRUMENTS_REMOTE_LOCATION_CAMERA, CAMERA)
+        
+        if self.receiver is None:
+            print("Starting camera receiver...")
+            self.receiver = CameraReceiver(host="0.0.0.0", port=5000)
+            self.receiver.camera_visible = display_gui
+            threading.Thread(target=self.receiver.receive_data, daemon=True).start()
+        else:
+            print("Camera receiver already running.")
+            print("Toggling camera visibility.")
+            self.receiver.camera_visible = display_gui
+
+    # ----------------------------------------------------------
+    # ACCELEROMETER TESTING
+    # ----------------------------------------------------------
+    def run_test_accelerometer(self):
+        if self.ssh.tx_robot.connection:
+            self.ssh.tx_robot.run_test(INSTRUMENTS_REMOTE_LOCATION, ACCELEROMETER)
+        else:
+            print("No SSH Connection Established!")
+
+    # ----------------------------------------------------------
+    # SERVO COMMAND SENDER
+    # ----------------------------------------------------------
+    def send_leg_commands(self, all_leg_angles):
+        try:
+            # Simulation mode
+            if self.simulate:
+                self.robot.set_all_angles(all_leg_angles)
+                self.robot.update()
+                return all_leg_angles
+
+            # Real robot mode
+            for k in range(NUMBER_OF_SERVOS):
+                if self.last_all_leg_angles[k] != all_leg_angles[k]:
+                    cmd = f"{ALL_LEG_NAMES[k]}{int(all_leg_angles[k])}\n"
+                    #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
+                    self.ssh.tx_robot.send_user_input(cmd)
+
+            response = self.ssh.tx_robot.receive_response()
+            if response:
                 print(response)
-    return button, simulate, recal_servos
+
+            return all_leg_angles
+
+        except Exception as e:
+            print("Sending command error:", e)
+            return self.last_all_leg_angles
         
+    # ----------------------------------------------------------
+    # HANDLE NONE VALUES IN IK
+    # ----------------------------------------------------------
+    def check_is_none(self, angles, last_angles, leg):
+        if angles is None:
+            angles = [90] * 6
+            for k in range(6):
+                if leg == "right":
+                    angles[k] = last_angles[k+6]
+                else:
+                    angles[k] = last_angles[k]
+        return angles
+
+
+# ----------------------------------------------------------
+# ENTRY POINT
+# ----------------------------------------------------------
 if __name__ == "__main__":
-    pressed_button = "start"
-
-    while pressed_button != "exit":
-        if pressed_button == "start":
-            pressed_button, simulate, recal_servos = run_startup_control_api()
-
-        elif pressed_button == "manual_control":
-            pressed_button = run_manual_control_api(simulate, recal_servos)
-
-        elif pressed_button == "controller_mode":
-            pressed_button = run_controller_mode_api(simulate)
-        
-    close_all()
-
-    
+    api = RobotControllerAPI()
+    api.run()

@@ -7,14 +7,15 @@ ROW_HEIGHT_PADDING = 10
 BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
 
-class Startup_GUI:
-    def __init__(self, width, height, hostname, username, location, com_port, baudrate):
-        self.root = tk.Tk()
-        self.root.title("Starup Example")
-        self.root.geometry(str(width) + "x" + str(height))
+class Startup_GUI(tk.Frame):
+    def __init__(self, width, height, hostname, username, location, com_port, baudrate, parent_root):
+        super().__init__(parent_root) 
 
         self.width = width
         self.height = height
+
+        self.config(width=self.width, height=self.height)
+        self.pack_propagate(False)
 
         self.hostname = hostname
         self.username = username
@@ -26,10 +27,14 @@ class Startup_GUI:
         self.exit_application = False
         self.selected_button = "none"
 
+        self.ssh_connection = False 
+        self.rf_connection = False 
+
         self.load_widgets()
         self.simulate_scale.set(0)
 
     def load_widgets(self):
+        self.create_pi_selector_scale(25, 35)
         self.create_simulate_scale(500, 200)
         self.create_recal_scale(500, 375)
         self.create_ssh_section(200, 75)
@@ -39,23 +44,29 @@ class Startup_GUI:
         self.create_misc_buttons()
 
     def create_simulate_scale(self, x, y):
-        self.simulate_scale = ttk.Scale(self.root, from_=0, to=1, orient="horizontal", command=lambda x: self.get_simulate_value)
+        self.simulate_scale = ttk.Scale(self, from_=0, to=1, orient="horizontal", command=lambda x: self.get_simulate_value)
         self.simulate_scale.place(x=x, y=y)
-        tk.Label(self.root, text="Simulate").place(x=x-15, y=y-25)
-        tk.Label(self.root, text="True                        False").place(x=x-15, y=y+25)
+        tk.Label(self, text="Simulate").place(x=x-15, y=y-25)
+        tk.Label(self, text="True                        False").place(x=x-15, y=y+25)
+
+    def create_pi_selector_scale(self, x, y):
+        self.pi_selector_scale = ttk.Scale(self, from_=0, to=1, orient="horizontal", command=lambda x: self.get_pi_selector_value)
+        self.pi_selector_scale.place(x=x, y=y)
+        tk.Label(self, text="Select Pi").place(x=x-15, y=y-25)
+        tk.Label(self, text="Pi 3                       Pi Zero").place(x=x-15, y=y+25)
 
     def create_recal_scale(self, x, y):
-        self.recal_scale = ttk.Scale(self.root, from_=0, to=1, orient="horizontal", command=lambda x: self.get_recal_value)
+        self.recal_scale = ttk.Scale(self, from_=0, to=1, orient="horizontal", command=lambda x: self.get_recal_value)
         self.recal_scale.place(x=x, y=y)
-        tk.Label(self.root, text="Recal Servos").place(x=x-15, y=y-25)
-        tk.Label(self.root, text="True                        False").place(x=x-15, y=y+25)
-        tk.Label(self.root, text="If True, it will remove offsets").place(x=x+125, y=y)
+        tk.Label(self, text="Recal Servos").place(x=x-15, y=y-25)
+        tk.Label(self, text="True                        False").place(x=x-15, y=y+25)
+        tk.Label(self, text="If True, it will remove offsets").place(x=x+125, y=y)
         self.recal_scale.set(1)
 
     def create_ssh_section(self, x, y):
         self.ssh_button = self.create_button("SSH Connect", x, y, "blue", self.ssh_button_click)
-        tk.Label(self.root, text=f"IP Addr: {self.hostname}").place(x=x-150, y=y+10)
-        tk.Label(self.root, text=f"Username: {self.username}").place(x=x-150, y=y+30)
+        tk.Label(self, text=f"IP Addr: {self.hostname}        ").place(x=25, y=100)
+        tk.Label(self, text=f"Username: {self.username}       ").place(x=25, y=120)
 
     def create_firmware_buttons(self):
         buttons = {
@@ -72,41 +83,43 @@ class Startup_GUI:
         for text, (x, y, color, cmd) in buttons.items():
             self.create_button(text, x, y, color, cmd)
 
-        tk.Label(self.root, text=f"File Location: {self.location}").place(x=50, y=145)
+        tk.Label(self, text=f"File Location: {self.location}          ").place(x=50, y=145)
 
     def create_command_entry(self, x, y):
-        tk.Label(self.root, text="Command Line Argument").place(x=x, y=y-20)
+        tk.Label(self, text="Command Line Argument").place(x=x, y=y-20)
         self.cmd_line_arg = tk.StringVar()
-        self.cmd_line_entry = tk.Entry(self.root, textvariable=self.cmd_line_arg, font=("Arial", 14))
+        self.cmd_line_entry = tk.Entry(self, textvariable=self.cmd_line_arg, font=("Arial", 14))
         self.cmd_line_entry.place(x=x, y=y)
         self.create_button("Send", 250, 300, "blue", self.send_button_click, width=round(BUTTON_WIDTH/2), height=round(BUTTON_HEIGHT/2))
 
     def create_nrf_buttons(self, x, y):
         self.nrf_button = self.create_button("NRF Connect", x, y, "red", self.nrf_button_click)
-        tk.Label(self.root, text=f"NRF Wireless Connection").place(x=x+180, y=y+10)
-        tk.Label(self.root, text=f"Baudrate: {self.baudrate}  Com Port: {self.com_port}").place(x=x+180, y=y+30)
+        tk.Label(self, text=f"NRF Wireless Connection").place(x=x+180, y=y+10)
+        tk.Label(self, text=f"Baudrate: {self.baudrate}  Com Port: {self.com_port}").place(x=x+180, y=y+30)
         
     def create_misc_buttons(self):
         pass  # Reserved for future expansion
     
     def create_button(self, text, x, y, color, command, width=BUTTON_WIDTH, height=BUTTON_HEIGHT):
-        button = tk.Button(self.root, text=text, bg=color, fg="white", font=("Arial", 14),
+        button = tk.Button(self, text=text, bg=color, fg="white", font=("Arial", 14),
                          width=width, height=height, command=command)
     
         button.place(x=x, y=y)
         return button
 
-    def update(self, ssh_connection, rf_connection):
+    def gui_update(self):
         if self.exit_application:
             return False, self.selected_button
         else:
-            self.root.update_idletasks()
-            self.root.update()
+            self.update_idletasks()
+            self.update()
             
             if self.exit_application:
                 return False, self.selected_button
         
-            self.update_simulate_scale(ssh_connection, rf_connection)
+            self.update_simulate_scale(self.ssh_connection, self.rf_connection)
+            pi_selection = self.get_pi_selector_value()
+            self.update_hostname(pi_selection)
 
             button_actions = {
                 "ssh": (True, "ssh"),
@@ -117,7 +130,8 @@ class Startup_GUI:
                 "run_firmware": (True, "run_firmware"),
                 "test_accelerometer": (True, "test_accelerometer"),
                 "test_camera": (True, "test_camera"),
-                "manual_control": (False, "manual_control"),
+                "manual_control": (True, "manual_control"),
+                "controller_mode": (True, "controller_mode"),
                 "raspi_config": (True, "raspi_config"),
                 "reboot": (True, "reboot")
 
@@ -147,6 +161,31 @@ class Startup_GUI:
             self.ssh_button.configure(bg="red")
             self.nrf_button.configure(bg="red")
 
+    def update_hostname(self, new_hostname):
+        self.hostname = new_hostname
+        tk.Label(self, text=f"IP Addr: {self.hostname}       ").place(x=25, y=100)
+    
+    def update_username(self, new_username):
+        self.username = new_username
+        tk.Label(self, text=f"Username: {self.username}       ").place(x=25, y=120)
+    
+    def update_location(self, new_location):
+        self.location = new_location
+        tk.Label(self, text=f"File Location: {self.location}        ").place(x=50, y=145)
+
+    def get_pi_selector_value(self):
+        pi_selector_val = self.pi_selector_scale.get()
+
+        if pi_selector_val >= 0.5:
+            self.pi_selector_scale.set(1)
+        else:
+            self.pi_selector_scale.set(0)
+
+        if pi_selector_val == 1:
+            return "pi_robot"
+        else:
+            return "pi_camera"
+
     def get_simulate_value(self):
         simulate_val = self.simulate_scale.get()
 
@@ -174,15 +213,15 @@ class Startup_GUI:
             return True
 
     def close(self):
-        self.root.destroy()
+        self.destroy()
         self.exit_application = True
         print("close")
 
         
     def ssh_button_click(self): self.selected_button = "ssh"
     def nrf_button_click(self): self.selected_button = "nrf"
-    def manual_control_button_click(self): self.selected_button = "manual_control"; self.close()
-    def controller_mode_button_click(self): self.selected_button = "controller_mode"; self.close()
+    def manual_control_button_click(self): self.selected_button = "manual_control"; #self.close()
+    def controller_mode_button_click(self): self.selected_button = "controller_mode"; #self.close()
     def send_button_click(self): self.selected_button = "send"
     def firmware_button_click(self): self.selected_button = "firmware"
     def run_firmware_button_click(self): self.selected_button = "run_firmware"

@@ -16,15 +16,18 @@ class Serial_Comms:
         self.baudrate = baudrate
         self.timeout = timeout
         self.ser = None
+        self.connection = False
 
     def connect(self):
         try:
             self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
             time.sleep(2)  # Allow time for connection to stabilize
             print(f"Connected to {self.port} at {self.baudrate} baud.")
+            self.connection = True        
             return True
         except serial.SerialException as e:
             print(f"Serial connection failed: {e}")
+            self.connection = False
             return False
 
     def send_command(self, command):
