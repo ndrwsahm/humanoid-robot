@@ -23,7 +23,8 @@ class SSH_TX_Comms:
 
     def update(self, command):
         self.send_user_input(command)
-        self.response = self.receive_response()
+        if self.connection:
+            self.response = self.receive_response()
 
     def connect_ssh(self):
         attempts = 0
@@ -73,7 +74,27 @@ class SSH_TX_Comms:
             print("Running file at the following location: " + full_file_path)
 
         except Exception as e:
-            print (e)
+            print ("run manual control" + str(e))
+
+    def run_calibrate_servos(self, file_path, recal_servos):
+        # Need to run script to wait for user input
+
+        arg1 = 'ssh'
+
+        if recal_servos:
+            arg2 = 'recal'
+        else:
+            arg2 = 'no_recal'
+        full_file_path = 'python3 ' + file_path + '/calibrate_servos.py ' + arg1 + " " + arg2 + '\n'
+
+        try:
+            #self.invoke_shell()
+            #print("Interactive shell started")
+            self.send_user_input(full_file_path)
+            print("Running file at the following location: " + full_file_path)
+
+        except Exception as e:
+            print ("run manual control" + str(e))
 
     def run_test(self, file_path, file_name):
         # Need to run script to wait for user input
@@ -85,7 +106,7 @@ class SSH_TX_Comms:
             self.send_user_input(full_file_path)
             # TODO need readback
         except Exception as e:
-            print (e)
+            print ("run test" + str(e))
     
     def run_camera(self, file_path, file_name):
         # Need to run script to wait for user input
@@ -94,7 +115,7 @@ class SSH_TX_Comms:
         try:
             self.send_command(full_file_path)
         except Exception as e:
-            print (e)
+            print ("run camera" + str(e))
 
     def run_firmware(self, file_path):
         try:
@@ -102,22 +123,8 @@ class SSH_TX_Comms:
             self.send_user_input(command + "\n")
             print(f"Running firmware at: {command}")
         except Exception as e:
-            print(e)
+            print ("run firmware" + str(e))
 
-    """
-    def run_firmware(self, file_path):
-        # Need to run script to wait for user input
-        full_file_path = 'python3 ' + file_path + '/firmware.py\n'
-
-        try:
-            #self.invoke_shell()
-            #print("Interactive shell started")
-            self.send_user_input(full_file_path)
-            print("Running file at the following location: " + full_file_path)
-
-        except Exception as e:
-            print (e)
-    """
     def run_config(self, file_path):
         print("Running chmod..")
         self.send_user_input(f"chmod +x {file_path}/pi_config.sh\n")
@@ -144,13 +151,13 @@ class SSH_TX_Comms:
         try:
             self.channel = self.ssh.invoke_shell()
         except Exception as e:
-            print (e)
+            print ("invoke shell" + str(e))
 
     def send_user_input(self, command):
         try:
             self.channel.send(command)
         except Exception as e:
-            print(e)
+            print ("send user input" + str(e))
 
     def install_firmware(self, from_local_path, to_remote_path):
         try:
@@ -176,7 +183,7 @@ class SSH_TX_Comms:
 
             sftp.close()
         except Exception as e:
-            print(e)
+            print ("install firmware" + str(e))
 
     def uninstall_firmware(self, remote_path):
         try:
@@ -184,7 +191,7 @@ class SSH_TX_Comms:
             self.send_user_input(f"rm -rf {remote_path}\n")
             print("Firmware removed.")
         except Exception as e:
-            print(e)
+            print ("uninstall firmware" + str(e))
 
     """
     def uninstall_firmware(self, remote_path):
@@ -221,7 +228,7 @@ class SSH_TX_Comms:
                 return output
             
         except Exception as e:
-            print(e)
+            return None
 
     def close(self):
         self.channel.send('quit\n')

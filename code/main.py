@@ -10,6 +10,7 @@ from _firmware.robot import *
 from GUIs.startup_gui import *
 from GUIs.manual_control_gui import *
 from GUIs.controller_mode_gui import *
+from GUIs.calibrate_servos_gui import Calibrate_Servos_GUI
 
 # Import equipment
 from equipment.ssh_tx_comms import *
@@ -56,7 +57,7 @@ class RobotControllerAPI:
         right_leg_pos = compute_forward_kinematics(self.standing_array[0], "right")
         starting_leg_pos = left_leg_pos + right_leg_pos
 
-        recal_servos = 0  # Placeholder for future calibration logic
+        #recal_servos = False  # Placeholder for future calibration logic
 
         # -------------------------------
         # GUI SCREENS
@@ -66,10 +67,12 @@ class RobotControllerAPI:
                                    FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE, self.root),
 
             "manual": Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT,
-                                         self.standing_array[0], starting_leg_pos,
-                                         recal_servos, self.root),
+                                         self.standing_array[0], starting_leg_pos, self.root),
 
             "controller": Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT, self.root),
+
+            "calibrate": Calibrate_Servos_GUI(GUI_WIDTH, GUI_HEIGHT, self.root),
+
         }
 
         self.current_screen = "startup"
@@ -104,14 +107,52 @@ class RobotControllerAPI:
         # -------------------------------
         self.dispatch = {
             "ssh": lambda: self.run_connect_ssh(),
-            "send": lambda: self.ssh.tx_general.send_command(self.screens["startup"].get_command()),
-            "firmware": lambda: self.ssh.tx_general.install_firmware(FIRMWARE_LOCAL_LOCATION, self.ssh.tx_general.file_location_on_pi),
-            "run_firmware": lambda: self.ssh.tx_general.run_firmware(self.ssh.tx_general.file_location_on_pi),
-            "test_accelerometer": lambda: self.run_test_accelerometer(),
-            "test_camera": lambda: self.run_test_camera(True),
-            "uninstall_firmware": lambda: self.ssh.tx_general.uninstall_firmware(self.ssh.tx_general.file_location_on_pi),
-            "raspi_config": lambda: self.ssh.tx_general.run_config(self.ssh.tx_general.file_location_on_pi),
-            "reboot": lambda: self.ssh.tx_general.run_reboot(self.ssh.tx_general.file_location_on_pi)
+
+            "send": lambda: self.safe_ssh(
+                self.ssh.tx_general, "send_command",
+                self.ssh.tx_general.send_command,
+                self.screens["startup"].get_command()
+            ),
+
+            "firmware": lambda: self.safe_ssh(
+                self.ssh.tx_general, "install_firmware",
+                self.ssh.tx_general.install_firmware,
+                FIRMWARE_LOCAL_LOCATION, self.ssh.tx_general.file_location_on_pi
+            ),
+
+            "run_firmware": lambda: self.safe_ssh(
+                self.ssh.tx_general, "run_firmware",
+                self.ssh.tx_general.run_firmware,
+                self.ssh.tx_general.file_location_on_pi
+            ),
+
+            "test_accelerometer": lambda: self.safe_ssh(
+                self.ssh.tx_robot, "test_accelerometer",
+                self.run_test_accelerometer
+            ),
+
+            "test_camera": lambda: self.safe_ssh(
+                self.ssh.tx_camera, "test_camera",
+                self.run_test_camera, True
+            ),
+
+            "uninstall_firmware": lambda: self.safe_ssh(
+                self.ssh.tx_general, "uninstall_firmware",
+                self.ssh.tx_general.uninstall_firmware,
+                self.ssh.tx_general.file_location_on_pi
+            ),
+
+            "raspi_config": lambda: self.safe_ssh(
+                self.ssh.tx_general, "raspi_config",
+                self.ssh.tx_general.run_config,
+                self.ssh.tx_general.file_location_on_pi
+            ),
+
+            "reboot": lambda: self.safe_ssh(
+                self.ssh.tx_general, "reboot",
+                self.ssh.tx_general.run_reboot,
+                self.ssh.tx_general.file_location_on_pi
+            )
         }
 
     # ----------------------------------------------------------
@@ -129,38 +170,56 @@ class RobotControllerAPI:
         # STARTUP SCREEN EVENTS
         # -------------------------------
         if self.current_screen == "startup":
-
             if button == "manual_control":
+                if not self.ssh.tx_robot.connection:
+                    self.simulate = True
+                    print("No SSH Connection Established! Entering SIMULATION MODE.")
 
                 # SIMULATE MODE
                 if self.simulate:
                     pca = servo_utility.PCA9865(0x41, True)
-                    self.robot = Robot(pca, self.recal_servos)
+                    self.robot = Robot(pca, 0)
 
                 # REAL ROBOT MODE
                 else:
                     self.robot = None
-                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION,
-                                                         self.recal_servos)
+                    #self.recal_servos = self.screens["startup"].get_recal_value()  # Update recalibration setting
+                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION, 0)
 
                 self.manual_control_started = True
                 self.switch_screen("manual")
 
             elif button == "controller_mode":
+                if not self.ssh.tx_robot.connection:
+                    self.simulate = True
+                    print("No SSH Connection Established! Entering SIMULATION MODE.")
 
                 # SIMULATE MODE
                 if self.simulate:
                     pca = servo_utility.PCA9865(0x41, True)
-                    self.robot = Robot(pca, self.recal_servos)
+                    self.robot = Robot(pca, 0)
 
                 # REAL ROBOT MODE
                 else:
                     self.robot = None
-                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION,
-                                                         self.recal_servos)
+                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION, 0)
                     
                 self.manual_control_started = True    
                 self.switch_screen("controller")
+
+            elif button == "calibrate_servos":
+                # SIMULATE MODE
+                if self.simulate:
+                    pca = servo_utility.PCA9865(0x41, True)
+                    self.robot = Robot(pca, 0)
+
+                # REAL ROBOT MODE
+                else:
+                    self.robot = None
+                    self.ssh.tx_robot.run_calibrate_servos(FIRMWARE_REMOTE_LOCATION, 0)
+
+                self.manual_control_started = True  
+                self.switch_screen("calibrate")
 
         # -------------------------------
         # MANUAL CONTROL EVENTS
@@ -221,6 +280,15 @@ class RobotControllerAPI:
             if button == "exit":
                 self.switch_screen("startup")
 
+        elif self.current_screen == "calibrate":
+            if button == "calibrate_servos":
+                angles = self.screens["calibrate"].get_all_angles()
+                print("Saving calibration offsets:", angles)
+                self.ssh.tx_robot.run_calibration(angles)
+                self.switch_screen("startup")
+
+            elif button == "exit":
+                self.switch_screen("startup")
         # -------------------------------
         # DISPATCH COMMANDS
         # -------------------------------
@@ -241,7 +309,7 @@ class RobotControllerAPI:
 
             # Read GUI values
             self.simulate = screen.get_simulate_value()
-            self.recal_servos = screen.get_recal_value()
+            #self.recal_servos = screen.get_recal_value()
             pi_selection = screen.get_pi_selector_value()
 
             # Update SSH target
@@ -293,6 +361,20 @@ class RobotControllerAPI:
             else:
                 self.last_all_leg_angles = self.send_leg_commands(leg_angles)
 
+        elif self.current_screen == "calibrate":
+
+            screen = self.screens["calibrate"]
+
+            leg_angles = screen.get_all_slider_angles()
+            left_pos = compute_forward_kinematics(leg_angles, "left")
+            right_pos = compute_forward_kinematics(leg_angles, "right")
+
+            # 3. Send servo commands
+            if self.simulate:
+                self.robot.set_all_angles(leg_angles)
+                self.robot.update()
+            else:
+                self.last_all_leg_angles = self.send_leg_commands(leg_angles)
         # -------------------------------
         # SSH RESPONSE HANDLING
         # -------------------------------
@@ -337,20 +419,39 @@ class RobotControllerAPI:
     # ----------------------------------------------------------
     # SSH CONNECTION HANDLING
     # ----------------------------------------------------------
+    def safe_ssh(self, target, action_name, func, *args, **kwargs):
+        """
+        Safely executes an SSH action.
+        Prevents crashes if the target is not connected.
+        """
+        if not target.connection:
+            print(f"[SSH ERROR] Cannot run '{action_name}': {target.hostname} is not connected.")
+            return False
+
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(f"[SSH ERROR] '{action_name}' failed:", e)
+            return False
+
     def run_connect_ssh(self):
         try:
             self.ssh.tx_robot.connect_ssh()
             self.ssh.tx_camera.connect_ssh()
 
-            self.ssh.tx_robot.connection = True
-            self.ssh.tx_camera.connection = True
-
-            if self.ssh.tx_robot.connection and self.ssh.tx_camera.connection:
-                print("Successfully connected to both Raspberry Pis via SSH.")
-                self.screens["startup"].ssh_connection = True
+            if self.ssh.tx_robot.connection:
+                print("Successfully connected to servo control Raspberry Pi via SSH.")
+                self.screens["startup"].robot_servo_connection = True
             else:
-                print("Failed to connect to one or both Raspberry Pis via SSH.")
-                self.screens["startup"].ssh_connection = False
+                print("Failed to connect to servo control Raspberry Pi via SSH.")
+                self.screens["startup"].robot_servo_connection = False
+
+            if self.ssh.tx_camera.connection:
+                print("Successfully connected to camera Raspberry Pi via SSH.")
+                self.screens["startup"].robot_camera_connection = True
+            else:
+                print("Failed to connect to camera Raspberry Pi via SSH.")
+                self.screens["startup"].robot_camera_connection = False
 
         except Exception as e:
             print(f"Error occurred while connecting via SSH: {e}")
@@ -403,9 +504,10 @@ class RobotControllerAPI:
                     #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
 
-            response = self.ssh.tx_robot.receive_response()
-            if response:
-                print(response)
+            if self.ssh.tx_robot.connection:
+                response = self.ssh.tx_robot.receive_response()
+                if response:
+                    print(response)
 
             return all_leg_angles
 

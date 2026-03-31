@@ -9,7 +9,7 @@ BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
 
 class Manual_Control_GUI(tk.Frame):
-    def __init__(self, width, height, starting_angles, starting_pos, cal_servo_mode, parent_root):
+    def __init__(self, width, height, starting_angles, starting_pos, parent_root):
         super().__init__(parent_root) 
 
         self.width = width
@@ -19,7 +19,6 @@ class Manual_Control_GUI(tk.Frame):
         self.pack_propagate(False)
         self.grid_propagate(False) 
 
-        self.cal_servo_mode = cal_servo_mode
         self.selected_button = "none"
 
         self.leg_slider_angle_group = []
@@ -58,23 +57,18 @@ class Manual_Control_GUI(tk.Frame):
         self.shift_height_label = tk.Label(self, text="Shift Height", width=35)
         self.shift_height_scale.set(WALKING_HEIGHT)
 
-        if not self.cal_servo_mode:
-            mode_button = tk.Button(self, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
-            mode_button.place(x=150, y=500)
+        mode_button = tk.Button(self, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
+        mode_button.place(x=150, y=500)
 
-            x = 10
-            y = 350
-            offset = 0
-        
-            for k in range(len(self.movements)):
-                # TODO create second row automatically
-                self.movement_group.append(tk.Button(self, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
-                self.movement_group[k].place(x=x+offset, y=y)
-                offset += BUTTON_WIDTH + 200
-
-        if self.cal_servo_mode:
-            cal_button = tk.Button(self, text="Cal Servos", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.cal_servos_button_click)
-            cal_button.place(x=300, y=350)
+        x = 10
+        y = 350
+        offset = 0
+    
+        for k in range(len(self.movements)):
+            # TODO create second row automatically
+            self.movement_group.append(tk.Button(self, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
+            self.movement_group[k].place(x=x+offset, y=y)
+            offset += BUTTON_WIDTH + 200
 
         # Exit Button
         exit_button = tk.Button(self, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
@@ -149,7 +143,6 @@ class Manual_Control_GUI(tk.Frame):
             self.last_mode = self.mode
 
         button_actions = {
-            "recal_servos": (True, "recal_servos"),
             "stand": (True, "stand"),
             "walk_forward": (True, "walk_forward"),
             "walk_backward": (True, "walk_backward"),
@@ -228,7 +221,6 @@ class Manual_Control_GUI(tk.Frame):
 
     def get_movement_click(self, movement): self.selected_button = movement
     def get_mode(self): return self.mode
-    def cal_servos_button_click(self): self.selected_button = "recal_servos"
     def stand_button_click(self): self.selected_button = "stand"
     def exit_button_click(self): self.selected_button = "exit"; self.close()
     def close(self): self.destroy()
