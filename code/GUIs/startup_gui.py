@@ -324,7 +324,7 @@ class Startup_GUI(tk.Frame):
         # Update SSH indicator
         if self.robot_servo_connection:
             self.ssh_pi_servo_indicator.config(
-                text=f"Connected: servo Pi",
+                text=f"Servo Pi",
                 bg="green"
             )
         else:
@@ -335,7 +335,7 @@ class Startup_GUI(tk.Frame):
 
         if self.robot_camera_connection:
             self.ssh_pi_camera_indicator.config(
-                text=f"Connected: Camera Pi",
+                text=f"Camera Pi",
                 bg="green"
             )
         else:
