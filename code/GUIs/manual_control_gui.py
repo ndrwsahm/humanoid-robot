@@ -30,8 +30,10 @@ class Manual_Control_GUI(tk.Frame):
         self.movement_group = []
         self.leg_text_pos_group = ["Left Foot X Position:  ", "Left Foot Y Position: ", "Left Foot Z Position: ", "Right Foot X Position: ", "Right Foot Y Position: ", "Right Foot Z Position: "]
 
-        self.movements = ["stand", "walk_forward", "walk_backward"]
-        self.movement_labels = ["Stand", "Walk Forward", "Walk Backward"]
+        self.movements = ["stand", "walk_forward", "walk_backward", "turn_right"]
+        self.movement_labels = ["Stand", "Walk Forward", "Walk Backward", "Turn Right"]
+
+        self.speed = 25  # default mid-speed
 
         self.load()
         self.new(starting_angles, starting_pos)
@@ -63,12 +65,23 @@ class Manual_Control_GUI(tk.Frame):
         x = 10
         y = 350
         offset = 0
+                                #stand, walk forward, walk backward, turn right
+        movement_button_pos = [(x, y), (x + 2*(BUTTON_WIDTH + 200), y - 50), (x + 2*(BUTTON_WIDTH + 200), y + 50), (x + 3*(BUTTON_WIDTH + 200), y)]
     
         for k in range(len(self.movements)):
             # TODO create second row automatically
             self.movement_group.append(tk.Button(self, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
-            self.movement_group[k].place(x=x+offset, y=y)
-            offset += BUTTON_WIDTH + 200
+            self.movement_group[k].place(x=movement_button_pos[k][0], y=movement_button_pos[k][1])
+            #offset += BUTTON_WIDTH + 200
+
+        # Speed Slider (User-facing)
+        self.speed_scale = ttk.Scale(self,from_=1,to=100,orient="horizontal",command=self.get_speed_val)
+        self.speed_scale.set(self.speed)
+        self.speed_label = tk.Label(self, text=f"Speed: {self.speed}", width=35)
+
+        # Place it (adjust x/y to match your layout)
+        self.speed_label.place(x=150, y=420)
+        self.speed_scale.place(x=150, y=450)
 
         # Exit Button
         exit_button = tk.Button(self, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
@@ -146,6 +159,8 @@ class Manual_Control_GUI(tk.Frame):
             "stand": (True, "stand"),
             "walk_forward": (True, "walk_forward"),
             "walk_backward": (True, "walk_backward"),
+            "turn_left": (True, "turn_left"),
+            "turn_right": (True, "turn_right"),
             "exit": (False, self.selected_button)
         }
 
@@ -218,6 +233,22 @@ class Manual_Control_GUI(tk.Frame):
             self.mode = "Kinematics"
 
         self.selected_button = "mode"
+
+    def get_speed_val(self, val):
+        val = int(float(val))
+        self.speed = val
+        self.speed_label.config(text=f"Speed: {val}")
+        return val
+
+    def get_speed(self):
+        return self.speed
+
+    def get_frames(self):
+        # Speed 1 → 60 frames (slow)
+        # Speed 100 → 5 frames (fast)
+        min_frames = 5
+        max_frames = 60
+        return int(max_frames - (self.speed / 100) * (max_frames - min_frames))
 
     def get_movement_click(self, movement): self.selected_button = movement
     def get_mode(self): return self.mode

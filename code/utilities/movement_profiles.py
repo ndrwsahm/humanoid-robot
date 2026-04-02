@@ -8,10 +8,14 @@ sys.path.insert(0, utilities_dir)
 
 from utilities.kinematics import *
 
-STANDING_POS = [-1, 0, -15, -1, 0, -1]
-NUM_FRAMES = 10
+STANDING_POS = [-1, 2, -15, -1, 2, -1]
 
-def build_swing_phase(direction, center_x, height, step_length, leg):
+def convert_speed_to_frames(speed):
+    min_frames = 5
+    max_frames = 60
+    return int(max_frames - (speed / 100) * (max_frames - min_frames))
+
+def build_swing_phase(direction, center_x, height, step_length, speed, leg):
     
     angles = []
 
@@ -22,7 +26,7 @@ def build_swing_phase(direction, center_x, height, step_length, leg):
         y = FOOT_Y_SWING
 
     # half circle equation z = sqrt(r^2 - x^2)
-    for t in np.linspace(np.pi, 0, NUM_FRAMES):
+    for t in np.linspace(np.pi, 0, convert_speed_to_frames(speed)):
         x = direction * step_length * np.cos(t) + center_x
         z = 3 * np.sin(t) + height
 
@@ -31,7 +35,7 @@ def build_swing_phase(direction, center_x, height, step_length, leg):
 
     return angles
 
-def build_push_phase(direction, center_x, height, step_length, leg):
+def build_push_phase(direction, center_x, height, step_length, speed, leg):
     
     angles = []
 
@@ -42,7 +46,7 @@ def build_push_phase(direction, center_x, height, step_length, leg):
         y = -FOOT_Y_PUSH
 
     #Straight line from end of half circle to back
-    for t in np.linspace(1, -1, NUM_FRAMES):
+    for t in np.linspace(1, -1, convert_speed_to_frames(speed)):
         x = direction * step_length * t + center_x
         z = height
 
@@ -52,24 +56,35 @@ def build_push_phase(direction, center_x, height, step_length, leg):
     return angles
 
 # TODO each function will return nth dim array of angle arrays 
-def build_walk_array(direction, height, step_length, num_steps):
+def build_walk_array(direction, height, step_length, num_steps, speed):
     for k in range(num_steps):
-        swing_phase_left = build_swing_phase(direction, FOOT_X_CENTER, height, step_length, "left")
-        swing_phase_right = build_push_phase(direction, FOOT_X_CENTER, height, step_length, "right")
+        swing_phase_left = build_swing_phase(direction, FOOT_X_CENTER, height, step_length, speed, "left")
+        swing_phase_right = build_push_phase(direction, FOOT_X_CENTER, height, step_length, speed, "right")
         combined_swing_phases = [swing_phase_left + swing_phase_right for swing_phase_left, swing_phase_right in zip(swing_phase_left, swing_phase_right)]
         
-        step_back_phase_left = build_push_phase(direction, FOOT_X_CENTER, height, step_length, "left")
-        step_back_phase_right = build_swing_phase(direction, FOOT_X_CENTER, height, step_length, "right")
+        step_back_phase_left = build_push_phase(direction, FOOT_X_CENTER, height, step_length, speed, "left")
+        step_back_phase_right = build_swing_phase(direction, FOOT_X_CENTER, height, step_length, speed, "right")
         combined_step_phase = [step_back_phase_left + step_back_phase_right for step_back_phase_left, step_back_phase_right in zip(step_back_phase_left, step_back_phase_right)]
 
         movement_array = combined_swing_phases + combined_step_phase
 
     return movement_array
 
-def build_turn_left_array(height, num_degrees):
-    pass
+def build_turn_right_array(direction, height, step_length, num_steps, speed):
+    for k in range(num_steps):
+        swing_phase_left = build_swing_phase(direction, FOOT_X_CENTER, height, step_length, speed, "left")
+        swing_phase_right = build_push_phase(direction, FOOT_X_CENTER, height, step_length/10, speed, "right")
+        combined_swing_phases = [swing_phase_left + swing_phase_right for swing_phase_left, swing_phase_right in zip(swing_phase_left, swing_phase_right)]
+        
+        step_back_phase_left = build_push_phase(direction, FOOT_X_CENTER, height, step_length, speed, "left")
+        step_back_phase_right = build_swing_phase(direction, FOOT_X_CENTER, height, step_length/10, speed, "right")
+        combined_step_phase = [step_back_phase_left + step_back_phase_right for step_back_phase_left, step_back_phase_right in zip(step_back_phase_left, step_back_phase_right)]
 
-def build_turn_right_array(height, num_degrees):
+        movement_array = combined_swing_phases + combined_step_phase
+
+    return movement_array
+
+def build_turn_left_array(direction, height, step_length, num_steps, speed):
     pass
 
 def build_strife_left_array(height, num_steps):

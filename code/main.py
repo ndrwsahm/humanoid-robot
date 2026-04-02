@@ -165,7 +165,7 @@ class RobotControllerAPI:
     # EVENT HANDLING (button presses)
     # ----------------------------------------------------------
     def events(self, button):
-
+        
         # -------------------------------
         # STARTUP SCREEN EVENTS
         # -------------------------------
@@ -225,16 +225,22 @@ class RobotControllerAPI:
         # MANUAL CONTROL EVENTS
         # -------------------------------
         elif self.current_screen == "manual":
+            step_length = 2
+            num_steps = 1
+            speed = self.screens["manual"].get_speed()
 
-            # Walking forward
             if button == "walk_forward":
-                movement = build_walk_array(1, WALKING_HEIGHT, 2, 1)
+                movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
-            # Walking backward
             elif button == "walk_backward":
-                movement = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
+                movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length, num_steps, speed)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+            
+            elif button == "turn_right":
+                movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, 2*step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
@@ -253,16 +259,19 @@ class RobotControllerAPI:
         # CONTROLLER MODE EVENTS
         # -------------------------------
         elif self.current_screen == "controller":
+            step_length = 2
+            num_steps = 1
+            speed = 50
             if self.receiver == None:
                     self.run_test_camera(False)
 
             if button == "walk_forward":
-                movement = build_walk_array(1, WALKING_HEIGHT, 2, 1)
+                movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
             elif button == "walk_backward":
-                movement = build_walk_array(-1, WALKING_HEIGHT, 2, 1)
+                movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
