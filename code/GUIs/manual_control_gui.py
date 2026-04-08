@@ -30,10 +30,12 @@ class Manual_Control_GUI(tk.Frame):
         self.movement_group = []
         self.leg_text_pos_group = ["Left Foot X Position:  ", "Left Foot Y Position: ", "Left Foot Z Position: ", "Right Foot X Position: ", "Right Foot Y Position: ", "Right Foot Z Position: "]
 
-        self.movements = ["stand", "walk_forward", "walk_backward", "turn_right"]
-        self.movement_labels = ["Stand", "Walk Forward", "Walk Backward", "Turn Right"]
+        self.movements = ["stand", "walk_forward", "walk_backward", "turn_right", "turn_left"]
+        self.movement_labels = ["Stand", "Walk Forward", "Walk Backward", "Turn Right", "Turn Left"]
 
         self.speed = 25  # default mid-speed
+        self.step_length = 1  # default mid-step length
+        self.num_steps = 1 # default 1 step
 
         self.load()
         self.new(starting_angles, starting_pos)
@@ -65,8 +67,8 @@ class Manual_Control_GUI(tk.Frame):
         x = 10
         y = 350
         offset = 0
-                                #stand, walk forward, walk backward, turn right
-        movement_button_pos = [(x, y), (x + 2*(BUTTON_WIDTH + 200), y - 50), (x + 2*(BUTTON_WIDTH + 200), y + 50), (x + 3*(BUTTON_WIDTH + 200), y)]
+                              #stand,   walk forward,                         walk backward,                        turn right,                     turn left
+        movement_button_pos = [(x, y), (x + 2*(BUTTON_WIDTH + 200), y - 50), (x + 2*(BUTTON_WIDTH + 200), y + 50), (x + 3*(BUTTON_WIDTH + 200), y), (x + (BUTTON_WIDTH + 200), y)]
     
         for k in range(len(self.movements)):
             # TODO create second row automatically
@@ -80,8 +82,26 @@ class Manual_Control_GUI(tk.Frame):
         self.speed_label = tk.Label(self, text=f"Speed: {self.speed}", width=35)
 
         # Place it (adjust x/y to match your layout)
-        self.speed_label.place(x=150, y=420)
-        self.speed_scale.place(x=150, y=450)
+        self.speed_label.place(x=625, y=420)
+        self.speed_scale.place(x=700, y=450)
+
+        # Step Length Slider (User-facing)
+        self.step_length_scale = ttk.Scale(self,from_=1,to=4,orient="horizontal",command=self.get_step_length_val)
+        self.step_length_scale.set(self.step_length)
+        self.step_length_label = tk.Label(self, text=f"Step Length: {self.step_length}", width=35)
+
+        # Place it (adjust x/y to match your layout)
+        self.step_length_label.place(x=625, y=480)
+        self.step_length_scale.place(x=700, y=510)
+
+        # Number of Steps Slider (User-facing)
+        self.num_steps_scale = ttk.Scale(self,from_=1,to=4,orient="horizontal",command=self.get_num_steps_val)
+        self.num_steps_scale.set(self.num_steps)
+        self.num_steps_label = tk.Label(self, text=f"Number of Steps: {self.num_steps}", width=35)
+
+        # Place it (adjust x/y to match your layout)
+        self.num_steps_label.place(x=625, y=540)
+        self.num_steps_scale.place(x=700, y=570)
 
         # Exit Button
         exit_button = tk.Button(self, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
@@ -243,6 +263,24 @@ class Manual_Control_GUI(tk.Frame):
     def get_speed(self):
         return self.speed
 
+    def get_step_length_val(self, val):
+        val = int(float(val))
+        self.step_length = val
+        self.step_length_label.config(text=f"Step Length: {val}")
+        return val
+
+    def get_step_length(self):
+        return self.step_length
+    
+    def get_num_steps_val(self, val):
+        val = int(float(val))
+        self.num_steps = val
+        self.num_steps_label.config(text=f"Number of Steps: {val}")
+        return val
+
+    def get_num_steps(self):
+        return self.num_steps
+    
     def get_frames(self):
         # Speed 1 → 60 frames (slow)
         # Speed 100 → 5 frames (fast)

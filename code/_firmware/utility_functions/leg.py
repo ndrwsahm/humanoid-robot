@@ -1,7 +1,11 @@
 try:
-    from _firmware.settings import *
+    from _firmware.firmware_globals import *
+    from _firmware.utility_functions.settings_parser import load_robot_settings
+    from _firmware.utility_functions.username_id import get_robot_id_from_username
 except:
-    from settings import *
+    from firmware_globals import *
+    from utility_functions.settings_parser import load_robot_settings
+    from utility_functions.username_id import get_robot_id_from_username
 
 DEBUG_PRINT_IK = False
 DEBUG_PRINT_FK = False
@@ -15,32 +19,37 @@ ANKLE_ADUCTOR = 4
 ANKLE_EXTENDOR = 5
 
 class Leg:
-    def __init__(self, pca_object, pin_numbers, side, dimensions, limits, is_recal):
+    def __init__(self, pca_object, side, is_recal):
         self.pca = pca_object
-        self.pins = pin_numbers
-        self.side = side.lower()    # make all lower case                                                  
-                                                                           
-        self.leg_dimensions = dimensions    # {a1, a2}    
-        self.theta_limits = limits
 
+        self.side = side.lower()    # make all lower case                                                  
+         
+        self.new()
+                                                                          
         self.last_thetas = [0, 0, 0, 0, 0, 0]     # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
         self.current_thetas = [90, 90, 90, 90, 90, 90]  # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
 
         if is_recal:    # Recalibrate servo flag
             self.offset_thetas = [0, 0, 0, 0, 0, 0] 
         else:
-            if side == "left":
-                self.offset_thetas = LEFT_OFFSET_ANGLES
-            else:
-                self.offset_thetas = RIGHT_OFFSET_ANGLES
-
+            self.offset_thetas = [x - y for x, y in zip(self.default_angles, ANGLES_TO_90)]
+  
         self.last_knee_pos = [0, 0, 0]
         self.last_foot_pos = [0, 0, 0]
         self.current_knee_pos = [0, 0, 0]
         self.current_foot_pos = [0, 0, 0]
-        
+
         self.setup()
 
+    def new(self):
+        robot_id = get_robot_id_from_username()
+        settings = load_robot_settings(robot_id)
+
+        self.pins = (settings["LEFT_LEG_PINS"] if self.side == "left" else settings["RIGHT_LEG_PINS"])
+        self.leg_dimensions = (settings["A1_LENGTH"], settings["A2_LENGTH"])
+        self.theta_limits = (settings["LEFT_LIMITS"] if self.side == "left" else settings["RIGHT_LIMITS"])
+        self.default_angles = (settings["LEFT_DEFAULTS"] if self.side == "left" else settings["RIGHT_DEFAULTS"])
+        
     def setup(self):
         for pin in self.pins:
             self.pca.set_pulse_min_max(pin, PULSE_WIDTH_SETTINGS[pin][PULSE_WIDTH_MIN], PULSE_WIDTH_SETTINGS[pin][PULSE_WIDTH_MAX])
@@ -67,6 +76,7 @@ class Leg:
         #print ("Current thetas")
         #print(self.current_thetas, self.pins)
         #print ("")
+
         if self.last_thetas != self.current_thetas:
             for k in range(len(self.current_thetas)):
                 try:
@@ -77,10 +87,5 @@ class Leg:
                     print("Last theta", self.last_thetas[k])
                     # TODO errors out here and ankle angles get weird
                     self.pca.set_servo_angle(self.pins[k], self.last_thetas[k])
-            #self.pca.set_servo_angle(self.pins[1], theta2 + self.offset_thetas[1])
-            #self.pca.set_servo_angle(self.pins[2], theta3 + self.offset_thetas[2])
-            #self.pca.set_servo_angle(self.pins[3], theta4 + self.offset_thetas[3])
-            #self.pca.set_servo_angle(self.pins[4], theta5 + self.offset_thetas[4])
-            #self.pca.set_servo_angle(self.pins[5], theta6 + self.offset_thetas[5])
 
             self.update()

@@ -5,7 +5,7 @@ import os
 firmware_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, firmware_dir)
 
-from settings import *
+from firmware_globals import *
 
 class SSH_RX_Comms:
    def __init__(self):

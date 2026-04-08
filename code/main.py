@@ -1,5 +1,6 @@
 import sys
 import threading
+import configparser
 sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/')
 
 # Simulated Firmware
@@ -21,6 +22,7 @@ from globals import *
 from utilities.kinematics import *
 from utilities.movement_profiles import *
 from utilities.camera_receiver import CameraReceiver
+from utilities.write_to_file import write_cal_data
 
 DEBUG_PRINT_STATEMENT = False
     
@@ -45,6 +47,8 @@ class RobotControllerAPI:
         # -------------------------------
         # INITIAL ROBOT STATE
         # -------------------------------
+        self.id = ID
+        self.new()
 
         # Last known servo angles (12 servos)
         self.last_all_leg_angles = [90] * 12
@@ -58,13 +62,14 @@ class RobotControllerAPI:
         starting_leg_pos = left_leg_pos + right_leg_pos
 
         #recal_servos = False  # Placeholder for future calibration logic
+        
 
         # -------------------------------
         # GUI SCREENS
         # -------------------------------
         self.screens = {
-            "startup": Startup_GUI(GUI_WIDTH, GUI_HEIGHT, HOSTNAME, USERNAME,
-                                   FIRMWARE_REMOTE_LOCATION, COM_PORT, BAUDRATE, self.root),
+            "startup": Startup_GUI(GUI_WIDTH, GUI_HEIGHT, self.host_name, self.username,
+                                   self.firmware_remote_location, COM_PORT, BAUDRATE, self.root),
 
             "manual": Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT,
                                          self.standing_array[0], starting_leg_pos, self.root),
@@ -85,9 +90,8 @@ class RobotControllerAPI:
         # SSH MANAGER SETUP
         # -------------------------------
         self.ssh = SSHManager()
-        self.ssh.add_target("pi_robot", HOSTNAME, USERNAME, PASSWORD, FIRMWARE_REMOTE_LOCATION)
-        self.ssh.add_target("pi_camera", HOSTNAME_CAMERA, USERNAME_CAMERA,
-                            PASSWORD_CAMERA, FIRMWARE_REMOTE_LOCATION_CAMERA)
+        self.ssh.add_target("pi_robot", self.host_name, self.username, self.password, self.firmware_remote_location)
+        self.ssh.add_target("pi_camera", self.host_name_camera, self.username_camera, self.password_camera, self.firmware_remote_location_camera)
 
         # Convenience handles
         self.ssh.tx_robot = self.ssh.targets["pi_robot"]
@@ -117,7 +121,7 @@ class RobotControllerAPI:
             "firmware": lambda: self.safe_ssh(
                 self.ssh.tx_general, "install_firmware",
                 self.ssh.tx_general.install_firmware,
-                FIRMWARE_LOCAL_LOCATION, self.ssh.tx_general.file_location_on_pi
+                self.firmware_local_location, self.ssh.tx_general.file_location_on_pi
             ),
 
             "run_firmware": lambda: self.safe_ssh(
@@ -158,8 +162,34 @@ class RobotControllerAPI:
     # ----------------------------------------------------------
     # UNUSED PLACEHOLDERS (future expansion)
     # ----------------------------------------------------------
-    def new(self): pass
+    def new(self): 
+        self.main_folder = os.path.dirname(__file__)
+        self.filename = "configuration.ini"
+        self.configuration_folder = os.path.join(self.main_folder, 'configurations')
+        self.id_folder = os.path.join(self.configuration_folder, str(self.id))
+        self.full_file_path = os.path.join(self.id_folder, self.filename)
+
+        self.config = configparser.ConfigParser()
+        self.config.read(self.full_file_path)
+
+        self.getConfigurationVariables()
+
     def load(self): pass
+
+    def getConfigurationVariables(self):
+        self.host_name = self.config.get("HUMANOID_VARS", "HOSTNAME")
+        self.host_name_camera = self.config.get("HUMANOID_VARS", "HOSTNAME_CAMERA")
+        self.username = self.config.get("HUMANOID_VARS", "USERNAME")
+        self.username_camera = self.config.get("HUMANOID_VARS", "USERNAME_CAMERA")
+        self.password = self.config.get("HUMANOID_VARS", "PASSWORD")
+        self.password_camera = self.config.get("HUMANOID_VARS", "PASSWORD_CAMERA")
+
+        self.firmware_local_location = self.config.get("HUMANOID_VARS", "FIRMWARE_LOCAL_LOCATION")
+        self.firmware_remote_location = self.config.get("HUMANOID_VARS", "FIRMWARE_REMOTE_LOCATION")
+        self.firmware_remote_location_camera = self.config.get("HUMANOID_VARS", "FIRMWARE_REMOTE_LOCATION_CAMERA")  
+
+        self.instruments_remote_location = self.config.get("HUMANOID_VARS", "INSTRUMENTS_REMOTE_LOCATION")
+        self.instruments_remote_location_camera = self.config.get("HUMANOID_VARS", "INSTRUMENTS_REMOTE_LOCATION_CAMERA")
 
     # ----------------------------------------------------------
     # EVENT HANDLING (button presses)
@@ -184,7 +214,7 @@ class RobotControllerAPI:
                 else:
                     self.robot = None
                     #self.recal_servos = self.screens["startup"].get_recal_value()  # Update recalibration setting
-                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION, 0)
+                    self.ssh.tx_robot.run_manual_control(self.firmware_remote_location, 0)
 
                 self.manual_control_started = True
                 self.switch_screen("manual")
@@ -202,7 +232,7 @@ class RobotControllerAPI:
                 # REAL ROBOT MODE
                 else:
                     self.robot = None
-                    self.ssh.tx_robot.run_manual_control(FIRMWARE_REMOTE_LOCATION, 0)
+                    self.ssh.tx_robot.run_manual_control(self.firmware_remote_location, 0)
                     
                 self.manual_control_started = True    
                 self.switch_screen("controller")
@@ -216,7 +246,7 @@ class RobotControllerAPI:
                 # REAL ROBOT MODE
                 else:
                     self.robot = None
-                    self.ssh.tx_robot.run_calibrate_servos(FIRMWARE_REMOTE_LOCATION, 0)
+                    self.ssh.tx_robot.run_calibrate_servos(self.firmware_remote_location, 0)
 
                 self.manual_control_started = True  
                 self.switch_screen("calibrate")
@@ -225,14 +255,15 @@ class RobotControllerAPI:
         # MANUAL CONTROL EVENTS
         # -------------------------------
         elif self.current_screen == "manual":
-            step_length = 2
-            num_steps = 1
             speed = self.screens["manual"].get_speed()
+            num_steps = self.screens["manual"].get_num_steps()
+            step_length = self.screens["manual"].get_step_length()
 
             if button == "walk_forward":
                 movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
+                    #user_input = input("Continue to next step? (y/n): ")
 
             elif button == "walk_backward":
                 movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length, num_steps, speed)
@@ -241,6 +272,11 @@ class RobotControllerAPI:
             
             elif button == "turn_right":
                 movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, 2*step_length, num_steps, speed)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "turn_left":
+                movement = build_turn_left_array(FORWARD, WALKING_HEIGHT, 2*step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
@@ -261,7 +297,7 @@ class RobotControllerAPI:
         elif self.current_screen == "controller":
             step_length = 2
             num_steps = 1
-            speed = 50
+            speed = 25
             if self.receiver == None:
                     self.run_test_camera(False)
 
@@ -272,6 +308,16 @@ class RobotControllerAPI:
 
             elif button == "walk_backward":
                 movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length, num_steps, speed)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "turn_right":
+                movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, 2*step_length, num_steps, speed)
+                for step in movement:
+                    self.last_all_leg_angles = self.send_leg_commands(step)
+
+            elif button == "turn_left":
+                movement = build_turn_left_array(FORWARD, WALKING_HEIGHT, 2*step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
@@ -290,10 +336,10 @@ class RobotControllerAPI:
                 self.switch_screen("startup")
 
         elif self.current_screen == "calibrate":
-            if button == "calibrate_servos":
-                angles = self.screens["calibrate"].get_all_angles()
+            if button == "calibrate":
+                angles = self.screens["calibrate"].get_all_slider_angles()
                 print("Saving calibration offsets:", angles)
-                self.ssh.tx_robot.run_calibration(angles)
+                write_cal_data(angles, self.id)
                 self.switch_screen("startup")
 
             elif button == "exit":
@@ -474,7 +520,7 @@ class RobotControllerAPI:
             return
         
         print("Starting camera sender...")
-        self.ssh.tx_camera.run_test(INSTRUMENTS_REMOTE_LOCATION_CAMERA, CAMERA)
+        self.ssh.tx_camera.run_test(self.instruments_remote_location_camera, CAMERA)
         
         if self.receiver is None:
             print("Starting camera receiver...")
@@ -491,7 +537,7 @@ class RobotControllerAPI:
     # ----------------------------------------------------------
     def run_test_accelerometer(self):
         if self.ssh.tx_robot.connection:
-            self.ssh.tx_robot.run_test(INSTRUMENTS_REMOTE_LOCATION, ACCELEROMETER)
+            self.ssh.tx_robot.run_test(self.instruments_remote_location, ACCELEROMETER)
         else:
             print("No SSH Connection Established!")
 

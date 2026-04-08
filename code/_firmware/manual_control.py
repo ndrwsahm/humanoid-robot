@@ -2,6 +2,8 @@ from robot import *
 from instruments.serial_rx_comms import * 
 from instruments.ssh_rx_comms import *
 from instruments.servo_utility import *
+from utility_functions.settings_parser import load_robot_settings
+from utility_functions.username_id import get_robot_id_from_username
 
 running = True
 DEBUG_PRINT_STATEMENT = False
@@ -36,7 +38,6 @@ if __name__ == "__main__":
         print("Creating Robot Object...")
 
         robot = Robot(pca_obj, False)
-        print("False")
         #           lhr, lha, lhe, lk, laa, lae
         #robot.set_all_angles([90,80,60,100,100,70,90,100,120,90,100,100])
         print("Using STDIN for command input...")
@@ -45,9 +46,13 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
 
+    robot_id = get_robot_id_from_username()
+    settings = load_robot_settings(robot_id)
+    
     # Hardcoded soft start angles
-    all_angles = HARDCODED_SOFT_START_ANGLES
-    robot.set_all_angles(HARDCODED_SOFT_START_ANGLES)
+    all_angles = settings["LEFT_DEFAULTS"] + settings["RIGHT_DEFAULTS"]
+    print("Setting soft start angles:", all_angles)
+    robot.set_all_angles(settings["SOFT_START_ANGLES"])
 
     while running:
         user_input = rx_comms.get_user_input()
@@ -59,5 +64,5 @@ if __name__ == "__main__":
                 #           lhr, lha, lhe, lk, laa, lae
                 robot.set_all_angles(all_angles)
             else:
-                robot.set_all_angles(HARDCODED_SOFT_START_ANGLES)
+                robot.set_all_angles(settings["SOFT_START_ANGLES"])
 

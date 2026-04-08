@@ -1,28 +1,33 @@
-HOSTNAME = "192.168.1.160" # zero
+import os
+import configparser
 
-USERNAME = "humanoid39zero"
-PASSWORD = "humanoid39zero"
+# PUT GLOBAL ID HERE ====================
+ID = 39
+# ====================================
 
-HOSTNAME_CAMERA = "192.168.1.158" # pi 3
-#HOSTNAME = "192.168.19.45"  # phone hotspot
-USERNAME_CAMERA = "humanoid39"
-PASSWORD_CAMERA = "humanoid39"
+# Load configuration file
+main_folder = os.path.dirname(__file__)
+filename = "configuration.ini"
+configuration_folder = os.path.join(main_folder, 'configurations')
+id_folder = os.path.join(configuration_folder, str(ID))
+full_file_path = os.path.join(id_folder, filename)
 
-FIRMWARE_LOCAL_LOCATION = "C:\\Users\\andre\\Github\\humanoid-robot\\code\\_firmware"
+config = configparser.ConfigParser()
+config.read(full_file_path)
 
-FIRMWARE_REMOTE_LOCATION_CAMERA = "/home/" + USERNAME_CAMERA + "/Documents/_firmware"
-FIRMWARE_REMOTE_LOCATION = "/home/" + USERNAME + "/Documents/_firmware"
+# Set global variables from configuration file
+FOOT_X_CENTER = config.getfloat("HUMANOID_VARS", "foot_x_center")
+FOOT_Y_SWING = config.getfloat("HUMANOID_VARS", "foot_y_swing")
+FOOT_Y_PUSH = config.getfloat("HUMANOID_VARS", "foot_y_push")
 
-INSTRUMENTS_REMOTE_LOCATION_CAMERA = "/home/" + USERNAME_CAMERA + "/Documents/_firmware/instruments"
-INSTRUMENTS_REMOTE_LOCATION = "/home/" + USERNAME + "/Documents/_firmware/instruments"
+WALKING_HEIGHT = config.getfloat("HUMANOID_VARS", "walking_height")
 
+# Global variables
 ACCELEROMETER = 'accelerometer'
 CAMERA = 'camera_sender'
 
 BAUDRATE = 115200
 COM_PORT = "COM8"
-
-ID = 39
 
 GUI_WIDTH = 900
 GUI_HEIGHT = 600
@@ -65,15 +70,10 @@ ALL_POS = [LEFT_FOOT_X, LEFT_FOOT_Y, LEFT_FOOT_Z, RIGHT_FOOT_X, RIGHT_FOOT_Y, RI
 MIN_POS = [-20, SHIFT_WEIGTH_MIN, SHIFT_HEIGTH_MIN, -20, SHIFT_WEIGTH_MIN, SHIFT_HEIGTH_MIN]
 MAX_POS = [20, SHIFT_WEIGTH_MAX, SHIFT_HEIGTH_MAX, 20, SHIFT_WEIGTH_MAX, SHIFT_HEIGTH_MAX]
 
-WALKING_HEIGHT = -15
-FOOT_X_CENTER = -1
-FOOT_Y_SWING = 4
-FOOT_Y_PUSH = 2
 FORWARD = 1
 BACKWARD = -1
 
 SPEED = 50
-
 
 # Pygame Variables
 WHITE = (255, 255, 255)

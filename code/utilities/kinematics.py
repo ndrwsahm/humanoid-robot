@@ -2,18 +2,23 @@ import math
 import numpy as np
 import sys
 import os
+from globals import *
+
+from _firmware.utility_functions.settings_parser import load_robot_settings
 
 firmware_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, firmware_dir)
 
-try:
-    from _firmware.settings import *
-except:
-    from settings import *
+from _firmware.firmware_globals import *
+
+settings = load_robot_settings(ID)
+
+A1_LENGTH = settings["A1_LENGTH"]
+A2_LENGTH = settings["A2_LENGTH"]
 
 def compute_inverse_kinematics(x, y, z, leg):
     # Assumptions: Moving COM by abductors does not effect height of robot
-
+        
     if x == 0:
         x = 0.001
     if y == 0:
