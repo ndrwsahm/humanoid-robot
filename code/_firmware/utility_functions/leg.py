@@ -49,6 +49,7 @@ class Leg:
         self.leg_dimensions = (settings["A1_LENGTH"], settings["A2_LENGTH"])
         self.theta_limits = (settings["LEFT_LIMITS"] if self.side == "left" else settings["RIGHT_LIMITS"])
         self.default_angles = (settings["LEFT_DEFAULTS"] if self.side == "left" else settings["RIGHT_DEFAULTS"])
+        print(self.default_angles)
         
     def setup(self):
         for pin in self.pins:

@@ -19,11 +19,10 @@ def build_swing_phase(direction, center_x, height, step_length, speed, leg):
     
     angles = []
 
-    #print("Swing X Z Pos....")
     if leg == "left":
-        y = -FOOT_Y_SWING
+        y = -1 * FOOT_Y_SWING
     else:
-        y = FOOT_Y_SWING
+       y = FOOT_Y_SWING
 
     # half circle equation z = sqrt(r^2 - x^2)
     for t in np.linspace(np.pi, 0, convert_speed_to_frames(speed)):
