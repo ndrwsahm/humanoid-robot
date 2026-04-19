@@ -201,16 +201,22 @@ class Startup_GUI(tk.Frame):
         ).grid(row=8, column=0, pady=5)
 
         tk.Button(
+            parent, text="PWM Servos", bg="green", fg="white", font=("Arial", 14),
+            width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
+            command=self.pwm_calibrate_servos_button_click
+        ).grid(row=9, column=0, pady=10)
+
+        tk.Button(
             parent, text="Calibrate Servos", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.calibrate_servos_button_click
-        ).grid(row=9, column=0, pady=10)
+        ).grid(row=10, column=0, pady=10)
 
         tk.Button(
             parent, text="Exit", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.exit_button_click
-        ).grid(row=10, column=0, pady=20)
+        ).grid(row=12, column=0, pady=20)
 
     def create_command_reference(self, parent):
         tk.Label(parent, text="Pi Diagnostic Commands").grid(row=10, column=0, pady=(30,5))
@@ -356,6 +362,7 @@ class Startup_GUI(tk.Frame):
             "manual_control": (True, "manual_control"),
             "controller_mode": (True, "controller_mode"),
             "calibrate_servos": (True, "calibrate_servos"),
+            "pwm_calibrate_servos": (True, "pwm_calibrate_servos"),
             "raspi_config": (True, "raspi_config"),
             "reboot": (True, "reboot")
         }
@@ -417,6 +424,7 @@ class Startup_GUI(tk.Frame):
 
     def ssh_button_click(self): self.selected_button = "ssh"
     def calibrate_servos_button_click(self): self.selected_button = "calibrate_servos"
+    def pwm_calibrate_servos_button_click(self): self.selected_button = "pwm_calibrate_servos"
     #def nrf_button_click(self): self.selected_button = "nrf"
     def manual_control_button_click(self): self.selected_button = "manual_control"
     def controller_mode_button_click(self): self.selected_button = "controller_mode"

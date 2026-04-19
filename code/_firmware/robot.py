@@ -22,8 +22,6 @@ class Robot:
         self.left_leg = leg.Leg(self.pca_obj, "left", self.is_recal)
         self.right_leg = leg.Leg(self.pca_obj, "right", self.is_recal)
 
-        #self.left_leg.set_leg_pos(0, 5.36, 6.73)  # starting position
-        #self.right_leg.set_leg_pos(0, 5.36, 6.73)  # starting position
         self.left_thetas = self.left_leg.get_leg_thetas()
         self.right_thetas = self.right_leg.get_leg_thetas()
         self.all_thetas = self.left_thetas + self.right_thetas
@@ -38,49 +36,18 @@ class Robot:
         self.right_leg.set_leg_theta(angles[6], angles[7], angles[8], angles[9], angles[10], angles[11])  # starting 90 degree position
         self.all_thetas = angles
 
+    def set_pwm_settings(self, servo, pwm_min, pwm_max):
+        if servo < 6:
+            self.left_leg.set_servo_pwm_settings(servo, pwm_min, pwm_max)
+        else:
+            self.right_leg.set_servo_pwm_settings(servo-6, pwm_min, pwm_max)
+
     def get_all_angles(self):
         return self.all_thetas
-    """
-    def set_standing_pos(self):
-        angles = STANDING_ANGLES
-        self.set_all_angles(angles)
+    
+    def get_pulse_width_settings(self):
+        return self.left_leg.get_pulse_widths() + self.right_leg.get_pulse_widths()
 
-    def lean_right(self):
-        last_angles = self.get_all_angles()
-        end_angles = RIGHT_LEAN_ANGLES.copy()
-        self.smooth_transition_position(last_angles, end_angles)
-        
-    def lean_left(self):
-        last_angles = self.get_all_angles()
-        end_angles = LEFT_LEAN_ANGLES.copy()
-        self.smooth_transition_position(last_angles, end_angles)
-
-    def stand_right_leg(self):
-        last_angles = self.get_all_angles()
-        end_angles = RIGHT_LEG_STAND_ANGLES.copy()
-        self.smooth_transition_position(last_angles, end_angles)
-
-    def stand_left_leg(self):
-        last_angles = self.get_all_angles()
-        end_angles = LEFT_LEG_STAND_ANGLES.copy()
-        self.smooth_transition_position(last_angles, end_angles)
-
-    def swing_left_leg(self):
-        last_angles = self.get_all_angles()
-        end_angles = LEFT_LEG_FORWARD_STEP_ANGLES.copy()
-        self.smooth_transition_position(last_angles, end_angles)
-
-    def swing_right_leg(self):
-        last_angles = self.get_all_angles()
-        end_angles = RIGHT_LEG_FORWARD_STEP_ANGLES.copy()
-        self.smooth_transition_position(last_angles, end_angles)
-             
-    def walk_forward(self):
-        pass
-
-    def walk_backward(self):
-        pass
-    """
     def smooth_transition_position(self, last_angles, end_angles):
         new_angles = last_angles
         final_true_angles = end_angles.copy()

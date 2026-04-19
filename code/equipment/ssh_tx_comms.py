@@ -96,6 +96,26 @@ class SSH_TX_Comms:
         except Exception as e:
             print ("run manual control" + str(e))
 
+    def run_pwm_calibrate_servos(self, file_path, recal_servos):
+        # Need to run script to wait for user input
+
+        arg1 = 'ssh'
+
+        if recal_servos:
+            arg2 = 'recal'
+        else:
+            arg2 = 'no_recal'
+        full_file_path = 'python3 ' + file_path + '/pwm_calibrate_servos.py ' + arg1 + " " + arg2 + '\n'
+
+        try:
+            #self.invoke_shell()
+            #print("Interactive shell started")
+            self.send_user_input(full_file_path)
+            print("Running file at the following location: " + full_file_path)
+
+        except Exception as e:
+            print ("run manual control" + str(e))
+
     def run_test(self, file_path, file_name):
         # Need to run script to wait for user input
         full_file_path = 'python3 -u ' + file_path + '/' + file_name  + '.py\n'
@@ -192,25 +212,6 @@ class SSH_TX_Comms:
             print("Firmware removed.")
         except Exception as e:
             print ("uninstall firmware" + str(e))
-
-    """
-    def uninstall_firmware(self, remote_path):
-        try:
-            sftp = self.ssh.open_sftp()
-            
-            self.send_command("rm -r " + remote_path + "/*")
-            self.send_command("rmdir -r " + remote_path + "\n")
-
-            for item in os.listdir(remote_path):
-                remote_item_path = os.path.join(remote_path, item).replace("\\", "/")
-                self.install_firmware(remote_item_path)
-            
-            print(f"Removed Directory at {remote_path}")
-
-            sftp.close()
-        except Exception as e:
-            print(e)
-    """
 
     def create_folder_if_not_exist(self, remote_path):
         self.send_command("mkdir -p " + remote_path)

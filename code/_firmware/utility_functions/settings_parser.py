@@ -51,6 +51,16 @@ def load_robot_settings(robot_id):
         [float(x) for x in config["soft_start_angles"]["RIGHT_LEG"].split(",")]
     )
 
+    left_pulse_width_settings = [
+        [int(a), int(b)] for a, b in
+        (pair.split("-") for pair in config["pulse_width_settings"]["LEFT_PULSE_WIDTH_SETTINGS"].split(","))
+    ]   
+
+    right_pulse_width_settings = [
+        [int(a), int(b)] for a, b in
+        (pair.split("-") for pair in config["pulse_width_settings"]["RIGHT_PULSE_WIDTH_SETTINGS"].split(","))
+    ]   
+
     return {
         "A1_LENGTH": a1_length,
         "A2_LENGTH": a2_length,
@@ -60,5 +70,7 @@ def load_robot_settings(robot_id):
         "RIGHT_DEFAULTS": right_defaults,
         "LEFT_LIMITS": left_limits,
         "RIGHT_LIMITS": right_limits,
-        "SOFT_START_ANGLES": soft_start_angles
+        "SOFT_START_ANGLES": soft_start_angles,
+        "LEFT_PULSE_WIDTH_SETTINGS": left_pulse_width_settings,
+        "RIGHT_PULSE_WIDTH_SETTINGS": right_pulse_width_settings
     }

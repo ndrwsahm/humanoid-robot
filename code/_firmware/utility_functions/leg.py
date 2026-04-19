@@ -7,17 +7,6 @@ except:
     from utility_functions.settings_parser import load_robot_settings
     from utility_functions.username_id import get_robot_id_from_username
 
-DEBUG_PRINT_IK = False
-DEBUG_PRINT_FK = False
-DEBUG_PRINT_POS = False
-
-HIP_ROTATOR = 0
-HIP_ADUCTOR = 1
-HIP_EXTENDOR = 2
-KNEE = 3
-ANKLE_ADUCTOR = 4
-ANKLE_EXTENDOR = 5
-
 class Leg:
     def __init__(self, pca_object, side, is_recal):
         self.pca = pca_object
@@ -49,17 +38,23 @@ class Leg:
         self.leg_dimensions = (settings["A1_LENGTH"], settings["A2_LENGTH"])
         self.theta_limits = (settings["LEFT_LIMITS"] if self.side == "left" else settings["RIGHT_LIMITS"])
         self.default_angles = (settings["LEFT_DEFAULTS"] if self.side == "left" else settings["RIGHT_DEFAULTS"])
+        self.pulse_width_settings = (settings["LEFT_PULSE_WIDTH_SETTINGS"] if self.side == "left" else settings["RIGHT_PULSE_WIDTH_SETTINGS"])
         print(self.default_angles)
         
     def setup(self):
+        idx = 0
         for pin in self.pins:
-            self.pca.set_pulse_min_max(pin, PULSE_WIDTH_SETTINGS[pin][PULSE_WIDTH_MIN], PULSE_WIDTH_SETTINGS[pin][PULSE_WIDTH_MAX])
+            self.pca.set_pulse_min_max(pin, self.pulse_width_settings[idx][PULSE_WIDTH_MIN], self.pulse_width_settings[idx][PULSE_WIDTH_MAX])
+            idx += 1
 
     def update(self):
         self.last_knee_pos = self.current_knee_pos
         self.last_foot_pos = self.current_foot_pos
 
         self.last_thetas = self.current_thetas
+    
+    def get_pulse_widths(self):
+        return self.pulse_width_settings
 
     def get_leg_pos(self):
         return [self.current_knee_pos, self.current_foot_pos]
@@ -90,3 +85,6 @@ class Leg:
                     self.pca.set_servo_angle(self.pins[k], self.last_thetas[k])
 
             self.update()
+
+    def set_servo_pwm_settings(self, servo, pwm_min, pwm_max):
+        self.pca.set_pulse_min_max(self.pins[servo], pwm_min, pwm_max)

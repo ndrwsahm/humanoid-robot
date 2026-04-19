@@ -8,7 +8,7 @@ sys.path.insert(0, utilities_dir)
 print("Utilities directory added to path: ", utilities_dir)
 from utilities.kinematics import *
 
-STANDING_POS = [-1, 2, -15, -1, 2, -15]
+STANDING_POS = [FOOT_X_CENTER, 0, WALKING_HEIGHT, FOOT_X_CENTER, 0, WALKING_HEIGHT]
 
 def convert_speed_to_frames(speed):
     min_frames = 5
@@ -20,7 +20,7 @@ def build_swing_phase(direction, center_x, height, step_length, speed, leg):
     angles = []
 
     if leg == "left":
-        y = -1 * FOOT_Y_SWING
+        y = -FOOT_Y_SWING
     else:
        y = FOOT_Y_SWING
 
@@ -37,6 +37,7 @@ def build_swing_phase(direction, center_x, height, step_length, speed, leg):
 def build_push_phase(direction, center_x, height, step_length, speed, leg):
     
     angles = []
+    step_height = 2
 
     #print("Back Step X Z Pos....")
     if leg == "left":
@@ -45,7 +46,7 @@ def build_push_phase(direction, center_x, height, step_length, speed, leg):
         y = -FOOT_Y_PUSH
 
     #Straight line from end of half circle to back
-    for t in np.linspace(1, -1, convert_speed_to_frames(speed)):
+    for t in np.linspace(step_height, -step_height, convert_speed_to_frames(speed)):
         x = direction * step_length * t + center_x
         z = height
 
@@ -54,20 +55,66 @@ def build_push_phase(direction, center_x, height, step_length, speed, leg):
     
     return angles
 
+def build_lean_phase(direction, center_x, height, speed, leg):
+    
+    angles = []
+    if direction == LEFT and leg == "left":
+        y_start = 0
+        y_end = -FOOT_Y_SWING
+    elif direction == LEFT and leg == "right":
+        y_start = 0
+        y_end = -FOOT_Y_PUSH
+
+    elif direction == TRANSITION and leg == "left":
+        y_start = -FOOT_Y_SWING
+        y_end = FOOT_Y_PUSH
+    elif direction == TRANSITION and leg == "right":    
+        y_start = -FOOT_Y_PUSH
+        y_end = FOOT_Y_SWING
+
+    elif direction == RIGHT and leg == "left":
+        y_start = FOOT_Y_PUSH
+        y_end = 0
+    else:
+        y_start = FOOT_Y_SWING
+        y_end = 0  
+
+    for t in np.linspace(y_start, y_end, convert_speed_to_frames(speed)):
+        y = t
+        z = height
+
+        #print(x, z)
+        angles.append(compute_inverse_kinematics(center_x, y, z, leg))
+
+    return angles
+
 # TODO each function will return nth dim array of angle arrays 
 def build_walk_array(direction, height, step_length, num_steps, speed):
     for k in range(num_steps):
         print("Step ", k+1)
+
+        lean_left_left = build_lean_phase(LEFT, FOOT_X_CENTER, height, speed, "left")
+        lean_left_right = build_lean_phase(LEFT, FOOT_X_CENTER, height, speed, "right")
+        combined_lean_left = [lean_left_left + lean_left_right for lean_left_left, lean_left_right in zip(lean_left_left, lean_left_right)]
+        
         swing_phase_left = build_swing_phase(direction, FOOT_X_CENTER, height+1, step_length, speed, "left")
         swing_phase_right = build_push_phase(direction, FOOT_X_CENTER, height, step_length, speed, "right")
         combined_swing_phases = [swing_phase_left + swing_phase_right for swing_phase_left, swing_phase_right in zip(swing_phase_left, swing_phase_right)]
         
+        transition_phase_left = build_lean_phase(TRANSITION, FOOT_X_CENTER, height, speed, "left")
+        transition_phase_right = build_lean_phase(TRANSITION, FOOT_X_CENTER, height, speed, "right")
+        combined_transition_phases = [transition_phase_left + transition_phase_right for transition_phase_left, transition_phase_right in zip(transition_phase_left, transition_phase_right)]
+
         step_back_phase_left = build_push_phase(direction, FOOT_X_CENTER, height, step_length, speed, "left")
         step_back_phase_right = build_swing_phase(direction, FOOT_X_CENTER, height+1, step_length, speed, "right")
         combined_step_phase = [step_back_phase_left + step_back_phase_right for step_back_phase_left, step_back_phase_right in zip(step_back_phase_left, step_back_phase_right)]
 
-        movement_array = combined_swing_phases + combined_step_phase
+        lean_right_left = build_lean_phase(RIGHT, FOOT_X_CENTER, height, speed, "left")
+        lean_right_right = build_lean_phase(RIGHT, FOOT_X_CENTER, height, speed, "right")
+        combined_lean_right = [lean_right_left + lean_right_right for lean_right_left, lean_right_right in zip(lean_right_left, lean_right_right)]
 
+        #movement_array = combined_swing_phases + combined_step_phase
+        movement_array = combined_lean_left + combined_swing_phases + combined_transition_phases + combined_step_phase + combined_lean_right
     return movement_array
 
 def build_turn_right_array(direction, height, step_length, num_steps, speed):

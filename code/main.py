@@ -12,6 +12,7 @@ from GUIs.startup_gui import *
 from GUIs.manual_control_gui import *
 from GUIs.controller_mode_gui import *
 from GUIs.calibrate_servos_gui import Calibrate_Servos_GUI
+from GUIs.pwm_calibrate_servos_gui import PWM_Calibrate_Servos_GUI
 
 # Import equipment
 from equipment.ssh_tx_comms import *
@@ -22,7 +23,7 @@ from globals import *
 from utilities.kinematics import *
 from utilities.movement_profiles import *
 from utilities.camera_receiver import CameraReceiver
-from utilities.write_to_file import write_cal_data
+from utilities.write_to_file import *
 
 DEBUG_PRINT_STATEMENT = False
     
@@ -77,6 +78,7 @@ class RobotControllerAPI:
             "controller": Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT, self.root),
 
             "calibrate": Calibrate_Servos_GUI(GUI_WIDTH, GUI_HEIGHT, self.root),
+            "pwm_calibrate": PWM_Calibrate_Servos_GUI(GUI_WIDTH, GUI_HEIGHT, self.root)  # Reusing the same GUI for PWM calibration
 
         }
 
@@ -251,6 +253,22 @@ class RobotControllerAPI:
                 self.manual_control_started = True  
                 self.switch_screen("calibrate")
 
+            elif button == "pwm_calibrate_servos":
+                # SIMULATE MODE
+                if self.simulate:
+                    pca = servo_utility.PCA9865(0x41, True)
+                    self.robot = Robot(pca, 0)
+
+                # REAL ROBOT MODE
+                else:
+                    self.robot = None
+                    #print("Running PWM Calibration on robot...")
+                    self.ssh.tx_robot.run_pwm_calibrate_servos(self.firmware_remote_location, 0)
+
+                self.manual_control_started = True 
+                #print("Switching to PWM Calibration Screen") 
+                self.switch_screen("pwm_calibrate")
+
         # -------------------------------
         # MANUAL CONTROL EVENTS
         # -------------------------------
@@ -260,13 +278,15 @@ class RobotControllerAPI:
             step_length = self.screens["manual"].get_step_length()
 
             if button == "walk_forward":
-                movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
+                movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length/2, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
                     #user_input = input("Continue to next step? (y/n): ")
+        
+                #user_input = input("End Walking Seq (y/n): ")
 
             elif button == "walk_backward":
-                movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length, num_steps, speed)
+                movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length/2, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
             
@@ -344,7 +364,17 @@ class RobotControllerAPI:
 
             elif button == "exit":
                 self.switch_screen("startup")
-        # -------------------------------
+
+        elif self.current_screen == "pwm_calibrate":
+            if button == "pwm_calibrate":
+                angles = self.screens["pwm_calibrate"].get_all_slider_angles()
+                pwm_min_settings, pwm_max_settings = self.screens["pwm_calibrate"].get_pwm_min_max_values()
+
+                pwm_enabled_states = self.screens["pwm_calibrate"].get_pwm_enabled_flags()  # Get the enabled/disabled states of each servo (for future use)
+                write_pwm_calibration_data(pwm_min_settings, pwm_max_settings, pwm_enabled_states, self.id)  # Save PWM settings
+                self.switch_screen("startup")
+        # ------
+        # -------------------------
         # DISPATCH COMMANDS
         # -------------------------------
         action = self.dispatch.get(button)
@@ -430,6 +460,22 @@ class RobotControllerAPI:
                 self.robot.update()
             else:
                 self.last_all_leg_angles = self.send_leg_commands(leg_angles)
+
+        elif self.current_screen == "pwm_calibrate":
+            screen = self.screens["pwm_calibrate"]
+
+            leg_angles = screen.get_all_slider_angles()
+            pwm_settings = screen.get_all_pwm_settings()
+            left_pos = compute_forward_kinematics(leg_angles, "left")
+            right_pos = compute_forward_kinematics(leg_angles, "right")
+
+            # 3. Send servo commands
+            if self.simulate:
+                self.robot.set_all_angles(leg_angles)
+                self.robot.update()
+            else:
+                self.last_all_leg_angles = self.send_pwm_leg_commands(pwm_settings, leg_angles)
+
         # -------------------------------
         # SSH RESPONSE HANDLING
         # -------------------------------
@@ -556,6 +602,32 @@ class RobotControllerAPI:
             for k in range(NUMBER_OF_SERVOS):
                 if self.last_all_leg_angles[k] != all_leg_angles[k]:
                     cmd = f"{ALL_LEG_NAMES[k]}{int(all_leg_angles[k])}\n"
+                    #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
+                    self.ssh.tx_robot.send_user_input(cmd)
+
+            if self.ssh.tx_robot.connection:
+                response = self.ssh.tx_robot.receive_response()
+                if response:
+                    print(response)
+
+            return all_leg_angles
+
+        except Exception as e:
+            print("Sending command error:", e)
+            return self.last_all_leg_angles
+        
+    def send_pwm_leg_commands(self, all_pwm_settings, all_leg_angles):
+        try:
+            # Simulation mode
+            if self.simulate:
+                self.robot.set_all_angles(all_leg_angles)
+                self.robot.update()
+                return all_leg_angles
+
+            # Real robot mode
+            for k in range(NUMBER_OF_SERVOS):
+                if self.last_all_leg_angles[k] != all_leg_angles[k]:
+                    cmd = f"pwm{ALL_LEG_NAMES[k]}x{all_pwm_settings[k][0]}x{all_pwm_settings[k][1]}x{int(all_leg_angles[k])}\n"
                     #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
 

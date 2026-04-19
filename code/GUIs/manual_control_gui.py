@@ -33,7 +33,7 @@ class Manual_Control_GUI(tk.Frame):
         self.movements = ["stand", "walk_forward", "walk_backward", "turn_right", "turn_left"]
         self.movement_labels = ["Stand", "Walk Forward", "Walk Backward", "Turn Right", "Turn Left"]
 
-        self.speed = 25  # default mid-speed
+        self.speed = 90  # default mid-speed
         self.step_length = 1  # default mid-step length
         self.num_steps = 1 # default 1 step
 
@@ -77,7 +77,7 @@ class Manual_Control_GUI(tk.Frame):
             #offset += BUTTON_WIDTH + 200
 
         # Speed Slider (User-facing)
-        self.speed_scale = ttk.Scale(self,from_=1,to=100,orient="horizontal",command=self.get_speed_val)
+        self.speed_scale = ttk.Scale(self,from_=10,to=100,orient="horizontal",command=self.get_speed_val)
         self.speed_scale.set(self.speed)
         self.speed_label = tk.Label(self, text=f"Speed: {self.speed}", width=35)
 

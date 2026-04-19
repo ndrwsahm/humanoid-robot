@@ -34,6 +34,10 @@ right_leg = 90,90.0,124.1,89.0,90.0,33.2
 [angle_limits]
 left_leg = 0-180,0-180,0-180,0-180,0-180,0-180
 right_leg = 0-180,0-180,0-180,0-180,0-180,0-180
+
+[pulse_width_settings]
+LEFT_PULSE_WIDTH_SETTINGS = 500-2500,500-2500,500-2500,500-2500,500-2500,500-2500
+RIGHT_PULSE_WIDTH_SETTINGS = 500-2500,500-2500,500-2500,500-2500,500-2500,500-2500
 """
 
 def write_cal_data(offset_data, ID):
@@ -66,4 +70,84 @@ def write_cal_data(offset_data, ID):
     # Write updated content
     settings_path.write_text(content)
 
-    print(f"config_{ID}.ini updated successfully.")
+    print(f"config/{ID}/settings.ini updated successfully.")
+
+def write_pwm_calibration_data(pwm_min, pwm_max, enabled, ID):
+    settings_path = Path(f"_firmware/configs/{ID}/settings.ini")
+
+    # Ensure folder exists
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # If file doesn't exist, create it with default template
+    if not settings_path.exists():
+        settings_path.write_text(DEFAULT_TEMPLATE)
+
+    # Read file
+    content = settings_path.read_text()
+
+    # ----------------------------------------------------------
+    # Extract existing LEFT and RIGHT values from the file
+    # ----------------------------------------------------------
+    left_match = re.search(r"LEFT_PULSE_WIDTH_SETTINGS\s*=\s*(.*)", content)
+    right_match = re.search(r"RIGHT_PULSE_WIDTH_SETTINGS\s*=\s*(.*)", content)
+
+    left_existing = left_match.group(1).split(",") if left_match else ["500-2500"] * 6
+    right_existing = right_match.group(1).split(",") if right_match else ["500-2500"] * 6
+
+    # ----------------------------------------------------------
+    # Split new values and enabled flags
+    # ----------------------------------------------------------
+    left_min  = pwm_min[:6]
+    right_min = pwm_min[6:]
+
+    left_max  = pwm_max[:6]
+    right_max = pwm_max[6:]
+
+    left_enabled  = enabled[:6]
+    right_enabled = enabled[6:]
+
+    # ----------------------------------------------------------
+    # Merge LEFT (replace only enabled indices)
+    # ----------------------------------------------------------
+    left_final = []
+    for i in range(6):
+        if left_enabled[i]:
+            left_final.append(f"{left_min[i]}-{left_max[i]}")
+        else:
+            left_final.append(left_existing[i])  # keep original
+
+    # ----------------------------------------------------------
+    # Merge RIGHT (replace only enabled indices)
+    # ----------------------------------------------------------
+    right_final = []
+    for i in range(6):
+        if right_enabled[i]:
+            right_final.append(f"{right_min[i]}-{right_max[i]}")
+        else:
+            right_final.append(right_existing[i])  # keep original
+
+    # Convert back to strings
+    left_str = ",".join(left_final)
+    right_str = ",".join(right_final)
+
+    # ----------------------------------------------------------
+    # Replace in file
+    # ----------------------------------------------------------
+    content = re.sub(
+        r"LEFT_PULSE_WIDTH_SETTINGS\s*=.*",
+        f"LEFT_PULSE_WIDTH_SETTINGS = {left_str}",
+        content
+    )
+
+    content = re.sub(
+        r"RIGHT_PULSE_WIDTH_SETTINGS\s*=.*",
+        f"RIGHT_PULSE_WIDTH_SETTINGS = {right_str}",
+        content
+    )
+
+    # Write updated content
+    settings_path.write_text(content)
+
+    print("Updated LEFT:", left_str)
+    print("Updated RIGHT:", right_str)
+    print(f"config/{ID}/settings.ini updated successfully.")
