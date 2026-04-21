@@ -79,6 +79,7 @@ class Startup_GUI(tk.Frame):
         self.pi_selector_scale = ttk.Scale(parent, from_=0, to=1, orient="horizontal")
         self.pi_selector_scale.grid(row=1, column=0, pady=5)
         tk.Label(parent, text="Pi 3        Pi Zero").grid(row=2, column=0)
+        self.pi_selector_scale.set(1)
 
     def create_ssh_section(self, parent):
         self.ip_label = tk.Label(parent, text=f"IP Addr: {self.hostname}")

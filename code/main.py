@@ -538,7 +538,7 @@ class RobotControllerAPI:
     def run_connect_ssh(self):
         try:
             self.ssh.tx_robot.connect_ssh()
-            self.ssh.tx_camera.connect_ssh()
+            #self.ssh.tx_camera.connect_ssh()
 
             if self.ssh.tx_robot.connection:
                 print("Successfully connected to servo control Raspberry Pi via SSH.")
