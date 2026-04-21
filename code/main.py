@@ -278,7 +278,7 @@ class RobotControllerAPI:
             step_length = self.screens["manual"].get_step_length()
 
             if button == "walk_forward":
-                movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length/2, num_steps, speed)
+                movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
                     #user_input = input("Continue to next step? (y/n): ")
@@ -286,7 +286,7 @@ class RobotControllerAPI:
                 #user_input = input("End Walking Seq (y/n): ")
 
             elif button == "walk_backward":
-                movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length/2, num_steps, speed)
+                movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
             
