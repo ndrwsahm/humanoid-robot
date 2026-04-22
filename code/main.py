@@ -411,8 +411,6 @@ class RobotControllerAPI:
 
                     pos_num = 1
                     for step in movement:
-                        
-                        print(f"Position: {pos_num}")
                         pos_num += 1
                         self.last_all_leg_angles = self.send_leg_commands(step)
                 else:

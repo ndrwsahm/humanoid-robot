@@ -86,7 +86,7 @@ class Manual_Control_GUI(tk.Frame):
         self.speed_scale.place(x=700, y=450)
 
         # Step Length Slider (User-facing)
-        self.step_length_scale = ttk.Scale(self,from_=1,to=4,orient="horizontal",command=self.get_step_length_val)
+        self.step_length_scale = ttk.Scale(self,from_=0.5,to=2,orient="horizontal",command=self.get_step_length_val)
         self.step_length_scale.set(self.step_length)
         self.step_length_label = tk.Label(self, text=f"Step Length: {self.step_length}", width=35)
 
@@ -95,7 +95,7 @@ class Manual_Control_GUI(tk.Frame):
         self.step_length_scale.place(x=700, y=510)
 
         # Number of Steps Slider (User-facing)
-        self.num_steps_scale = ttk.Scale(self,from_=1,to=4,orient="horizontal",command=self.get_num_steps_val)
+        self.num_steps_scale = ttk.Scale(self,from_=1,to=10,orient="horizontal",command=self.get_num_steps_val)
         self.num_steps_scale.set(self.num_steps)
         self.num_steps_label = tk.Label(self, text=f"Number of Steps: {self.num_steps}", width=35)
 
@@ -267,7 +267,7 @@ class Manual_Control_GUI(tk.Frame):
         return self.speed
 
     def get_step_length_val(self, val):
-        val = int(float(val))
+        val = round(float(val) * 2) / 2.0
         self.step_length = val
         try:
             self.step_length_label.config(text=f"Step Length: {val}")

@@ -90,31 +90,33 @@ def build_lean_phase(direction, center_x, height, speed, leg):
 
 # TODO each function will return nth dim array of angle arrays 
 def build_walk_array(direction, height, step_length, num_steps, speed):
+    lean_left_left = build_lean_phase(LEFT, FOOT_X_CENTER, height, speed, "left")
+    lean_left_right = build_lean_phase(LEFT, FOOT_X_CENTER, height, speed, "right")
+    combined_lean_left = [lean_left_left + lean_left_right for lean_left_left, lean_left_right in zip(lean_left_left, lean_left_right)]
+    
+    swing_phase_left = build_swing_phase(direction, FOOT_X_CENTER, height+1, step_length, speed, "left")
+    swing_phase_right = build_push_phase(direction, FOOT_X_CENTER, height, step_length, speed, "right")
+    combined_swing_phases = [swing_phase_left + swing_phase_right for swing_phase_left, swing_phase_right in zip(swing_phase_left, swing_phase_right)]
+    
+    transition_phase_left = build_lean_phase(TRANSITION, FOOT_X_CENTER, height, speed, "left")
+    transition_phase_right = build_lean_phase(TRANSITION, FOOT_X_CENTER, height, speed, "right")
+    combined_transition_phases = [transition_phase_left + transition_phase_right for transition_phase_left, transition_phase_right in zip(transition_phase_left, transition_phase_right)]
+
+    step_back_phase_left = build_push_phase(direction, FOOT_X_CENTER, height, step_length, speed, "left")
+    step_back_phase_right = build_swing_phase(direction, FOOT_X_CENTER, height+1, step_length, speed, "right")
+    combined_step_phase = [step_back_phase_left + step_back_phase_right for step_back_phase_left, step_back_phase_right in zip(step_back_phase_left, step_back_phase_right)]
+
+    lean_right_left = build_lean_phase(RIGHT, FOOT_X_CENTER, height, speed, "left")
+    lean_right_right = build_lean_phase(RIGHT, FOOT_X_CENTER, height, speed, "right")
+    combined_lean_right = [lean_right_left + lean_right_right for lean_right_left, lean_right_right in zip(lean_right_left, lean_right_right)]
+
+    #single_step = combined_swing_phases + combined_step_phase
+    single_step = combined_lean_left + combined_swing_phases + combined_transition_phases + combined_step_phase + combined_lean_right
+
+    movement_array = []
     for k in range(num_steps):
-        print("Step ", k+1)
+        movement_array += single_step
 
-        lean_left_left = build_lean_phase(LEFT, FOOT_X_CENTER, height, speed, "left")
-        lean_left_right = build_lean_phase(LEFT, FOOT_X_CENTER, height, speed, "right")
-        combined_lean_left = [lean_left_left + lean_left_right for lean_left_left, lean_left_right in zip(lean_left_left, lean_left_right)]
-        
-        swing_phase_left = build_swing_phase(direction, FOOT_X_CENTER, height+1, step_length, speed, "left")
-        swing_phase_right = build_push_phase(direction, FOOT_X_CENTER, height, step_length, speed, "right")
-        combined_swing_phases = [swing_phase_left + swing_phase_right for swing_phase_left, swing_phase_right in zip(swing_phase_left, swing_phase_right)]
-        
-        transition_phase_left = build_lean_phase(TRANSITION, FOOT_X_CENTER, height, speed, "left")
-        transition_phase_right = build_lean_phase(TRANSITION, FOOT_X_CENTER, height, speed, "right")
-        combined_transition_phases = [transition_phase_left + transition_phase_right for transition_phase_left, transition_phase_right in zip(transition_phase_left, transition_phase_right)]
-
-        step_back_phase_left = build_push_phase(direction, FOOT_X_CENTER, height, step_length, speed, "left")
-        step_back_phase_right = build_swing_phase(direction, FOOT_X_CENTER, height+1, step_length, speed, "right")
-        combined_step_phase = [step_back_phase_left + step_back_phase_right for step_back_phase_left, step_back_phase_right in zip(step_back_phase_left, step_back_phase_right)]
-
-        lean_right_left = build_lean_phase(RIGHT, FOOT_X_CENTER, height, speed, "left")
-        lean_right_right = build_lean_phase(RIGHT, FOOT_X_CENTER, height, speed, "right")
-        combined_lean_right = [lean_right_left + lean_right_right for lean_right_left, lean_right_right in zip(lean_right_left, lean_right_right)]
-
-        #movement_array = combined_swing_phases + combined_step_phase
-        movement_array = combined_lean_left + combined_swing_phases + combined_transition_phases + combined_step_phase + combined_lean_right
     return movement_array
 
 def build_turn_right_array(direction, height, step_length, num_steps, speed):
@@ -128,7 +130,11 @@ def build_turn_right_array(direction, height, step_length, num_steps, speed):
         step_back_phase_right = build_swing_phase(direction, FOOT_X_CENTER, height, step_length/10, speed, "right")
         combined_step_phase = [step_back_phase_left + step_back_phase_right for step_back_phase_left, step_back_phase_right in zip(step_back_phase_left, step_back_phase_right)]
 
-        movement_array = combined_swing_phases + combined_step_phase
+        single_step = combined_swing_phases + combined_step_phase
+
+        movement_array = []
+        for k in range(num_steps):
+            movement_array += single_step
 
     return movement_array
 
@@ -143,7 +149,11 @@ def build_turn_left_array(direction, height, step_length, num_steps, speed):
         step_back_phase_right = build_swing_phase(direction, FOOT_X_CENTER, height, step_length, speed, "right")
         combined_step_phase = [step_back_phase_left + step_back_phase_right for step_back_phase_left, step_back_phase_right in zip(step_back_phase_left, step_back_phase_right)]
 
-        movement_array = combined_swing_phases + combined_step_phase
+        single_step = combined_swing_phases + combined_step_phase
+
+        movement_array = []
+        for k in range(num_steps):
+            movement_array += single_step
 
     return movement_array
 
