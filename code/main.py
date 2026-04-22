@@ -13,6 +13,7 @@ from GUIs.manual_control_gui import *
 from GUIs.controller_mode_gui import *
 from GUIs.calibrate_servos_gui import Calibrate_Servos_GUI
 from GUIs.pwm_calibrate_servos_gui import PWM_Calibrate_Servos_GUI
+from GUIs.plan_control_gui import Plan_Control_GUI
 
 # Import equipment
 from equipment.ssh_tx_comms import *
@@ -56,12 +57,15 @@ class RobotControllerAPI:
 
         # Build standing pose
         self.standing_array = build_stand_still_array(WALKING_HEIGHT)
+        left_leg_angles = self.standing_array[0][:6]   # first 6
+        right_leg_angles = self.standing_array[0][6:]  # last 6
 
         # Compute starting foot positions
-        left_leg_pos = compute_forward_kinematics(self.standing_array[0], "left")
-        right_leg_pos = compute_forward_kinematics(self.standing_array[0], "right")
+        left_leg_pos = compute_forward_kinematics(left_leg_angles, "left")
+        right_leg_pos = compute_forward_kinematics(right_leg_angles, "right")
         starting_leg_pos = left_leg_pos + right_leg_pos
 
+        print("starting pos" + str(starting_leg_pos))
         #recal_servos = False  # Placeholder for future calibration logic
         
 
@@ -69,16 +73,15 @@ class RobotControllerAPI:
         # GUI SCREENS
         # -------------------------------
         self.screens = {
-            "startup": Startup_GUI(GUI_WIDTH, GUI_HEIGHT, self.host_name, self.username,
-                                   self.firmware_remote_location, COM_PORT, BAUDRATE, self.root),
+            "startup": Startup_GUI(GUI_WIDTH, GUI_HEIGHT, self.host_name, self.username, self.firmware_remote_location, COM_PORT, BAUDRATE, self.root),
 
-            "manual": Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT,
-                                         self.standing_array[0], starting_leg_pos, self.root),
+            "manual": Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT,self.standing_array[0], starting_leg_pos, self.root),
 
             "controller": Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT, self.root),
 
             "calibrate": Calibrate_Servos_GUI(GUI_WIDTH, GUI_HEIGHT, self.root),
-            "pwm_calibrate": PWM_Calibrate_Servos_GUI(GUI_WIDTH, GUI_HEIGHT, self.root)  # Reusing the same GUI for PWM calibration
+            "pwm_calibrate": PWM_Calibrate_Servos_GUI(GUI_WIDTH, GUI_HEIGHT, self.root), # Reusing the same GUI for PWM calibration
+            "plan_control": Plan_Control_GUI(GUI_WIDTH, GUI_HEIGHT, self.standing_array[0], starting_leg_pos, self.root)
 
         }
 
@@ -166,9 +169,11 @@ class RobotControllerAPI:
     # ----------------------------------------------------------
     def new(self): 
         self.main_folder = os.path.dirname(__file__)
-        self.filename = "configuration.ini"
+        self.utilities_folder = os.path.join(self.main_folder, 'utilities')
+        self.custom_profiles_folder = os.path.join(self.utilities_folder, 'custom_profiles')
         self.configuration_folder = os.path.join(self.main_folder, 'configurations')
         self.id_folder = os.path.join(self.configuration_folder, str(self.id))
+        self.filename = "configuration.ini"
         self.full_file_path = os.path.join(self.id_folder, self.filename)
 
         self.config = configparser.ConfigParser()
@@ -269,6 +274,19 @@ class RobotControllerAPI:
                 #print("Switching to PWM Calibration Screen") 
                 self.switch_screen("pwm_calibrate")
 
+            elif button == "plan_control":
+                print("Plan control button clicked - feature not implemented yet.")
+                # Future implementation: switch to a new screen for planning movements (e.g. drawing foot trajectories, etc.)
+                if self.simulate:
+                    pca = servo_utility.PCA9865(0x41, True)
+                    self.robot = Robot(pca, 0)
+                else:
+                    self.robot = None
+                    self.ssh.tx_robot.run_manual_control(self.firmware_remote_location, 0)
+                
+                self.manual_control_started = True
+                self.switch_screen("plan_control")
+
         # -------------------------------
         # MANUAL CONTROL EVENTS
         # -------------------------------
@@ -355,6 +373,9 @@ class RobotControllerAPI:
             if button == "exit":
                 self.switch_screen("startup")
 
+        # -------------------------------
+        # Calibrate MODE EVENTS
+        # -------------------------------
         elif self.current_screen == "calibrate":
             if button == "calibrate":
                 angles = self.screens["calibrate"].get_all_slider_angles()
@@ -365,6 +386,9 @@ class RobotControllerAPI:
             elif button == "exit":
                 self.switch_screen("startup")
 
+        # -------------------------------
+        # Pwm Calibrate MODE EVENTS
+        # -------------------------------
         elif self.current_screen == "pwm_calibrate":
             if button == "pwm_calibrate":
                 angles = self.screens["pwm_calibrate"].get_all_slider_angles()
@@ -373,6 +397,27 @@ class RobotControllerAPI:
                 pwm_enabled_states = self.screens["pwm_calibrate"].get_pwm_enabled_flags()  # Get the enabled/disabled states of each servo (for future use)
                 write_pwm_calibration_data(pwm_min_settings, pwm_max_settings, pwm_enabled_states, self.id)  # Save PWM settings
                 self.switch_screen("startup")
+
+        # -------------------------------
+        # Plan Control MODE EVENTS
+        # -------------------------------
+        elif self.current_screen == "plan_control":
+            if button == "run_custom_profile":
+                filename = self.screens["plan_control"].get_selected_profile_path()
+                if filename:
+                    full_file_path = os.path.join(self.custom_profiles_folder, filename)
+                    angles = load_positions_from_ini(full_file_path)
+                    movement = build_custom_profile_from_positions(angles, 30)
+
+                    pos_num = 1
+                    for step in movement:
+                        
+                        print(f"Position: {pos_num}")
+                        pos_num += 1
+                        self.last_all_leg_angles = self.send_leg_commands(step)
+                else:
+                    print("No file selected!!")
+                
         # ------
         # -------------------------
         # DISPATCH COMMANDS
@@ -476,6 +521,38 @@ class RobotControllerAPI:
             else:
                 self.last_all_leg_angles = self.send_pwm_leg_commands(pwm_settings, leg_angles)
 
+        elif self.current_screen == "plan_control":
+
+            screen = self.screens["plan_control"]
+
+            # 1. Read mode
+            mode = screen.get_mode()
+
+            # 2. Compute kinematics
+            if mode == "Angles":
+                leg_angles = screen.get_all_slider_angles()
+                left_pos = compute_forward_kinematics(leg_angles, "left")
+                right_pos = compute_forward_kinematics(leg_angles, "right")
+                screen.set_all_slider_pos(left_pos + right_pos)
+
+            elif mode == "Kinematics":
+                leg_pos = screen.get_all_slider_pos()
+                left_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
+                right_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
+
+                # Replace None values with last known angles
+                left_angles = self.check_is_none(left_angles, self.last_all_leg_angles, "left")
+                right_angles = self.check_is_none(right_angles, self.last_all_leg_angles, "right")
+
+                leg_angles = left_angles + right_angles
+                screen.set_all_slider_angles(leg_angles)
+
+            # 3. Send servo commands
+            if self.simulate:
+                self.robot.set_all_angles(leg_angles)
+                self.robot.update()
+            else:
+                self.last_all_leg_angles = self.send_leg_commands(leg_angles)
         # -------------------------------
         # SSH RESPONSE HANDLING
         # -------------------------------

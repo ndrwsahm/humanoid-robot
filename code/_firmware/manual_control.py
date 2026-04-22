@@ -50,7 +50,7 @@ if __name__ == "__main__":
     settings = load_robot_settings(robot_id)
     
     # Hardcoded soft start angles
-    all_angles = settings["LEFT_DEFAULTS"] + settings["RIGHT_DEFAULTS"]
+    all_angles = settings["SOFT_START_ANGLES"]
     print("Setting soft start angles:", all_angles)
     robot.set_all_angles(settings["SOFT_START_ANGLES"])
 

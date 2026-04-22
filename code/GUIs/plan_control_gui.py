@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import ttk
 from globals import *
@@ -8,7 +9,7 @@ ROW_HEIGHT_PADDING = 10
 BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
 
-class Manual_Control_GUI(tk.Frame):
+class Plan_Control_GUI(tk.Frame):
     def __init__(self, width, height, starting_angles, starting_pos, parent_root):
         super().__init__(parent_root) 
 
@@ -30,17 +31,11 @@ class Manual_Control_GUI(tk.Frame):
         self.movement_group = []
         self.leg_text_pos_group = ["Left Foot X Position:  ", "Left Foot Y Position: ", "Left Foot Z Position: ", "Right Foot X Position: ", "Right Foot Y Position: ", "Right Foot Z Position: "]
 
-        self.movements = ["stand", "walk_forward", "walk_backward", "turn_right", "turn_left"]
-        self.movement_labels = ["Stand", "Walk Forward", "Walk Backward", "Turn Right", "Turn Left"]
-
-        self.speed = 90  # default mid-speed
-        self.step_length = 1  # default mid-step length
-        self.num_steps = 1 # default 1 step
-
         self.load()
         self.new(starting_angles, starting_pos)
 
         self.mode = "Angles"
+        self.position_number = 1
 
     def load(self):
         # Anlge Track Sliders
@@ -64,48 +59,50 @@ class Manual_Control_GUI(tk.Frame):
         mode_button = tk.Button(self, text="Mode", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.mode_button_click)
         mode_button.place(x=150, y=500)
 
-        x = 10
-        y = 350
-        offset = 0
-                              #stand,   walk forward,                         walk backward,                        turn right,                     turn left
-        movement_button_pos = [(x, y), (x + 2*(BUTTON_WIDTH + 200), y - 50), (x + 2*(BUTTON_WIDTH + 200), y + 50), (x + 3*(BUTTON_WIDTH + 200), y), (x + (BUTTON_WIDTH + 200), y)]
-    
-        for k in range(len(self.movements)):
-            # TODO create second row automatically
-            self.movement_group.append(tk.Button(self, text=self.movement_labels[k], bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=lambda m=self.movements[k]: self.get_movement_click(m)))
-            self.movement_group[k].place(x=movement_button_pos[k][0], y=movement_button_pos[k][1])
-            #offset += BUTTON_WIDTH + 200
-
-        # Speed Slider (User-facing)
-        self.speed_scale = ttk.Scale(self,from_=10,to=100,orient="horizontal",command=self.get_speed_val)
-        self.speed_scale.set(self.speed)
-        self.speed_label = tk.Label(self, text=f"Speed: {self.speed}", width=35)
-
-        # Place it (adjust x/y to match your layout)
-        self.speed_label.place(x=625, y=420)
-        self.speed_scale.place(x=700, y=450)
-
-        # Step Length Slider (User-facing)
-        self.step_length_scale = ttk.Scale(self,from_=1,to=4,orient="horizontal",command=self.get_step_length_val)
-        self.step_length_scale.set(self.step_length)
-        self.step_length_label = tk.Label(self, text=f"Step Length: {self.step_length}", width=35)
-
-        # Place it (adjust x/y to match your layout)
-        self.step_length_label.place(x=625, y=480)
-        self.step_length_scale.place(x=700, y=510)
-
-        # Number of Steps Slider (User-facing)
-        self.num_steps_scale = ttk.Scale(self,from_=1,to=4,orient="horizontal",command=self.get_num_steps_val)
-        self.num_steps_scale.set(self.num_steps)
-        self.num_steps_label = tk.Label(self, text=f"Number of Steps: {self.num_steps}", width=35)
-
-        # Place it (adjust x/y to match your layout)
-        self.num_steps_label.place(x=625, y=540)
-        self.num_steps_scale.place(x=700, y=570)
+        # Run Custom Profile Button
+        run_button = tk.Button(self, text="Run Custom Profile", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.run_custom_profile_button_click)
+        run_button.place(x=100, y=400)
 
         # Exit Button
         exit_button = tk.Button(self, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
         exit_button.place(x=450, y=500)
+
+        # Frame to hold the text box + button
+        self.save_panel = tk.Frame(self)
+        self.save_panel.place(x=900, y=20)   # adjust X/Y as needed
+
+        # Text box with scrollbar
+        self.save_scroll = tk.Scrollbar(self.save_panel)
+        self.save_text = tk.Text(self.save_panel, width=30, height=30, yscrollcommand=self.save_scroll.set)
+        self.save_scroll.config(command=self.save_text.yview)
+
+        self.save_text.grid(row=0, column=0, padx=5, pady=5)
+        self.save_scroll.grid(row=0, column=1, sticky="ns")
+
+        # Save button
+        self.save_button = tk.Button(self.save_panel, text="Save Position", bg="green", fg="white", font=("Arial", 12), width=20, command=self.save_current_position)
+        self.save_button.grid(row=2, column=0, pady=10)
+
+        self.file_name_entry = tk.Entry(self.save_panel, width=30)
+        self.file_name_entry.grid(row=3, column=0, pady=10)   # adjust as needed
+
+        self.save_file_button = tk.Button(self.save_panel, text="Save to File", bg="green", fg="white", font=("Arial", 12), width=20, command=self.save_to_file)
+        self.save_file_button.grid(row=4, column=0, pady=10)
+
+        self.clear_saved_positions_button = tk.Button(self.save_panel, text="Clear Saved Positions", bg="green", fg="white", font=("Arial", 12), width=20, command=self.clear_saved_positions)
+        self.clear_saved_positions_button.grid(row=1, column=0, pady=10)
+
+        # Single-line text box for selected profile
+        self.selected_profile_entry = tk.Entry(self, width=30)
+        self.selected_profile_entry.place(x=100, y=360)   # adjust as needed
+
+        # Small text box showing files in custom_profiles folder
+        self.profile_list_box = tk.Text(self, width=50, height=10)
+        self.profile_list_box.place(x=400, y=320)  # adjust position as needed
+
+        self.load_profile_list()
+
+        self.profile_list_box.bind("<Double-1>", self.on_profile_double_click)
 
     def new(self, angles, pos):
         for al in ALL_LEGS:
@@ -158,10 +155,6 @@ class Manual_Control_GUI(tk.Frame):
             self.leg_slider_angle_group[al].grid_forget()
             self.leg_label_angle_group[al].grid_forget()
 
-    def hide_walk_buttons(self):
-        for k in range(len(self.movements)):
-            self.movement_group[k].grid_forget()
-
     def gui_update(self):
         self.update_idletasks()
         self.update()
@@ -176,11 +169,7 @@ class Manual_Control_GUI(tk.Frame):
             self.last_mode = self.mode
 
         button_actions = {
-            "stand": (True, "stand"),
-            "walk_forward": (True, "walk_forward"),
-            "walk_backward": (True, "walk_backward"),
-            "turn_left": (True, "turn_left"),
-            "turn_right": (True, "turn_right"),
+            "run_custom_profile": (True, "run_custom_profile"),
             "exit": (False, self.selected_button)
         }
 
@@ -254,52 +243,112 @@ class Manual_Control_GUI(tk.Frame):
 
         self.selected_button = "mode"
 
-    def get_speed_val(self, val):
-        val = int(float(val))
-        self.speed = val
-        try:
-            self.speed_label.config(text=f"Speed: {val}")
-        except:
-            pass
-        return val
+    def save_current_position(self):
+        # Get angles
+        angles = self.get_all_slider_angles()
 
-    def get_speed(self):
-        return self.speed
+        line = f"Position{self.position_number}: {angles}\n\n"
+        self.position_number += 1
 
-    def get_step_length_val(self, val):
-        val = int(float(val))
-        self.step_length = val
-        try:
-            self.step_length_label.config(text=f"Step Length: {val}")
-        except:
-            pass
-        return val
+        # Insert into text box
+        self.save_text.insert(tk.END, line)
 
-    def get_step_length(self):
-        return self.step_length
+        # Auto-scroll to bottom
+        self.save_text.see(tk.END)
+
+    def load_profile_list(self):
+        folder = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "utilities",
+            "custom_profiles"
+        )
+
+        print(f"Loading profiles from: {folder}")  # Debug statement
+
+        # Clear box
+        self.profile_list_box.delete("1.0", tk.END)
+
+        # Ensure folder exists
+        if not os.path.exists(folder):
+            self.profile_list_box.insert(tk.END, "Profile folder not found.\n")
+            return
+
+        files = os.listdir(folder)
+
+        if not files:
+            self.profile_list_box.insert(tk.END, f"No profiles found at {folder}.\n")
+            return
+
+        self.profile_list_box.insert(tk.END, f"Profiles found at utilities\custom_profiles.\n\n\n")
+        # List files
+        for f in files:
+            self.profile_list_box.insert(tk.END, f + "\n")
+
+    def on_profile_double_click(self, event):
+        # Get the clicked line index
+        index = self.profile_list_box.index("@%s,%s linestart" % (event.x, event.y))
+        line = self.profile_list_box.get(index, index + " lineend").strip()
+
+        # Ignore empty lines
+        if not line:
+            return
+
+        # Put filename into the entry box
+        self.selected_profile_entry.delete(0, tk.END)
+        self.selected_profile_entry.insert(0, line)
+
+    def save_to_file(self):
+        # Get filename from entry box
+        filename = self.file_name_entry.get().strip()
+
+        if not filename:
+            print("No filename entered.")
+            return
+
+        # Ensure .ini extension
+        if not filename.endswith(".ini"):
+            filename += "_" + str(ID) + ".ini"
+
+        # Build full path to custom_profiles folder
+        folder = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "utilities",
+            "custom_profiles"
+        )
+
+        # Ensure folder exists
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        full_path = os.path.join(folder, filename)
+
+        # Get all saved positions from the text box
+        content = self.save_text.get("1.0", tk.END).strip()
+
+        # Write to file
+        with open(full_path, "w") as f:
+            f.write(content)
+
+        print(f"Saved profile to: {full_path}")
+
+    def clear_saved_positions(self):
+        self.save_text.delete("1.0", tk.END)
+        self.position_number = 1  
+
+    def get_selected_profile_path(self):
+        # Get raw filename from the text box
+        filename = self.selected_profile_entry.get().strip()
+
+        if not filename:
+            print("No profile selected.")
+            return None
+        return filename
     
-    def get_num_steps_val(self, val):
-        val = int(float(val))
-        self.num_steps = val
-        try:
-            self.num_steps_label.config(text=f"Number of Steps: {val}")
-        except:
-            pass
-        return val
-
-    def get_num_steps(self):
-        return self.num_steps
-    
-    def get_frames(self):
-        # Speed 1 → 60 frames (slow)
-        # Speed 100 → 5 frames (fast)
-        min_frames = 5
-        max_frames = 60
-        return int(max_frames - (self.speed / 100) * (max_frames - min_frames))
-
     def get_movement_click(self, movement): self.selected_button = movement
     def get_mode(self): return self.mode
     def stand_button_click(self): self.selected_button = "stand"
+    def run_custom_profile_button_click(self): self.selected_button = "run_custom_profile"
+    #def save_to_file(self): self.selected_button = "save_to_file"
     def exit_button_click(self): self.selected_button = "exit"; self.close()
     def close(self): self.destroy()
     

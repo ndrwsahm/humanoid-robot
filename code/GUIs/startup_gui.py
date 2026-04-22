@@ -196,6 +196,12 @@ class Startup_GUI(tk.Frame):
         ).grid(row=7, column=0, pady=(30,5))
 
         tk.Button(
+            parent, text="Plan Movement", bg="green", fg="white", font=("Arial", 14),
+            width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
+            command=self.plan_control_button_click
+        ).grid(row=7, column=1, pady=(30,5))
+
+        tk.Button(
             parent, text="Controller Mode", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.controller_mode_button_click
@@ -364,6 +370,7 @@ class Startup_GUI(tk.Frame):
             "controller_mode": (True, "controller_mode"),
             "calibrate_servos": (True, "calibrate_servos"),
             "pwm_calibrate_servos": (True, "pwm_calibrate_servos"),
+            "plan_control": (True, "plan_control"),
             "raspi_config": (True, "raspi_config"),
             "reboot": (True, "reboot")
         }
@@ -426,6 +433,7 @@ class Startup_GUI(tk.Frame):
     def ssh_button_click(self): self.selected_button = "ssh"
     def calibrate_servos_button_click(self): self.selected_button = "calibrate_servos"
     def pwm_calibrate_servos_button_click(self): self.selected_button = "pwm_calibrate_servos"
+    def plan_control_button_click(self): self.selected_button = "plan_control"
     #def nrf_button_click(self): self.selected_button = "nrf"
     def manual_control_button_click(self): self.selected_button = "manual_control"
     def controller_mode_button_click(self): self.selected_button = "controller_mode"

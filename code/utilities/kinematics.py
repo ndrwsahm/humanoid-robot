@@ -123,8 +123,8 @@ def compute_forward_kinematics(angles, leg):
     z = knee_z + foot_z
 
     # Flip X for right leg
-    if leg == "right":
-        x = -x
+    #if leg == "right":
+    #    x = -x
 
     return [x, 0, z]
 

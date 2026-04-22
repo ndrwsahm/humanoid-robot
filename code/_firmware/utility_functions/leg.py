@@ -32,6 +32,11 @@ class Leg:
 
     def new(self):
         robot_id = get_robot_id_from_username()
+
+        if not robot_id:
+            print("Could not determine robot ID from username. Running simulated leg ")
+            robot_id = "simulate"
+
         settings = load_robot_settings(robot_id)
 
         self.pins = (settings["LEFT_LEG_PINS"] if self.side == "left" else settings["RIGHT_LEG_PINS"])
@@ -39,7 +44,8 @@ class Leg:
         self.theta_limits = (settings["LEFT_LIMITS"] if self.side == "left" else settings["RIGHT_LIMITS"])
         self.default_angles = (settings["LEFT_DEFAULTS"] if self.side == "left" else settings["RIGHT_DEFAULTS"])
         self.pulse_width_settings = (settings["LEFT_PULSE_WIDTH_SETTINGS"] if self.side == "left" else settings["RIGHT_PULSE_WIDTH_SETTINGS"])
-        print(self.default_angles)
+        self.soft_start_angles = (settings["SOFT_START_ANGLES"])
+        #print(self.default_angles)
         
     def setup(self):
         idx = 0

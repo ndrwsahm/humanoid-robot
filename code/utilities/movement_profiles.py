@@ -165,6 +165,72 @@ def build_stand_still_array(height):
 
     return all_angles
 
+def load_positions_from_ini(file_path):
+    """
+    Reads a custom profile .ini file and returns a list of angle arrays.
+    Example line format:
+        Position1: [90, 45, 120, 88, 90, 110, 90, 45, 120, 88, 90, 110]
+    """
+    if not os.path.exists(file_path):
+        print(f"File not found: {file_path}")
+        return []
+
+    positions = []
+
+    with open(file_path, "r") as f:
+        for line in f:
+            line = line.strip()
+
+            # Only process lines that start with "Position"
+            if line.startswith("Position"):
+                try:
+                    # Extract the list inside brackets
+                    raw_list = line.split(":", 1)[1].strip()
+                    angle_list = eval(raw_list)  # safe here because it's your own file format
+
+                    if isinstance(angle_list, list) and len(angle_list) == 12:
+                        positions.append(angle_list)
+                except Exception as e:
+                    print(f"Error parsing line: {line}")
+                    print(e)
+
+    return positions
+
+def build_custom_profile_from_positions(positions, speed):
+    """
+    Takes a list of 12‑angle arrays and converts them into a smooth movement profile.
+    Each transition between positions is interpolated based on speed.
+    """
+    if not positions:
+        print("No positions provided.")
+        return []
+
+    movement_profile = []
+
+    # Convert speed to number of frames per transition
+    frames = convert_speed_to_frames(speed)
+
+    # Start at first position
+    prev = positions[0]
+    movement_profile.append(prev)
+
+    # Interpolate between each pair of positions
+    for next_pos in positions[1:]:
+        transition_frames = []
+
+        for t in np.linspace(0, 1, frames):
+            frame = []
+            for i in range(12):
+                # Linear interpolation between prev[i] and next_pos[i]
+                val = prev[i] + (next_pos[i] - prev[i]) * t
+                frame.append(round(val, 2))
+            transition_frames.append(frame)
+
+        movement_profile.extend(transition_frames)
+        prev = next_pos
+
+    return movement_profile
+
 if __name__ == "__main__":
     direction = 1 # forward
     start_x = -1

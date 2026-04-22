@@ -2,7 +2,7 @@ import os
 import configparser
 
 # PUT GLOBAL ID HERE ====================
-ID = 2
+ID = 39
 # ====================================
 
 # Load configuration file
@@ -30,7 +30,7 @@ BAUDRATE = 115200
 COM_PORT = "COM8"
 
 GUI_WIDTH = 1200
-GUI_HEIGHT = 600
+GUI_HEIGHT = 700
 
 NUMBER_OF_SERVOS = 12
 
