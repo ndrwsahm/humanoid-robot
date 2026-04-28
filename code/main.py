@@ -309,12 +309,12 @@ class RobotControllerAPI:
                     self.last_all_leg_angles = self.send_leg_commands(step)
             
             elif button == "turn_right":
-                movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, 2*step_length, num_steps, speed)
+                movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
             elif button == "turn_left":
-                movement = build_turn_left_array(FORWARD, WALKING_HEIGHT, 2*step_length, num_steps, speed)
+                movement = build_turn_left_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
@@ -350,12 +350,12 @@ class RobotControllerAPI:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
             elif button == "turn_right":
-                movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, 2*step_length, num_steps, speed)
+                movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 
             elif button == "turn_left":
-                movement = build_turn_left_array(FORWARD, WALKING_HEIGHT, 2*step_length, num_steps, speed)
+                movement = build_turn_left_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
 

@@ -159,6 +159,8 @@ class Plan_Control_GUI(tk.Frame):
         self.update_idletasks()
         self.update()
 
+        self.load_profile_list()
+
         if self.mode != getattr(self, "last_mode", None):
             if self.mode == "Kinematics":
                 self.hide_angle_sliders()

@@ -2,7 +2,7 @@ import os
 import configparser
 
 # PUT GLOBAL ID HERE ====================
-ID = 2
+ID = 39
 # ====================================
 
 # Load configuration file
@@ -21,6 +21,8 @@ FOOT_Y_SWING = config.getfloat("HUMANOID_VARS", "foot_y_swing")
 FOOT_Y_PUSH = config.getfloat("HUMANOID_VARS", "foot_y_push")
 
 WALKING_HEIGHT = config.getfloat("HUMANOID_VARS", "walking_height")
+
+DEFAULT_SPEED = config.getfloat("HUMANOID_VARS", "speed")
 
 # Global variables
 ACCELEROMETER = 'accelerometer'

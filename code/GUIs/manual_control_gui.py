@@ -33,9 +33,9 @@ class Manual_Control_GUI(tk.Frame):
         self.movements = ["stand", "walk_forward", "walk_backward", "turn_right", "turn_left"]
         self.movement_labels = ["Stand", "Walk Forward", "Walk Backward", "Turn Right", "Turn Left"]
 
-        self.speed = 20  # default mid-speed
+        self.speed = DEFAULT_SPEED  # default mid-speed
         self.step_length = 1  # default mid-step length
-        self.num_steps = 1 # default 1 step
+        self.num_steps = 4 # default 1 step
 
         self.load()
         self.new(starting_angles, starting_pos)
