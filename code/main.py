@@ -14,6 +14,7 @@ from GUIs.controller_mode_gui import *
 from GUIs.calibrate_servos_gui import Calibrate_Servos_GUI
 from GUIs.pwm_calibrate_servos_gui import PWM_Calibrate_Servos_GUI
 from GUIs.plan_control_gui import Plan_Control_GUI
+from GUIs.utilities.utils import *
 
 # Import equipment
 from equipment.ssh_tx_comms import *
@@ -66,8 +67,6 @@ class RobotControllerAPI:
         starting_leg_pos = left_leg_pos + right_leg_pos
 
         print("starting pos" + str(starting_leg_pos))
-        #recal_servos = False  # Placeholder for future calibration logic
-        
 
         # -------------------------------
         # GUI SCREENS
@@ -214,8 +213,9 @@ class RobotControllerAPI:
 
                 # SIMULATE MODE
                 if self.simulate:
-                    pca = servo_utility.PCA9865(0x41, True)
-                    self.robot = Robot(pca, 0)
+                    lower_pca = servo_utility.PCA9865(0x41, True)
+                    upper_pca = servo_utility.PCA9865(0x40, True)
+                    self.robot = Robot(lower_pca, upper_pca, 0)
 
                 # REAL ROBOT MODE
                 else:
@@ -233,8 +233,9 @@ class RobotControllerAPI:
 
                 # SIMULATE MODE
                 if self.simulate:
-                    pca = servo_utility.PCA9865(0x41, True)
-                    self.robot = Robot(pca, 0)
+                    lower_pca = servo_utility.PCA9865(0x41, True)
+                    upper_pca = servo_utility.PCA9865(0x40, True)
+                    self.robot = Robot(lower_pca, upper_pca, 0)
 
                 # REAL ROBOT MODE
                 else:
@@ -247,8 +248,9 @@ class RobotControllerAPI:
             elif button == "calibrate_servos":
                 # SIMULATE MODE
                 if self.simulate:
-                    pca = servo_utility.PCA9865(0x41, True)
-                    self.robot = Robot(pca, 0)
+                    lower_pca = servo_utility.PCA9865(0x41, True)
+                    upper_pca = servo_utility.PCA9865(0x40, True)
+                    self.robot = Robot(lower_pca, upper_pca, 0)
 
                 # REAL ROBOT MODE
                 else:
@@ -261,25 +263,24 @@ class RobotControllerAPI:
             elif button == "pwm_calibrate_servos":
                 # SIMULATE MODE
                 if self.simulate:
-                    pca = servo_utility.PCA9865(0x41, True)
-                    self.robot = Robot(pca, 0)
+                    lower_pca = servo_utility.PCA9865(0x41, True)
+                    upper_pca = servo_utility.PCA9865(0x40, True)
+                    self.robot = Robot(lower_pca, upper_pca, 0)
 
                 # REAL ROBOT MODE
                 else:
                     self.robot = None
-                    #print("Running PWM Calibration on robot...")
                     self.ssh.tx_robot.run_pwm_calibrate_servos(self.firmware_remote_location, 0)
 
                 self.manual_control_started = True 
-                #print("Switching to PWM Calibration Screen") 
                 self.switch_screen("pwm_calibrate")
 
             elif button == "plan_control":
                 print("Plan control button clicked - feature not implemented yet.")
-                # Future implementation: switch to a new screen for planning movements (e.g. drawing foot trajectories, etc.)
                 if self.simulate:
-                    pca = servo_utility.PCA9865(0x41, True)
-                    self.robot = Robot(pca, 0)
+                    lower_pca = servo_utility.PCA9865(0x41, True)
+                    upper_pca = servo_utility.PCA9865(0x40, True)
+                    self.robot = Robot(lower_pca, upper_pca, 0)
                 else:
                     self.robot = None
                     self.ssh.tx_robot.run_manual_control(self.firmware_remote_location, 0)
@@ -291,9 +292,9 @@ class RobotControllerAPI:
         # MANUAL CONTROL EVENTS
         # -------------------------------
         elif self.current_screen == "manual":
-            speed = self.screens["manual"].get_speed()
-            num_steps = self.screens["manual"].get_num_steps()
-            step_length = self.screens["manual"].get_step_length()
+            speed = set_speed_val(self, self.screens["manual"].get_speed())
+            num_steps = set_num_steps_val(self, self.screens["manual"].get_num_steps())
+            step_length = set_step_length_val(self, self.screens["manual"].get_step_length())
 
             if button == "walk_forward":
                 movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
@@ -378,7 +379,7 @@ class RobotControllerAPI:
         # -------------------------------
         elif self.current_screen == "calibrate":
             if button == "calibrate":
-                angles = self.screens["calibrate"].get_all_slider_angles()
+                angles = get_all_slider_angles(self.screens["calibrate"])
                 print("Saving calibration offsets:", angles)
                 write_cal_data(angles, self.id)
                 self.switch_screen("startup")
@@ -391,7 +392,7 @@ class RobotControllerAPI:
         # -------------------------------
         elif self.current_screen == "pwm_calibrate":
             if button == "pwm_calibrate":
-                angles = self.screens["pwm_calibrate"].get_all_slider_angles()
+                angles = get_all_slider_angles(self.screens["pwm_calibrate"])
                 pwm_min_settings, pwm_max_settings = self.screens["pwm_calibrate"].get_pwm_min_max_values()
 
                 pwm_enabled_states = self.screens["pwm_calibrate"].get_pwm_enabled_flags()  # Get the enabled/disabled states of each servo (for future use)
@@ -437,7 +438,6 @@ class RobotControllerAPI:
 
             # Read GUI values
             self.simulate = screen.get_simulate_value()
-            #self.recal_servos = screen.get_recal_value()
             pi_selection = screen.get_pi_selector_value()
 
             # Update SSH target
@@ -465,13 +465,13 @@ class RobotControllerAPI:
 
             # 2. Compute kinematics
             if mode == "Angles":
-                leg_angles = screen.get_all_slider_angles()
+                leg_angles = get_all_slider_angles(screen)
                 left_pos = compute_forward_kinematics(leg_angles, "left")
                 right_pos = compute_forward_kinematics(leg_angles, "right")
-                screen.set_all_slider_pos(left_pos + right_pos)
+                set_all_slider_pos(screen, left_pos + right_pos)
 
             elif mode == "Kinematics":
-                leg_pos = screen.get_all_slider_pos()
+                leg_pos = get_all_slider_pos(screen)
                 left_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
                 right_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
 
@@ -480,7 +480,7 @@ class RobotControllerAPI:
                 right_angles = self.check_is_none(right_angles, self.last_all_leg_angles, "right")
 
                 leg_angles = left_angles + right_angles
-                screen.set_all_slider_angles(leg_angles)
+                set_all_slider_angles(screen, leg_angles)
 
             # 3. Send servo commands
             if self.simulate:
@@ -493,7 +493,7 @@ class RobotControllerAPI:
 
             screen = self.screens["calibrate"]
 
-            leg_angles = screen.get_all_slider_angles()
+            leg_angles = get_all_slider_angles(screen)
             left_pos = compute_forward_kinematics(leg_angles, "left")
             right_pos = compute_forward_kinematics(leg_angles, "right")
 
@@ -507,7 +507,7 @@ class RobotControllerAPI:
         elif self.current_screen == "pwm_calibrate":
             screen = self.screens["pwm_calibrate"]
 
-            leg_angles = screen.get_all_slider_angles()
+            leg_angles = get_all_slider_angles(screen)
             pwm_settings = screen.get_all_pwm_settings()
             left_pos = compute_forward_kinematics(leg_angles, "left")
             right_pos = compute_forward_kinematics(leg_angles, "right")
@@ -528,13 +528,13 @@ class RobotControllerAPI:
 
             # 2. Compute kinematics
             if mode == "Angles":
-                leg_angles = screen.get_all_slider_angles()
+                leg_angles = get_all_slider_angles(screen)
                 left_pos = compute_forward_kinematics(leg_angles, "left")
                 right_pos = compute_forward_kinematics(leg_angles, "right")
-                screen.set_all_slider_pos(left_pos + right_pos)
+                set_all_slider_pos(screen, left_pos + right_pos)
 
             elif mode == "Kinematics":
-                leg_pos = screen.get_all_slider_pos()
+                leg_pos = get_all_slider_pos(screen)
                 left_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
                 right_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
 
@@ -543,7 +543,7 @@ class RobotControllerAPI:
                 right_angles = self.check_is_none(right_angles, self.last_all_leg_angles, "right")
 
                 leg_angles = left_angles + right_angles
-                screen.set_all_slider_angles(leg_angles)
+                set_all_slider_angles(screen, leg_angles)
 
             # 3. Send servo commands
             if self.simulate:
@@ -613,7 +613,7 @@ class RobotControllerAPI:
     def run_connect_ssh(self):
         try:
             self.ssh.tx_robot.connect_ssh()
-            #self.ssh.tx_camera.connect_ssh()
+            self.ssh.tx_camera.connect_ssh()
 
             if self.ssh.tx_robot.connection:
                 print("Successfully connected to servo control Raspberry Pi via SSH.")

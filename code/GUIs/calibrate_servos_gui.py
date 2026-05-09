@@ -1,9 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
 from globals import *
+from GUIs.utilities.utils import *
 
-COLUMN_WIDTH_PADDING = 20
-ROW_HEIGHT_PADDING = 10
+COLUMN_WIDTH_PADDING = 10
+ROW_HEIGHT_PADDING = 3
+BETWEEN_FRAME_XPADDING = 10
+BETWEEN_FRAME_YPADDING = 3
 
 BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
@@ -15,64 +18,31 @@ class Calibrate_Servos_GUI(tk.Frame):
         self.width = width
         self.height = height
 
+        center_window(parent_root, self.width, self.height)
+
         self.config(width=self.width, height=self.height)
         self.pack_propagate(False)
         self.grid_propagate(False)
 
         self.selected_button = "none"
 
-        # Match Manual Control GUI structure
-        self.leg_slider_angle_group = []
-        self.leg_label_angle_group = []
-        self.leg_text_angle_group = [
-            "Left Hip Rotator: ", "Left Hip Aductor: ", "Left Hip Extendor: ",
-            "Left Knee: ", "Left Ankle Aductor: ", "Left Ankle Extendor: ",
-            "Right Hip Rotator: ", "Right Hip Aductor: ", "Right Hip Extendor: ",
-            "Right Knee: ", "Right Ankle Aductor: ", "Right Ankle Extendor: "
-        ]
+        # Load servo sliders
+        self.head_panel, self.left_arm_panel, self.right_arm_panel, self.left_leg_panel, self.right_leg_panel = create_servo_sliders(self)
 
-        # Panels (same style)
-        self.left_panel = tk.Frame(self)
-        self.right_panel = tk.Frame(self)
+        row = 4
         self.bottom_panel = tk.Frame(self)
+        self.bottom_panel.grid(row=row, column=0, columnspan=2, sticky="n", pady=BETWEEN_FRAME_YPADDING)
 
-        self.left_panel.grid(row=0, column=0, sticky="n", padx=20, pady=20)
-        self.right_panel.grid(row=0, column=1, sticky="n", padx=20, pady=20)
-        self.bottom_panel.grid(row=1, column=0, columnspan=2, sticky="n", pady=20)
+        # Load widgets 
+        self.load_buttons()
 
-        # Load widgets (same pattern)
-        self.load()
-
-        # Initialize slider values (same pattern)
+        # Initialize slider values 
         self.new()
 
     # ----------------------------------------------------------
-    # LOAD — identical purpose to Manual_Control_GUI.load()
+    # LOAD 
     # ----------------------------------------------------------
-    def load(self):
-        for al in range(12):
-            panel = self.left_panel if al < 6 else self.right_panel
-
-            # Label
-            lbl = tk.Label(
-                panel,
-                text="  " + self.leg_text_angle_group[al] + "0      ",
-                width=35
-            )
-            lbl.grid(row=al % 6, column=0, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-            self.leg_label_angle_group.append(lbl)
-
-            # Slider
-            sld = ttk.Scale(
-                panel,
-                from_=0,
-                to=180,
-                orient="horizontal",
-                command=lambda x, idx=al: self.get_slider_angle_value(idx)
-            )
-            sld.grid(row=al % 6, column=1, padx=COLUMN_WIDTH_PADDING, pady=ROW_HEIGHT_PADDING)
-            self.leg_slider_angle_group.append(sld)
-
+    def load_buttons(self):
         # Instructions
         instructions = (
             "Calibration Instructions:\n\n"
@@ -82,64 +52,26 @@ class Calibrate_Servos_GUI(tk.Frame):
             "3. When satisfied, press 'Calibrate Servos' to save offsets."
         )
 
-        tk.Label(
-            self.bottom_panel,
-            text=instructions,
-            justify="left",
-            font=("Arial", 12),
-            wraplength=600
-        ).grid(row=0, column=0, columnspan=2, pady=10)
+        row = 0
+        self.instruction_label = tk.Label(self.bottom_panel,text=instructions,justify="left",font=("Arial", 9),wraplength=350)
+        self.instruction_label.grid(row=row, column=0, columnspan=2, pady=10)
+        row += 1
 
         # Buttons
-        tk.Button(
-            self.bottom_panel,
-            text="Calibrate Servos",
-            bg="green",
-            fg="white",
-            font=("Arial", 14),
-            width=BUTTON_WIDTH,
-            height=BUTTON_HEIGHT,
-            command=self.calibrate_button_click
-        ).grid(row=1, column=0, padx=20, pady=20)
+        self.calibrate_servo_button = tk.Button(self.bottom_panel,text="Calibrate Servos",bg="green",fg="white",font=("Arial", 14),width=BUTTON_WIDTH,height=BUTTON_HEIGHT,command=self.calibrate_button_click )
+        self.calibrate_servo_button.grid(row=row, column=0, padx=20, pady=20)
+        row += 1
 
-        tk.Button(
-            self.bottom_panel,
-            text="Exit",
-            bg="green",
-            fg="white",
-            font=("Arial", 14),
-            width=BUTTON_WIDTH,
-            height=BUTTON_HEIGHT,
-            command=self.exit_button_click
-        ).grid(row=1, column=1, padx=20, pady=20)
+        self.exit_button = tk.Button(self.bottom_panel, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
+        self.exit_button.grid(row=row, column=1, padx=20, pady=20)
 
-    # ----------------------------------------------------------
-    # NEW — identical purpose to Manual_Control_GUI.new()
-    # ----------------------------------------------------------
     def new(self):
-        for al in range(12):
-            self.leg_slider_angle_group[al].set(90)
-            self.leg_label_angle_group[al].config(
-                text="  " + self.leg_text_angle_group[al] + "90      "
-            )
+        self.head_panel.reset_all()
+        self.left_arm_panel.reset_all()
+        self.right_arm_panel.reset_all()
+        self.left_leg_panel.reset_all()
+        self.right_leg_panel.reset_all()
 
-    # ----------------------------------------------------------
-    # IDENTICAL TO Manual_Control_GUI.get_slider_angle_value()
-    # ----------------------------------------------------------
-    def get_slider_angle_value(self, leg):
-        slider_val = self.leg_slider_angle_group[leg].get()
-        rounded = round(slider_val)
-
-        self.leg_label_angle_group[leg].config(
-            text="  " + self.leg_text_angle_group[leg] + str(rounded) + "      "
-        )
-
-        return rounded
-
-    def get_all_slider_angles(self):
-        return [self.get_slider_angle_value(al) for al in range(12)]
-
-    # ----------------------------------------------------------
     # BUTTON CALLBACKS
     # ----------------------------------------------------------
     def calibrate_button_click(self):
@@ -150,7 +82,7 @@ class Calibrate_Servos_GUI(tk.Frame):
         self.destroy()
 
     # ----------------------------------------------------------
-    # UPDATE LOOP — same pattern
+    # UPDATE LOOP 
     # ----------------------------------------------------------
     def gui_update(self):
         self.update_idletasks()

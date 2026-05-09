@@ -32,9 +32,10 @@ if __name__ == "__main__":
     print("Hello User!")
 
     try:
-        pca_obj = PCA9865(0x41, False)
+        lower_pca_obj = PCA9865(0x41, False)
+        upper_pca_obj = PCA9865(0x40, False)
         print("Creating Robot Object...")
-        robot = Robot(pca_obj, True)
+        robot = Robot(lower_pca_obj, upper_pca_obj, True)
         print("True")
 
         #           lhr, lha, lhe, lk, laa, lae

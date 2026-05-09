@@ -31,8 +31,8 @@ CAMERA = 'camera_sender'
 BAUDRATE = 115200
 COM_PORT = "COM8"
 
-GUI_WIDTH = 1200
-GUI_HEIGHT = 700
+GUI_WIDTH = 1500
+GUI_HEIGHT = 750
 
 NUMBER_OF_SERVOS = 12
 
@@ -43,6 +43,20 @@ LEFT = 1
 TRANSITION = 0
 RIGHT = -1
 
+# Head Indexes
+HYA_IDX = 0
+HPI_IDX = 1
+
+# Arm Indexes
+LSR_IDX = 0
+LSA_IDX = 1
+LE_IDX = 2
+
+RSR_IDX = 3
+RSA_IDX = 4
+RE_IDX = 5
+
+# Leg Indexes
 LHR_IDX = 0
 LHA_IDX = 1
 LHE_IDX = 2
@@ -69,6 +83,12 @@ SHIFT_WEIGTH_MIN = -7
 SHIFT_WEIGTH_MAX = 7
 SHIFT_HEIGTH_MIN = -20
 SHIFT_HEIGTH_MAX = -4
+
+ALL_HEAD_NAMES = ["hya", "hpi"]
+ALL_HEADS = [HYA_IDX, HPI_IDX]
+
+ALL_ARM_NAMES = ["lsr", "lsa", "le", "rsr", "rsa", "re"]
+ALL_ARMS = [LSR_IDX, LSA_IDX, LE_IDX, RSR_IDX, RSA_IDX, RE_IDX]
 
 ALL_LEG_NAMES = ["lhr", "lha", "lhe", "lkk", "laa", "lae", "rhr", "rha", "rhe", "rkk", "raa", "rae"]
 ALL_LEGS = [LHR_IDX, LHA_IDX, LHE_IDX, LK_IDX, LAA_IDX, LAE_IDX, RHR_IDX, RHA_IDX, RHE_IDX, RK_IDX, RAA_IDX, RAE_IDX]

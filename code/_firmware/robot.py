@@ -11,16 +11,17 @@ except:
 import time
 
 class Robot:
-    def __init__(self, pca_object, is_recal):
-        self.pca_obj = pca_object
+    def __init__(self, lower_pca_object, upper_pca_object, is_recal):
+        self.lower_pca = lower_pca_object
+        self.upper_pca = upper_pca_object
         self.is_recal = is_recal    # Recalibrate servo flag
         self.new()
 
     def new(self):
 
         print('Building Legs...')
-        self.left_leg = leg.Leg(self.pca_obj, "left", self.is_recal)
-        self.right_leg = leg.Leg(self.pca_obj, "right", self.is_recal)
+        self.left_leg = leg.Leg(self.lower_pca, "left", self.is_recal)
+        self.right_leg = leg.Leg(self.lower_pca, "right", self.is_recal)
 
         self.left_thetas = self.left_leg.get_leg_thetas()
         self.right_thetas = self.right_leg.get_leg_thetas()
