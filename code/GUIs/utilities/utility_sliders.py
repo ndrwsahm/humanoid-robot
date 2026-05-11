@@ -82,3 +82,9 @@ class LabeledSliderGroup(tk.Frame):
         for i in range(self.count):
             self.sliders[i].set(value)
             self._update_label(i, value)
+
+    def hide(self):
+        self.grid_remove()
+
+    def show(self):
+        self.grid()

@@ -110,6 +110,10 @@ def compute_forward_kinematics(angles, leg):
     HE = angles[HE_IDX]
     KK = angles[KK_IDX]
 
+    if leg == "right":
+        HE = 180 - HE
+        KK = 180 - KK
+
     # Knee position
     knee_x = A1_LENGTH * math.cos(math.radians(HE))
     knee_z = -A1_LENGTH * math.sin(math.radians(HE))
@@ -121,10 +125,6 @@ def compute_forward_kinematics(angles, leg):
     # Total foot position
     x = knee_x + foot_x
     z = knee_z + foot_z
-
-    # Flip X for right leg
-    #if leg == "right":
-    #    x = -x
 
     return [x, 0, z]
 

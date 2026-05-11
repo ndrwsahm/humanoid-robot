@@ -14,6 +14,7 @@ class MPU6050:
         # Initialize angles
         self.roll = 0.0
         self.pitch = 0.0
+        self.yaw = 0.0
 
     def get_data(self):
         accel_data = self.sensor.get_accel_data()
@@ -34,7 +35,7 @@ class MPU6050:
         print(f"{'Accelerometer':<15} | {accel_data['x']:>10.2f} | {accel_data['y']:>10.2f} | {accel_data['z']:>10.2f}")
         print(f"{'Gyroscope':<15} | {gyro_data['x']:>10.2f} | {gyro_data['y']:>10.2f} | {gyro_data['z']:>10.2f}")
         print("=" * 50)
-        print(f"Roll: {self.roll:.2f}°, Pitch: {self.pitch:.2f}°")
+        print(f"Roll: {self.roll:.2f}°, Pitch: {self.pitch:.2f}°, Yaw: {self.yaw:.2f}°")
 
     def update_angle(self, accel_data, gyro_data):
         # Time delta
@@ -45,22 +46,29 @@ class MPU6050:
         # Gyro rates (deg/s)
         gyro_x = gyro_data['x']
         gyro_y = gyro_data['y']
+        gyro_z = gyro_data['z']
 
         # Integrate gyro to estimate angle
-        self.roll += gyro_x * dt
+        self.yaw += gyro_x * dt
         self.pitch += gyro_y * dt
+        self.roll += gyro_z * dt  # Yaw can be tracked but is less reliable without a magnetometer
 
         # Accelerometer angle (in degrees)
-        accel_roll = math.degrees(math.atan2(accel_data['y'], accel_data['z']))
-        accel_pitch = math.degrees(math.atan2(-accel_data['x'], accel_data['y']))
+        accel_yaw = math.degrees(math.atan2(accel_data['y'], accel_data['z']))
+        accel_pitch = math.degrees(math.atan2(-accel_data['y'], accel_data['x']))
+        accel_roll = math.degrees(math.atan2(accel_data['z'], accel_data['x']))
 
         # Complementary filter (fusion of gyro + accel)
-        alpha = 0.0  # weight for gyro
+        alpha = 0.0 # weight for gyro
         self.roll = alpha * self.roll + (1 - alpha) * accel_roll
-        self.pitch = alpha * self.pitch + (1 - alpha) * accel_pitch
+        self.pitch = (alpha * self.pitch + (1 - alpha) * accel_pitch)
+        self.yaw = alpha * self.yaw + (1 - alpha) * accel_yaw
+
+    def get_roll_pitch_yaw(self):
+        return self.roll, self.pitch, self.yaw
 
 if __name__ == "__main__":
     acc = MPU6050(0x68)
     while True:
         acc.get_data()
-        time.sleep(0.05)  # 20 Hz sampling
+        #time.sleep(0.05)  # 20 Hz sampling

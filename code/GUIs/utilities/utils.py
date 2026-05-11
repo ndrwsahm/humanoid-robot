@@ -54,17 +54,22 @@ def create_servo_sliders(panel):
 def create_pos_sliders(panel):
     left_arm_text_angle_group = ["Left Hand X Position: ", "Left Hand Y Position: ", "Left Hand Z Position: "]
     right_arm_text_angle_group = ["Right Hand X Position: ", "Right Hand Y Position: ", "Right Hand Z Position: "]
-    left_leg_text_pos_group = ["Left Foot X Position:  ", "Left Foot Y Position: ", "Left Foot Z Position: "]
-    right_leg_text_pos_group = ["Right Foot X Position: ", "Right Foot Y Position: ", "Right Foot Z Position: "]
-    
+
     left_arm_pos_panel = ServoSliderGroup(panel, left_arm_text_angle_group, rows=3)
     left_arm_pos_panel.grid(row=0, column=0, pady=10)
     right_arm_pos_panel = ServoSliderGroup(panel, right_arm_text_angle_group, rows=3)
     right_arm_pos_panel.grid(row=0, column=1, pady=10)
 
-    left_leg_pos_panel = ServoSliderGroup(panel, left_leg_text_pos_group, rows=3)
+    names = ["Left Foot X Position:  ", "Left Foot Y Position: ", "Left Foot Z Position: "]
+    mins = [FOOT_X_MIN, FOOT_Y_MIN, FOOT_Z_MIN]
+    maxs = [FOOT_X_MAX, FOOT_Y_MAX, FOOT_Z_MAX]
+    orients = ["horizontal", "horizontal", "horizontal"]
+    defaults = [0, 0, WALKING_HEIGHT]
+    commands = [lambda val: get_slider_pos_value(panel, LEFT_FOOT_X), lambda val: get_slider_pos_value(panel, LEFT_FOOT_Y), lambda val: get_slider_pos_value(panel, LEFT_FOOT_Z)]
+
+    left_leg_pos_panel = LabeledSliderGroup(panel, names, mins, maxs, orients, defaults, commands, rows=3)
     left_leg_pos_panel.grid(row=0, column=0, pady=10)
-    right_leg_pos_panel = ServoSliderGroup(panel, right_leg_text_pos_group, rows=3)
+    right_leg_pos_panel = LabeledSliderGroup(panel, names, mins, maxs, orients, defaults, commands, rows=3)
     right_leg_pos_panel.grid(row=0, column=1, pady=10)
 
     return left_arm_pos_panel, right_arm_pos_panel, left_leg_pos_panel, right_leg_pos_panel
@@ -98,8 +103,10 @@ def get_all_slider_angles(gui):
 # Position Sliders
 def get_slider_pos_value(gui, leg):
     slider_val = 0
-    slider_val = gui.left_leg_pos_panel.sliders[leg].get() if leg < 3 else gui.right_leg_pos_panel.sliders[leg-3].get()
-   
+    try:
+        slider_val = gui.left_leg_pos_panel.sliders[leg].get() if leg < 3 else gui.right_leg_pos_panel.sliders[leg-3].get()
+    except Exception as e:
+        print("Error getting slider al position: " + str(e))
     return round(slider_val)
 
 def get_all_slider_pos(gui):
@@ -115,12 +122,12 @@ def get_slider_weight_val(gui, val):
             return
         
         # Apply shift (example logic: add shift_val to left, subtract from right)
-        gui.leg_slider_pos_group[LEFT_FOOT_Y].set(val)
-        gui.leg_slider_pos_group[RIGHT_FOOT_Y].set(val)
+        gui.left_leg_pos_panel.sliders[1].set(val)
+        gui.right_leg_pos_panel.sliders[1].set(val)
 
-        # Update labels
-        gui.get_slider_pos_value(LEFT_FOOT_Y)
-        gui.get_slider_pos_value(RIGHT_FOOT_Y)
+        gui.left_leg_pos_panel._update_label(1, val)
+        gui.right_leg_pos_panel._update_label(1, val)
+
         return float(val)
 
 def get_slider_height_val(gui, val):
@@ -128,12 +135,11 @@ def get_slider_height_val(gui, val):
         return
 
     # Apply shift (example logic: add shift_val to left, subtract from right)
-    gui.leg_slider_pos_group[LEFT_FOOT_Z].set(val)
-    gui.leg_slider_pos_group[RIGHT_FOOT_Z].set(val)
+    gui.left_leg_pos_panel.sliders[2].set(val)
+    gui.right_leg_pos_panel.sliders[2].set(val)
 
-    # Update labels
-    gui.get_slider_pos_value(LEFT_FOOT_Z)
-    gui.get_slider_pos_value(RIGHT_FOOT_Z)
+    gui.left_leg_pos_panel._update_label(2, val)
+    gui.right_leg_pos_panel._update_label(2, val)
     return float(val)
 
 #######################################
@@ -152,8 +158,11 @@ def set_all_slider_pos(gui, pos):
     if not gui.initialized:
         return
     
-    for al in ALL_POS:
-        gui.left_leg_pos_panel.sliders[al].set(pos[al]) if al < 3 else gui.right_leg_pos_panel.sliders[al-3].set(pos[al])
+    try:
+        for al in ALL_POS:
+            gui.left_leg_pos_panel.sliders[al].set(pos[al]) if al < 3 else gui.right_leg_pos_panel.sliders[al-3].set(pos[al])
+    except Exception as e:
+        print("Error setting slider positions: " + str(e))
 
 # Utility Sliders
 def set_speed_val(gui, val):

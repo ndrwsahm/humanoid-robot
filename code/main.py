@@ -66,8 +66,6 @@ class RobotControllerAPI:
         right_leg_pos = compute_forward_kinematics(right_leg_angles, "right")
         starting_leg_pos = left_leg_pos + right_leg_pos
 
-        print("starting pos" + str(starting_leg_pos))
-
         # -------------------------------
         # GUI SCREENS
         # -------------------------------
@@ -466,12 +464,17 @@ class RobotControllerAPI:
             # 2. Compute kinematics
             if mode == "Angles":
                 leg_angles = get_all_slider_angles(screen)
-                left_pos = compute_forward_kinematics(leg_angles, "left")
-                right_pos = compute_forward_kinematics(leg_angles, "right")
+                left_leg_angles  = leg_angles[0:6]
+                right_leg_angles = leg_angles[6:12]
+
+                left_pos  = compute_forward_kinematics(left_leg_angles, "left")
+                right_pos = compute_forward_kinematics(right_leg_angles, "right")
+
                 set_all_slider_pos(screen, left_pos + right_pos)
 
             elif mode == "Kinematics":
                 leg_pos = get_all_slider_pos(screen)
+           
                 left_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
                 right_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
 
@@ -494,8 +497,11 @@ class RobotControllerAPI:
             screen = self.screens["calibrate"]
 
             leg_angles = get_all_slider_angles(screen)
-            left_pos = compute_forward_kinematics(leg_angles, "left")
-            right_pos = compute_forward_kinematics(leg_angles, "right")
+            left_leg_angles  = leg_angles[0:6]
+            right_leg_angles = leg_angles[6:12]
+
+            left_pos  = compute_forward_kinematics(left_leg_angles, "left")
+            right_pos = compute_forward_kinematics(right_leg_angles, "right")
 
             # 3. Send servo commands
             if self.simulate:
@@ -529,8 +535,12 @@ class RobotControllerAPI:
             # 2. Compute kinematics
             if mode == "Angles":
                 leg_angles = get_all_slider_angles(screen)
-                left_pos = compute_forward_kinematics(leg_angles, "left")
-                right_pos = compute_forward_kinematics(leg_angles, "right")
+                left_leg_angles  = leg_angles[0:6]
+                right_leg_angles = leg_angles[6:12]
+
+                left_pos  = compute_forward_kinematics(left_leg_angles, "left")
+                right_pos = compute_forward_kinematics(right_leg_angles, "right")
+
                 set_all_slider_pos(screen, left_pos + right_pos)
 
             elif mode == "Kinematics":
@@ -658,7 +668,8 @@ class RobotControllerAPI:
     # ----------------------------------------------------------
     def run_test_accelerometer(self):
         if self.ssh.tx_robot.connection:
-            self.ssh.tx_robot.run_test(self.instruments_remote_location, ACCELEROMETER)
+            threading.Thread(target=self.ssh.tx_robot.run_test, args=(self.instruments_remote_location, ACCELEROMETER)).start()
+            #self.ssh.tx_robot.run_test(self.instruments_remote_location, ACCELEROMETER)
         else:
             print("No SSH Connection Established!")
 

@@ -7,7 +7,7 @@ from GUIs.utilities.utils import *
 COLUMN_WIDTH_PADDING = 10
 ROW_HEIGHT_PADDING = 3
 BETWEEN_FRAME_XPADDING = 10
-BETWEEN_FRAME_YPADDING = 3
+BETWEEN_FRAME_YPADDING = 2
 
 BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
@@ -38,8 +38,8 @@ class Manual_Control_GUI(tk.Frame):
         self.right_bottom_panel = tk.Frame(self)
 
         self.grid_rowconfigure(3, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
+        #self.grid_columnconfigure(0, weight=1)
+        #self.grid_columnconfigure(1, weight=1)
 
         starting_row = 0
  
@@ -83,7 +83,7 @@ class Manual_Control_GUI(tk.Frame):
 
         # Exit Button
         exit_button = tk.Button(self.right_bottom_panel, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
-        exit_button.grid(row=8, column=0, columnspan=2, pady=20)
+        exit_button.grid(row=8, column=0, pady=20)
  
     def new(self, angles, pos):
         self.head_panel.set_all([90,90])
@@ -94,7 +94,7 @@ class Manual_Control_GUI(tk.Frame):
         #self.left_arm_pos_panel.set_all(pos[0:3])
         #self.right_arm_pos_panel.set_all(pos[0:3])
         self.left_leg_pos_panel.set_all(pos[0:3])
-        self.right_leg_pos_panel.set_all(pos[0:3])
+        self.right_leg_pos_panel.set_all(pos[3:6])
 
     def hide_walk_buttons(self):
         for k in range(len(self.movements)):

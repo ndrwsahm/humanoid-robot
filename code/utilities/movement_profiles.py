@@ -18,7 +18,7 @@ def convert_speed_to_frames(speed):
 def build_swing_phase(direction, center_x, height, step_length, speed, leg):
     
     angles = []
-    step_height = 2.0
+    step_height = 3.0
 
     if leg == "left":
         y = -FOOT_Y_SWING
