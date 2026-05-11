@@ -49,9 +49,9 @@ if __name__ == "__main__":
     settings = load_robot_settings(robot_id)
     
     # Hardcoded soft start angles
-    all_angles = settings["SOFT_START_ANGLES"]
+    all_angles = settings["SOFT_START_ANGLES"] + settings["SOFT_START_ARM_ANGLES"] + settings["SOFT_START_HEAD_ANGLES"]
     print("Setting soft start angles:", all_angles)
-    robot.set_all_angles(settings["SOFT_START_ANGLES"])
+    robot.set_all_angles(all_angles)
 
     while running:
         user_input = rx_comms.get_user_input()
@@ -60,6 +60,7 @@ if __name__ == "__main__":
             
             if servo >= 0 and angle != 999:
                 all_angles[servo] = angle
+                print("Setting servo {} to angle {}".format(servo, angle))
                 #           lhr, lha, lhe, lk, laa, lae
                 robot.set_all_angles(all_angles)
             else:

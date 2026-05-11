@@ -1,12 +1,14 @@
 try:
     print("Ignore the error commands starting from here if running without ssh")
     from _firmware.utility_functions import leg
+    from _firmware.utility_functions import head
     from _firmware.firmware_globals import *
     #from _firmware.instruments.accelerometer import MPU6050
 
 except:
     print("Do not ignore the error commands past this point if running with ssh")
     from utility_functions import leg
+    from utility_functions import head
     from firmware_globals import *
     from instruments.accelerometer import MPU6050
     from instruments.servo_utility import PCA9865
@@ -29,14 +31,16 @@ class Robot:
         self.new()
 
     def new(self):
-
         print('Building Legs...')
         self.left_leg = leg.Leg(self.lower_pca, "left", self.is_recal)
         self.right_leg = leg.Leg(self.lower_pca, "right", self.is_recal)
 
+        self.head = head.Head(self.upper_pca)
+
         self.left_thetas = self.left_leg.get_leg_thetas()
         self.right_thetas = self.right_leg.get_leg_thetas()
-        self.all_thetas = self.left_thetas + self.right_thetas
+        self.head_thetas = self.head.get_head_thetas()
+        self.all_thetas = self.left_thetas + self.right_thetas + [90 ,90, 90] + [90, 90, 90] + self.head_thetas
         self.set_all_angles(self.all_thetas)
 
         self.imu = MPU6050(0x68)
@@ -47,9 +51,14 @@ class Robot:
         self.imu.get_data()
         self.roll, self.pitch, self.yaw = self.imu.get_roll_pitch_yaw()
 
+        #self.head.set_camera_angle(self.roll)
+
     def set_all_angles(self, angles):
         self.left_leg.set_leg_theta(angles[0], angles[1], angles[2], angles[3], angles[4], angles[5])  # starting 90 degree position
         self.right_leg.set_leg_theta(angles[6], angles[7], angles[8], angles[9], angles[10], angles[11])  # starting 90 degree position
+        #self.left_arm.set_arm_theta(angles[12], angles[13], angles[14])
+        #self.right_arm.set_arm_theta(angles[15], angles[16], angles[17])
+        self.head.set_head_theta(angles[18], angles[19])
         self.all_thetas = angles
 
     def set_pwm_settings(self, servo, pwm_min, pwm_max):

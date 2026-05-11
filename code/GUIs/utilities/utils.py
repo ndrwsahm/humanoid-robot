@@ -15,7 +15,7 @@ def center_window(window, width, height):
 
 def create_servo_sliders(panel):
     # Text Labels
-    head_text_angle_group = ["Head Yaw: ", "Head Pitch: "]
+    head_text_angle_group = ["Head Yaw: ", "Head Roll: "]
 
     left_arm_text_angle_group = ["Left Shoulder Rotator: ", "Left Shoulder Aductor: ", "Left Elbow: "]
     right_arm_text_angle_group = ["Right Shoulder Rotator: ", "Right Shoulder Aductor: ", "Right Elbow: "]
@@ -97,8 +97,26 @@ def get_slider_angle_value(gui, leg):
 
     return round(slider_val)
 
+def get_arm_slider_angle_value(gui, arm):
+    slider_val = 0
+    slider_val = gui.left_arm_panel.sliders[arm].get() if arm < 3 else gui.right_arm_panel.sliders[arm-3].get()
+
+    return round(slider_val)
+
+def get_head_slider_angle_value(gui, head):
+    slider_val = 0
+    slider_val = gui.head_panel.sliders[head].get()
+
+    return round(slider_val)
+
 def get_all_slider_angles(gui):
         return [get_slider_angle_value(gui, al) for al in range(12)]
+
+def get_all_slider_arm_angles(gui):
+    return [get_arm_slider_angle_value(gui, al) for al in range(6)]
+
+def get_all_slider_head_angles(gui):
+    return [get_head_slider_angle_value(gui, al) for al in range(2)]
 
 # Position Sliders
 def get_slider_pos_value(gui, leg):
@@ -165,6 +183,20 @@ def set_all_slider_angles(gui, angles):
     
     for al in ALL_LEGS:
         gui.left_leg_panel.sliders[al].set(angles[al]) if al < 6 else gui.right_leg_panel.sliders[al-6].set(angles[al])
+
+def set_all_slider_arm_angles(gui, angles):
+    if not gui.initialized:
+        return
+    
+    for al in ALL_ARMS:
+        gui.left_arm_panel.sliders[al].set(angles[al]) if al < 3 else gui.right_arm_panel.sliders[al-3].set(angles[al])
+
+def set_all_slider_head_angles(gui, angles):
+    if not gui.initialized:
+        return
+    
+    for al in ALL_HEAD:
+        gui.head_panel.sliders[al].set(angles[al])
 
 # Position Sliders
 def set_all_slider_pos(gui, pos):

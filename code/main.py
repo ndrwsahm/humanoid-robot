@@ -241,7 +241,7 @@ class RobotControllerAPI:
             elif button == "calibrate_servos":
                 # SIMULATE MODE
                 if self.simulate:
-                    self.robot = Robot(lower_pca, upper_pca, False)
+                    self.robot = Robot(False)
 
                 # REAL ROBOT MODE
                 else:
@@ -254,7 +254,7 @@ class RobotControllerAPI:
             elif button == "pwm_calibrate_servos":
                 # SIMULATE MODE
                 if self.simulate:
-                    self.robot = Robot(lower_pca, upper_pca, False)
+                    self.robot = Robot(False)
 
                 # REAL ROBOT MODE
                 else:
@@ -440,12 +440,8 @@ class RobotControllerAPI:
                 screen.update_username(self.ssh.tx_camera.username)
                 screen.update_location(self.ssh.tx_camera.file_location_on_pi)
 
-        # -------------------------------
-        # MANUAL CONTROL UPDATE LOOP
-        # -------------------------------
-        elif self.current_screen == "manual":
-
-            screen = self.screens["manual"]
+        else:
+            screen = self.screens[self.current_screen]
 
             # 1. Read mode
             mode = screen.get_mode()
@@ -456,6 +452,11 @@ class RobotControllerAPI:
                 left_leg_angles  = leg_angles[0:6]
                 right_leg_angles = leg_angles[6:12]
 
+                #arm_angles = get_all_slider_arm_angles(screen)
+                #left_arm_angles = arm_angles[0:3]
+                #right_arm_angles = arm_angles[3:6]
+                head_angles = get_all_slider_head_angles(screen)
+ 
                 left_pos  = compute_forward_kinematics(left_leg_angles, "left")
                 right_pos = compute_forward_kinematics(right_leg_angles, "right")
 
@@ -480,76 +481,8 @@ class RobotControllerAPI:
                 self.robot.update()
             else:
                 self.last_all_leg_angles = self.send_leg_commands(leg_angles)
-
-        elif self.current_screen == "calibrate":
-
-            screen = self.screens["calibrate"]
-
-            leg_angles = get_all_slider_angles(screen)
-            left_leg_angles  = leg_angles[0:6]
-            right_leg_angles = leg_angles[6:12]
-
-            left_pos  = compute_forward_kinematics(left_leg_angles, "left")
-            right_pos = compute_forward_kinematics(right_leg_angles, "right")
-
-            # 3. Send servo commands
-            if self.simulate:
-                self.robot.set_all_angles(leg_angles)
-                self.robot.update()
-            else:
-                self.last_all_leg_angles = self.send_leg_commands(leg_angles)
-
-        elif self.current_screen == "pwm_calibrate":
-            screen = self.screens["pwm_calibrate"]
-
-            leg_angles = get_all_slider_angles(screen)
-            pwm_settings = screen.get_all_pwm_settings()
-            left_pos = compute_forward_kinematics(leg_angles, "left")
-            right_pos = compute_forward_kinematics(leg_angles, "right")
-
-            # 3. Send servo commands
-            if self.simulate:
-                self.robot.set_all_angles(leg_angles)
-                self.robot.update()
-            else:
-                self.last_all_leg_angles = self.send_pwm_leg_commands(pwm_settings, leg_angles)
-
-        elif self.current_screen == "plan_control":
-
-            screen = self.screens["plan_control"]
-
-            # 1. Read mode
-            mode = screen.get_mode()
-
-            # 2. Compute kinematics
-            if mode == "Angles":
-                leg_angles = get_all_slider_angles(screen)
-                left_leg_angles  = leg_angles[0:6]
-                right_leg_angles = leg_angles[6:12]
-
-                left_pos  = compute_forward_kinematics(left_leg_angles, "left")
-                right_pos = compute_forward_kinematics(right_leg_angles, "right")
-
-                set_all_slider_pos(screen, left_pos + right_pos)
-
-            elif mode == "Kinematics":
-                leg_pos = get_all_slider_pos(screen)
-                left_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
-                right_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
-
-                # Replace None values with last known angles
-                left_angles = self.check_is_none(left_angles, self.last_all_leg_angles, "left")
-                right_angles = self.check_is_none(right_angles, self.last_all_leg_angles, "right")
-
-                leg_angles = left_angles + right_angles
-                set_all_slider_angles(screen, leg_angles)
-
-            # 3. Send servo commands
-            if self.simulate:
-                self.robot.set_all_angles(leg_angles)
-                self.robot.update()
-            else:
-                self.last_all_leg_angles = self.send_leg_commands(leg_angles)
+                self.last_all_head_angles = self.send_head_commands(head_angles)
+       
         # -------------------------------
         # SSH RESPONSE HANDLING
         # -------------------------------
@@ -690,6 +623,31 @@ class RobotControllerAPI:
         except Exception as e:
             print("Sending command error:", e)
             return self.last_all_leg_angles
+
+    def send_head_commands(self, head_angles):
+        try:
+            # Simulation mode
+            if self.simulate:
+                self.robot.head.set_head_angles(head_angles)
+                self.robot.update()
+                return head_angles
+
+            # Real robot mode
+            for k in range(len(head_angles)):
+                if self.last_all_head_angles[k] != head_angles[k]:
+                    cmd = f"{ALL_HEAD_NAMES[k]}{int(head_angles[k])}\n"
+                    self.ssh.tx_robot.send_user_input(cmd)
+
+            if self.ssh.tx_robot.connection:
+                response = self.ssh.tx_robot.receive_response()
+                if response:
+                    print(response)
+
+            return head_angles
+
+        except Exception as e:
+            print("Sending head command error:", e)
+            return head_angles
         
     def send_pwm_leg_commands(self, all_pwm_settings, all_leg_angles):
         try:

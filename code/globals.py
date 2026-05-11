@@ -45,7 +45,7 @@ RIGHT = -1
 
 # Head Indexes
 HYA_IDX = 0
-HPI_IDX = 1
+HRO_IDX = 1
 
 # Arm Indexes
 LSR_IDX = 0
@@ -93,8 +93,8 @@ FOOT_Y_MAX = SHIFT_WEIGTH_MAX
 FOOT_Z_MIN = SHIFT_HEIGTH_MIN
 FOOT_Z_MAX = SHIFT_HEIGTH_MAX
 
-ALL_HEAD_NAMES = ["hya", "hpi"]
-ALL_HEADS = [HYA_IDX, HPI_IDX]
+ALL_HEAD_NAMES = ["hya", "hro"]
+ALL_HEAD = [HYA_IDX, HRO_IDX]
 
 ALL_ARM_NAMES = ["lsr", "lsa", "le", "rsr", "rsa", "re"]
 ALL_ARMS = [LSR_IDX, LSA_IDX, LE_IDX, RSR_IDX, RSA_IDX, RE_IDX]
