@@ -4,7 +4,6 @@ import configparser
 sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/')
 
 # Simulated Firmware
-from _firmware.instruments import servo_utility
 from _firmware.robot import *
 
 # Import GUIs
@@ -211,9 +210,7 @@ class RobotControllerAPI:
 
                 # SIMULATE MODE
                 if self.simulate:
-                    lower_pca = servo_utility.PCA9865(0x41, True)
-                    upper_pca = servo_utility.PCA9865(0x40, True)
-                    self.robot = Robot(lower_pca, upper_pca, 0)
+                    self.robot = Robot(False)
 
                 # REAL ROBOT MODE
                 else:
@@ -231,9 +228,7 @@ class RobotControllerAPI:
 
                 # SIMULATE MODE
                 if self.simulate:
-                    lower_pca = servo_utility.PCA9865(0x41, True)
-                    upper_pca = servo_utility.PCA9865(0x40, True)
-                    self.robot = Robot(lower_pca, upper_pca, 0)
+                    self.robot = Robot(False)
 
                 # REAL ROBOT MODE
                 else:
@@ -246,9 +241,7 @@ class RobotControllerAPI:
             elif button == "calibrate_servos":
                 # SIMULATE MODE
                 if self.simulate:
-                    lower_pca = servo_utility.PCA9865(0x41, True)
-                    upper_pca = servo_utility.PCA9865(0x40, True)
-                    self.robot = Robot(lower_pca, upper_pca, 0)
+                    self.robot = Robot(lower_pca, upper_pca, False)
 
                 # REAL ROBOT MODE
                 else:
@@ -261,9 +254,7 @@ class RobotControllerAPI:
             elif button == "pwm_calibrate_servos":
                 # SIMULATE MODE
                 if self.simulate:
-                    lower_pca = servo_utility.PCA9865(0x41, True)
-                    upper_pca = servo_utility.PCA9865(0x40, True)
-                    self.robot = Robot(lower_pca, upper_pca, 0)
+                    self.robot = Robot(lower_pca, upper_pca, False)
 
                 # REAL ROBOT MODE
                 else:
@@ -276,9 +267,7 @@ class RobotControllerAPI:
             elif button == "plan_control":
                 print("Plan control button clicked - feature not implemented yet.")
                 if self.simulate:
-                    lower_pca = servo_utility.PCA9865(0x41, True)
-                    upper_pca = servo_utility.PCA9865(0x40, True)
-                    self.robot = Robot(lower_pca, upper_pca, 0)
+                    self.robot = Robot(False)
                 else:
                     self.robot = None
                     self.ssh.tx_robot.run_manual_control(self.firmware_remote_location, 0)

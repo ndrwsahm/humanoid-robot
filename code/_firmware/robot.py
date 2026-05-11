@@ -9,13 +9,14 @@ except:
     from utility_functions import leg
     from firmware_globals import *
     from instruments.accelerometer import MPU6050
+    from instruments.servo_utility import PCA9865
 
 import time
 
 class Robot:
-    def __init__(self, lower_pca_object, upper_pca_object, is_recal):
-        self.lower_pca = lower_pca_object
-        self.upper_pca = upper_pca_object
+    def __init__(self, is_recal):
+        self.lower_pca = PCA9865(0x41, False)
+        self.upper_pca = PCA9865(0x40, False)
         self.is_recal = is_recal    # Recalibrate servo flag
         self.new()
 
@@ -30,12 +31,12 @@ class Robot:
         self.all_thetas = self.left_thetas + self.right_thetas
         self.set_all_angles(self.all_thetas)
 
-        #self.imu = MPU6050(0x68)
+        self.imu = MPU6050(0x68)
     
     def update(self):
         self.left_leg.update()
         self.right_leg.update()
-        #self.imu.get_data()
+        self.imu.get_data()
 
     def set_all_angles(self, angles):
         self.left_leg.set_leg_theta(angles[0], angles[1], angles[2], angles[3], angles[4], angles[5])  # starting 90 degree position
