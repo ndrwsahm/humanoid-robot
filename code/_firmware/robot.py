@@ -18,6 +18,14 @@ class Robot:
         self.lower_pca = PCA9865(0x41, False)
         self.upper_pca = PCA9865(0x40, False)
         self.is_recal = is_recal    # Recalibrate servo flag
+
+        self.roll = 0.0
+        self.pitch = 0.0
+        self.yaw = 0.0
+
+        self.is_walking = False
+        self.is_standing = True
+
         self.new()
 
     def new(self):
@@ -37,6 +45,7 @@ class Robot:
         self.left_leg.update()
         self.right_leg.update()
         self.imu.get_data()
+        self.roll, self.pitch, self.yaw = self.imu.get_roll_pitch_yaw()
 
     def set_all_angles(self, angles):
         self.left_leg.set_leg_theta(angles[0], angles[1], angles[2], angles[3], angles[4], angles[5])  # starting 90 degree position
@@ -85,4 +94,4 @@ class Robot:
             self.set_all_angles(new_angles_rounded)
             last_angles = new_angles_rounded
 
-            time.sleep(0.05) 
+            #time.sleep(0.05) 

@@ -57,7 +57,7 @@ class Manual_Control_GUI(tk.Frame):
 
         # Load servo sliders
         self.head_panel, self.left_arm_panel, self.right_arm_panel, self.left_leg_panel, self.right_leg_panel = create_servo_sliders(self)
-        commands = [lambda val: get_slider_weight_val(self, val), lambda val: get_slider_height_val(self, val), lambda val: set_speed_val(self, val), lambda val: set_step_length_val(self, val), lambda val: set_num_steps_val(self, val)]
+        commands = [lambda val: get_slider_forward_val(self, val), lambda val: get_slider_weight_val(self, val), lambda val: get_slider_height_val(self, val), lambda val: set_speed_val(self, val), lambda val: set_step_length_val(self, val), lambda val: set_num_steps_val(self, val)]
         self.walking_params = create_utility_sliders(self.left_bottom_panel, self.speed, self.step_length, self.num_steps, commands)
 
         self.left_arm_pos_panel, self.right_arm_pos_panel, self.left_leg_pos_panel, self.right_leg_pos_panel = create_pos_sliders(self)

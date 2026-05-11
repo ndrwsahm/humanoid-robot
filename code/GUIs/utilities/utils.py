@@ -75,15 +75,15 @@ def create_pos_sliders(panel):
     return left_arm_pos_panel, right_arm_pos_panel, left_leg_pos_panel, right_leg_pos_panel
 
 def create_utility_sliders(panel, speed, step_length, num_steps, commands):
-    names=["Shift Weight: ","Shift Height: ","Speed: ",
+    names=["Shift Forward: ","Shift Weight: ","Shift Height: ","Speed: ",
             "Step Length: ","Number of Steps: "]
 
-    mins = [SHIFT_WEIGTH_MIN, SHIFT_HEIGTH_MIN, 10, 0.5, 1]
-    maxs = [SHIFT_WEIGTH_MAX, SHIFT_HEIGTH_MAX, 100, 2, 10]
-    orients = ["horizontal", "vertical", "horizontal", "horizontal", "horizontal"]
-    defaults = [0, WALKING_HEIGHT, speed, step_length, num_steps]
+    mins = [SHIFT_FORWARD_MIN, SHIFT_WEIGTH_MIN, SHIFT_HEIGTH_MIN, 10, 0.5, 1]
+    maxs = [SHIFT_FORWARD_MAX, SHIFT_WEIGTH_MAX, SHIFT_HEIGTH_MAX, 100, 2, 10]
+    orients = ["horizontal", "horizontal", "vertical", "horizontal", "horizontal", "horizontal"]
+    defaults = [FOOT_X_CENTER, 0, WALKING_HEIGHT, speed, step_length, num_steps]
 
-    walking_params = LabeledSliderGroup(panel, names, mins, maxs, orients, defaults, commands, rows=5, label_width=20)
+    walking_params = LabeledSliderGroup(panel, names, mins, maxs, orients, defaults, commands, rows=6, label_width=20)
     walking_params.grid(row=0, column=0, sticky="nsew")
     return walking_params
 
@@ -117,6 +117,19 @@ def get_all_slider_pos(gui):
     return all_angles
 
 # Utility Sliders  
+def get_slider_forward_val(gui, val):
+    if not gui.initialized:
+        return
+    
+    # Apply shift (example logic: add shift_val to left, subtract from right)
+    gui.left_leg_pos_panel.sliders[0].set(val)
+    gui.right_leg_pos_panel.sliders[0].set(val)
+
+    gui.left_leg_pos_panel._update_label(0, val)
+    gui.right_leg_pos_panel._update_label(0, val)
+
+    return float(val)
+
 def get_slider_weight_val(gui, val):
         if not gui.initialized:
             return
