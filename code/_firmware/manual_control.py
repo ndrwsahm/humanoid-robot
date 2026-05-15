@@ -12,6 +12,7 @@ def parse_user_input(user_input):
     global joint_map
 
     joint = user_input[:3]
+
     angle_str = user_input[3:].strip()
     try:
         angle = float(angle_str)
@@ -30,6 +31,16 @@ def parse_user_input(user_input):
 
     return servo, angle
 
+def check_special_cmd(user_input):
+    command = user_input[:3]
+    print(f"User Input: {user_input}")
+    if command == "scy":
+        return True
+    elif command == "scn":
+        return True
+    else:
+        return False
+    
 if __name__ == "__main__":
     print("Hello User!")
 
@@ -53,16 +64,36 @@ if __name__ == "__main__":
     print("Setting soft start angles:", all_angles)
     robot.set_all_angles(all_angles)
 
+    last_roll = 0.0
+
     while running:
+        if robot.is_steady_camera:
+            roll, pitch, yaw = robot.get_accel_data()  # Update IMU data and adjust head position accordingly
+            if last_roll != roll:
+                print(f"IMU Roll: {roll:.2f}, Pitch: {pitch:.2f}, Yaw: {yaw:.2f}")
+                robot.set_head_angles(roll, 90)  # Example: Set head roll based on IMU data, keep yaw fixed at 90
+                last_roll = roll
+
         user_input = rx_comms.get_user_input()
+
         if user_input:
-            servo, angle = parse_user_input(user_input)
             
-            if servo >= 0 and angle != 999:
-                all_angles[servo] = angle
-                print("Setting servo {} to angle {}".format(servo, angle))
-                #           lhr, lha, lhe, lk, laa, lae
-                robot.set_all_angles(all_angles)
+            is_special_cmd = check_special_cmd(user_input)
+            
+            if is_special_cmd:
+                if user_input == "scy":
+                    robot.set_steady_camera(True)
+                elif user_input == "scn":
+                    robot.set_steady_camera(False)
             else:
-                robot.set_all_angles(settings["SOFT_START_ANGLES"])
+                print(f"User Input {user_input}")
+                servo, angle = parse_user_input(user_input)
+                
+                if servo >= 0 and angle != 999:
+                    all_angles[servo] = angle
+                    print("Setting servo {} to angle {}".format(servo, angle))
+                    #           lhr, lha, lhe, lk, laa, lae
+                    robot.set_all_angles(all_angles)
+                else:
+                    robot.set_all_angles(settings["SOFT_START_ANGLES"])
 

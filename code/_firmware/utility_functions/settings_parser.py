@@ -51,6 +51,13 @@ def load_robot_settings(robot_id):
         )
     ]
 
+    head_defaults = [
+        config.getfloat("default_angles_head", key)
+        for key in (
+            "HYA_DEFAULT_ANGLE", "HRO_DEFAULT_ANGLE"
+        )
+    ]
+
     # --- Angle limits (convert "0-180" → [0, 180]) ---
     left_limits = [
         [int(a), int(b)] for a, b in
@@ -104,6 +111,7 @@ def load_robot_settings(robot_id):
         "RIGHT_ARM_PINS": right_arm_pins,
         "LEFT_DEFAULTS": left_defaults,
         "RIGHT_DEFAULTS": right_defaults,
+        "HEAD_DEFAULTS": head_defaults,
         "LEFT_LIMITS": left_limits,
         "LEFT_ARM_LIMITS": left_arm_limits,
         "RIGHT_LIMITS": right_limits,

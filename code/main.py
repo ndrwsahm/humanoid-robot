@@ -83,6 +83,7 @@ class RobotControllerAPI:
 
         self.current_screen = "startup"
         self.running = True
+        self.last_steady_cam = False
 
         # Show startup screen
         self.screens[self.current_screen].pack(fill="both", expand=True)
@@ -443,6 +444,15 @@ class RobotControllerAPI:
         else:
             screen = self.screens[self.current_screen]
 
+            if self.current_screen == "manual":
+                steady_cam_gui_var = self.screens[self.current_screen].get_steady_camera()
+                if self.last_steady_cam != steady_cam_gui_var:
+                    if steady_cam_gui_var:
+                        #self.send_head_commands([70,70])
+                        self.send_special_command("scy\n")
+                    else:
+                        self.send_special_command("scn\n")
+                self.last_steady_cam = steady_cam_gui_var
             # 1. Read mode
             mode = screen.get_mode()
 
@@ -648,6 +658,22 @@ class RobotControllerAPI:
         except Exception as e:
             print("Sending head command error:", e)
             return head_angles
+        
+    def send_special_command(self, cmd):
+        try:
+            if self.simulate:
+                pass
+            
+            print("Sending Special Command : " + cmd)
+            self.ssh.tx_robot.send_user_input(cmd)
+
+            if self.ssh.tx_robot.connection:
+                response = self.ssh.tx_robot.receive_response()
+                if response:
+                    print("Response: " + response)
+        
+        except Exception as e:
+            print("Sending head command error:", e)
         
     def send_pwm_leg_commands(self, all_pwm_settings, all_leg_angles):
         try:

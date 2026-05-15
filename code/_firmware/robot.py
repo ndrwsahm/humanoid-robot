@@ -27,6 +27,7 @@ class Robot:
 
         self.is_walking = False
         self.is_standing = True
+        self.is_steady_camera = False
 
         self.new()
 
@@ -35,7 +36,7 @@ class Robot:
         self.left_leg = leg.Leg(self.lower_pca, "left", self.is_recal)
         self.right_leg = leg.Leg(self.lower_pca, "right", self.is_recal)
 
-        self.head = head.Head(self.upper_pca)
+        self.head = head.Head(self.upper_pca, self.is_recal)
 
         self.left_thetas = self.left_leg.get_leg_thetas()
         self.right_thetas = self.right_leg.get_leg_thetas()
@@ -48,18 +49,29 @@ class Robot:
     def update(self):
         self.left_leg.update()
         self.right_leg.update()
+            
+        #self.head.set_head_theta(self.roll, 90)
+
+    def get_accel_data(self):
         self.imu.get_data()
         self.roll, self.pitch, self.yaw = self.imu.get_roll_pitch_yaw()
 
-        #self.head.set_camera_angle(self.roll)
+        return self.roll, self.pitch, self.yaw
 
     def set_all_angles(self, angles):
         self.left_leg.set_leg_theta(angles[0], angles[1], angles[2], angles[3], angles[4], angles[5])  # starting 90 degree position
         self.right_leg.set_leg_theta(angles[6], angles[7], angles[8], angles[9], angles[10], angles[11])  # starting 90 degree position
         #self.left_arm.set_arm_theta(angles[12], angles[13], angles[14])
         #self.right_arm.set_arm_theta(angles[15], angles[16], angles[17])
-        self.head.set_head_theta(angles[18], angles[19])
+        if not self.is_steady_camera:
+            self.head.set_head_theta(angles[18], angles[19])
         self.all_thetas = angles
+
+    def set_head_angles(self, roll, yaw):
+        self.head.set_head_theta(yaw, roll)
+
+    def set_steady_camera(self, bool):
+        self.is_steady_camera = bool
 
     def set_pwm_settings(self, servo, pwm_min, pwm_max):
         if servo < 6:

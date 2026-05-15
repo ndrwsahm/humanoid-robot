@@ -84,6 +84,13 @@ class Manual_Control_GUI(tk.Frame):
         # Exit Button
         exit_button = tk.Button(self.right_bottom_panel, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
         exit_button.grid(row=8, column=0, pady=20)
+
+        self.steady_camera = tk.BooleanVar(value=False) 
+        lbl = tk.Label(self.right_bottom_panel, text="Steady Camera")
+        lbl.grid(row=0, column=1, padx=10, sticky="w")
+
+        chk = tk.Checkbutton(self.right_bottom_panel, variable=self.steady_camera)
+        chk.grid(row=0, column=2, padx=10)
  
     def new(self, angles, pos):
         self.head_panel.set_all([90,90])
@@ -139,6 +146,7 @@ class Manual_Control_GUI(tk.Frame):
     def get_speed(self): return self.speed
     def get_step_length(self): return self.step_length
     def get_num_steps(self): return self.num_steps
+    def get_steady_camera(self): return self.steady_camera.get()
     
     def get_movement_click(self, movement): self.selected_button = movement
     def get_mode(self): return self.mode
