@@ -1,19 +1,15 @@
 try:
     from _firmware.firmware_globals import *
-    from _firmware.utility_functions.settings_parser import load_robot_settings
-    from _firmware.utility_functions.username_id import get_robot_id_from_username
 except:
     from firmware_globals import *
-    from utility_functions.settings_parser import load_robot_settings
-    from utility_functions.username_id import get_robot_id_from_username
 
 class Leg:
-    def __init__(self, pca_object, side, is_recal):
+    def __init__(self, pca_object, side, settings, is_recal):
         self.pca = pca_object
 
         self.side = side.lower()    # make all lower case                                                  
          
-        self.new()
+        self.new(settings)
                                                                           
         self.last_thetas = [0, 0, 0, 0, 0, 0]     # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
         self.current_thetas = [90, 90, 90, 90, 90, 90]  # hip rotator, hip aductor, hip extendor, knee, ankle aductor, ankle extendor
@@ -30,15 +26,7 @@ class Leg:
 
         self.setup()
 
-    def new(self):
-        robot_id = get_robot_id_from_username()
-
-        if not robot_id:
-            print("Could not determine robot ID from username. Running simulated leg ")
-            robot_id = "simulate"
-
-        settings = load_robot_settings(robot_id)
-
+    def new(self, settings):
         self.pins = (settings["LEFT_LEG_PINS"] if self.side == "left" else settings["RIGHT_LEG_PINS"])
         self.leg_dimensions = (settings["A1_LENGTH"], settings["A2_LENGTH"])
         self.theta_limits = (settings["LEFT_LIMITS"] if self.side == "left" else settings["RIGHT_LIMITS"])

@@ -100,7 +100,14 @@ def load_robot_settings(robot_id):
     right_pulse_width_settings = [
         [int(a), int(b)] for a, b in
         (pair.split("-") for pair in config["pulse_width_settings"]["RIGHT_PULSE_WIDTH_SETTINGS"].split(","))
-    ]   
+    ]  
+
+    imu_default_settings = [
+        config.getfloat("default_imu_data", key)
+        for key in (
+            "ROLL_DEFAULT", "PITCH_DEFAULT", "YAW_DEFAULT"
+        )
+    ] 
 
     return {
         "A1_LENGTH": a1_length,
@@ -121,5 +128,6 @@ def load_robot_settings(robot_id):
         "SOFT_START_HEAD_ANGLES": soft_state_head_angles,
         "LEFT_PULSE_WIDTH_SETTINGS": left_pulse_width_settings,
         "RIGHT_PULSE_WIDTH_SETTINGS": right_pulse_width_settings,
-        "CAMERA_PINS": camera_pins
+        "CAMERA_PINS": camera_pins,
+        "IMU_DEFAULTS": imu_default_settings
     }

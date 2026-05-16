@@ -33,8 +33,14 @@ class PCA9865:
         if not self.simulate:
             if angle > MIN_ANGLE and angle < MAX_ANGLE:
                 self.pca.servo[servo_num].angle = angle
+            elif angle <= MIN_ANGLE:
+                self.pca.servo[servo_num].angle = MIN_ANGLE
+                print("Min Angle Reached")
+            elif angle >= MAX_ANGLE:
+                self.pca.servo[servo_num].angle = MAX_ANGLE
+                print("Max Angle Reached")
             else:
-                print("Min/Max Angle Reached!!")
+                print("Min/Max Angle Reached!! Here")
         else:
             print("Virtual Servo " + str(servo_num) + "     Set to : " + str(angle))
 

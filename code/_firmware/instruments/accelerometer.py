@@ -20,6 +20,8 @@ class MPU6050:
         self.accel_pitch = 0.0
         self.accel_roll = 0.0
 
+        self.last_data = [0.0, 0.0, 0.0]
+
     def get_data(self):
         accel_data = self.sensor.get_accel_data()
         gyro_data = self.sensor.get_gyro_data()
@@ -62,13 +64,21 @@ class MPU6050:
         self.accel_pitch = math.degrees(math.atan2(-accel_data['y'], accel_data['x']))
         self.accel_roll = math.degrees(math.atan2(accel_data['z'], accel_data['x']))
 
-        # Complementary filter (fusion of gyro + accel)
-        alpha = 0.0 # weight for gyro
+        # Low Pass filter (fusion of gyro + accel)
+        alpha = 0.35 # weight for gyro
         self.roll = alpha * self.roll + (1 - alpha) * self.accel_roll
         self.pitch = (alpha * self.pitch + (1 - alpha) * self.accel_pitch)
         self.yaw = alpha * self.yaw + (1 - alpha) * self.accel_yaw
 
         self.roll += 90
+
+    def apply_lowpass_filter(self, raw_data):
+        alpha = 0.15
+        filtered_data = []
+        for k in range(len(raw_data)):
+            filtered_data[k] = alpha*raw_data[k] + (1.0 - alpha)*self.last_data[k]
+            self.last_data[k] = filtered_data[k]
+        return filtered_data
 
     def get_roll_pitch_yaw(self):
         return self.roll, self.pitch, self.yaw

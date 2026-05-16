@@ -137,6 +137,11 @@ class RobotControllerAPI:
                 self.run_test_accelerometer
             ),
 
+            "calibrate_imu": lambda: self.safe_ssh(
+                self.ssh.tx_robot, "calibrate_imu",
+                self.run_calibrate_imu
+            ),
+
             "test_camera": lambda: self.safe_ssh(
                 self.ssh.tx_camera, "test_camera",
                 self.run_test_camera, True
@@ -620,6 +625,12 @@ class RobotControllerAPI:
         else:
             print_status(self.screens[self.current_screen], "No SSH Connection Established!")
 
+    def run_calibrate_imu(self):
+        print_status(self.screens[self.current_screen], "TODO get IMU Data from robot")
+        angles = [1.0, 0.0, 1.0]    # TODO replace with real angles
+        write_imu_data(angles, self.id)
+        print_status(self.screens[self.current_screen], "Calibrate IMU Complete!")
+        print_status(self.screens[self.current_screen], "Be sure to click Install Firmware to apply changes!!!")
     # ----------------------------------------------------------
     # SERVO COMMAND SENDER
     # ----------------------------------------------------------

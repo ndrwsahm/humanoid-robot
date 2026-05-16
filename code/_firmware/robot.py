@@ -3,6 +3,8 @@ try:
     from _firmware.utility_functions import leg
     from _firmware.utility_functions import head
     from _firmware.firmware_globals import *
+    from _firmware.utility_functions.settings_parser import load_robot_settings
+    from _firmware.utility_functions.username_id import get_robot_id_from_username
     #from _firmware.instruments.accelerometer import MPU6050
 
 except:
@@ -12,6 +14,8 @@ except:
     from firmware_globals import *
     from instruments.accelerometer import MPU6050
     from instruments.servo_utility import PCA9865
+    from utility_functions.settings_parser import load_robot_settings
+    from utility_functions.username_id import get_robot_id_from_username
 
 import time
 
@@ -22,9 +26,9 @@ class Robot:
         self.is_recal = is_recal    # Recalibrate servo flag
 
         self.setpoint = 90.0
-        self.camera_kp = 0.02
-        self.camera_ki = 0.02
-        self.camera_kd = 0.0
+        self.camera_kp = 20.0
+        self.camera_ki = 0.00
+        self.camera_kd = 10.0
         self.integral = 0.0
 
         self.roll = 0.0
@@ -42,11 +46,19 @@ class Robot:
         self.new()
 
     def new(self):
-        print('Building Legs...')
-        self.left_leg = leg.Leg(self.lower_pca, "left", self.is_recal)
-        self.right_leg = leg.Leg(self.lower_pca, "right", self.is_recal)
+        robot_id = get_robot_id_from_username()
 
-        self.head = head.Head(self.upper_pca, self.is_recal)
+        if not robot_id:
+            print("Could not determine robot ID from username. Running simulated leg ")
+            robot_id = "simulate"
+
+        settings = load_robot_settings(robot_id)
+        
+        print('Building Legs...')
+        self.left_leg = leg.Leg(self.lower_pca, "left", settings, self.is_recal)
+        self.right_leg = leg.Leg(self.lower_pca, "right", settings, self.is_recal)
+
+        self.head = head.Head(self.upper_pca, settings, self.is_recal)
 
         self.left_thetas = self.left_leg.get_leg_thetas()
         self.right_thetas = self.right_leg.get_leg_thetas()
@@ -62,13 +74,23 @@ class Robot:
             
         #self.head.set_head_theta(self.roll, 90)
 
+    # Getters
+    ##################################
     def get_accel_data(self):
         self.imu.get_data()
         self.roll, self.pitch, self.yaw = self.imu.get_roll_pitch_yaw()
         self.accel_roll, self.accel_pitch, self.accel_yaw = self.imu.get_accel_roll_pitch_yaw()
 
         return self.roll, self.pitch, self.yaw, self.accel_roll, self.accel_pitch, self.accel_yaw
-
+    
+    def get_all_angles(self):
+        return self.all_thetas
+    
+    def get_pulse_width_settings(self):
+        return self.left_leg.get_pulse_widths() + self.right_leg.get_pulse_widths()
+    
+    # Setters
+    ##################################
     def set_all_angles(self, angles):
         self.left_leg.set_leg_theta(angles[0], angles[1], angles[2], angles[3], angles[4], angles[5])  # starting 90 degree position
         self.right_leg.set_leg_theta(angles[6], angles[7], angles[8], angles[9], angles[10], angles[11])  # starting 90 degree position
@@ -90,43 +112,21 @@ class Robot:
         else:
             self.right_leg.set_servo_pwm_settings(servo-6, pwm_min, pwm_max)
 
-    def get_all_angles(self):
-        return self.all_thetas
-    
-    def get_pulse_width_settings(self):
-        return self.left_leg.get_pulse_widths() + self.right_leg.get_pulse_widths()
-    
+    # Functions
+    ##################################
     def run_steady_camera(self):
-        current_time = time.time()
-        dt = current_time - self.last_time
-
-        if dt < 0:
-            dt = 0.001
-
         roll, pitch, yaw, accel_roll, accel_pitch, accel_yaw = self.get_accel_data()  # Update IMU data and adjust head position accordingly
         if self.last_roll != roll:
 
             # Proportional
-            error = self.setpoint - roll
-            p_term = self.camera_kp * error
-
-            # Integral
-            self.integral += error * dt
-            i_term = self.camera_ki * self.integral
-
-            # Derivative
-            derivative = (error - self.last_error) / dt
-            d_term = self.camera_kd * derivative
-
-            output = p_term + i_term + d_term
-
+            error = roll - self.setpoint
+            if abs(error) < 10:
+                return 
+        
             # Clamp outputs
-            print(f"IMU Roll: {roll:.2f}, Pitch: {pitch:.2f}, Yaw: {yaw:.2f}, PID Output {output:.2f}")
-            self.set_head_angles(output, 90)  # Example: Set head roll based on IMU data, keep yaw fixed at 90
+            print(f"IMU Roll: {roll:.2f}, Pitch: {pitch:.2f}, Yaw: {yaw:.2f}")
+            self.set_head_angles(roll, 90)  # Example: Set head roll based on IMU data, keep yaw fixed at 90
             self.last_roll = roll
-
-            self.last_error = error
-            self.last_time = current_time
 
     def smooth_transition_position(self, last_angles, end_angles):
         new_angles = last_angles

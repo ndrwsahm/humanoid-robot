@@ -1,16 +1,12 @@
 try:
     from _firmware.firmware_globals import *
-    from _firmware.utility_functions.settings_parser import load_robot_settings
-    from _firmware.utility_functions.username_id import get_robot_id_from_username
 except:
     from firmware_globals import *
-    from utility_functions.settings_parser import load_robot_settings
-    from utility_functions.username_id import get_robot_id_from_username
 class Head:
-    def __init__(self, pca_obj, is_recal):
+    def __init__(self, pca_obj, settings, is_recal):
         self.pca_obj = pca_obj
 
-        self.new()
+        self.new(settings)
 
         self.last_thetas = [0, 0]     # roll, yaw
         self.current_thetas = [90, 90]  # roll, yaw
@@ -20,15 +16,7 @@ class Head:
         else:
             self.offset_thetas = [x - y for x, y in zip(self.default_angles, [90, 90])]
 
-    def new(self):
-        robot_id = get_robot_id_from_username()
-
-        if not robot_id:
-            print("Could not determine robot ID from username. Running simulated leg ")
-            robot_id = "simulate"
-
-        settings = load_robot_settings(robot_id)
-
+    def new(self, settings):
         self.pins = (settings["CAMERA_PINS"][0], settings["CAMERA_PINS"][1])
         self.default_angles = (settings["HEAD_DEFAULTS"][0], settings["HEAD_DEFAULTS"][1])
 

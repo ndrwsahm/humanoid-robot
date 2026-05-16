@@ -5,6 +5,7 @@ from GUIs.utilities.utils import *
 
 BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
+BUTTON_YPADDING = 5
 
 class Startup_GUI(tk.Frame):
     def __init__(self, width, height, hostname, username, location, com_port, baudrate, parent_root):
@@ -199,37 +200,43 @@ class Startup_GUI(tk.Frame):
             parent, text="Manual Control", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.manual_control_button_click
-        ).grid(row=7, column=0, pady=(30,5))
+        ).grid(row=7, column=0, pady=BUTTON_YPADDING)
 
         tk.Button(
             parent, text="Plan Movement", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.plan_control_button_click
-        ).grid(row=7, column=1, pady=(30,5))
+        ).grid(row=7, column=1, pady=BUTTON_YPADDING)
 
         tk.Button(
             parent, text="Controller Mode", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.controller_mode_button_click
-        ).grid(row=8, column=0, pady=5)
+        ).grid(row=8, column=0, pady=BUTTON_YPADDING)
+
+        tk.Button(
+            parent, text="Calibrate IMU", bg="green", fg="white", font=("Arial", 14),
+            width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
+            command=self.calibrate_imu_button_click
+        ).grid(row=8, column=1, pady=BUTTON_YPADDING)
 
         tk.Button(
             parent, text="PWM Servos", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.pwm_calibrate_servos_button_click
-        ).grid(row=9, column=0, pady=10)
+        ).grid(row=9, column=0, pady=BUTTON_YPADDING)
 
         tk.Button(
             parent, text="Calibrate Servos", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.calibrate_servos_button_click
-        ).grid(row=10, column=0, pady=10)
+        ).grid(row=10, column=0, pady=BUTTON_YPADDING)
 
         tk.Button(
             parent, text="Exit", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.exit_button_click
-        ).grid(row=12, column=0, pady=20)
+        ).grid(row=12, column=0, pady=BUTTON_YPADDING)
 
     def create_command_reference(self, parent):
         tk.Label(parent, text="Pi Diagnostic Commands").grid(row=10, column=0, pady=(30,5))
@@ -410,6 +417,7 @@ class Startup_GUI(tk.Frame):
             "manual_control": (True, "manual_control"),
             "controller_mode": (True, "controller_mode"),
             "calibrate_servos": (True, "calibrate_servos"),
+            "calibrate_imu": (True, "calibrate_imu"),
             "pwm_calibrate_servos": (True, "pwm_calibrate_servos"),
             "plan_control": (True, "plan_control"),
             "raspi_config": (True, "raspi_config"),
@@ -475,7 +483,7 @@ class Startup_GUI(tk.Frame):
     def calibrate_servos_button_click(self): self.selected_button = "calibrate_servos"
     def pwm_calibrate_servos_button_click(self): self.selected_button = "pwm_calibrate_servos"
     def plan_control_button_click(self): self.selected_button = "plan_control"
-    #def nrf_button_click(self): self.selected_button = "nrf"
+    def calibrate_imu_button_click(self): self.selected_button = "calibrate_imu"
     def manual_control_button_click(self): self.selected_button = "manual_control"
     def controller_mode_button_click(self): self.selected_button = "controller_mode"
     def send_button_click(self): self.selected_button = "send"
