@@ -11,6 +11,7 @@ class SSH_TX_Comms:
         self.file_location_on_pi = location
 
         self.connection = False
+        self.print_statements = []
 
         self.load()
         self.new()
@@ -29,19 +30,19 @@ class SSH_TX_Comms:
     def connect_ssh(self):
         attempts = 0
 
-        print("\nConnecting SSH...\n")
+        self.print_statements.append("\nConnecting SSH...\n")
 
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        print(" Connecting to " + self.hostname + " and username: " + self.username)
+        self.print_statements.append(f" Connecting to {self.hostname} and username: {self.username}")
         try:
             self.ssh.connect(hostname=self.hostname, username=self.username, password=self.password)
 
             time.sleep(0.5)
 
             stdin, stdout, stderr = self.ssh.exec_command("ls")
-            print(stdout.readlines())
+            self.print_statements.append(stdout.readlines())
 
             self.invoke_shell()
             self.connection = True
@@ -49,8 +50,7 @@ class SSH_TX_Comms:
             return True
  
         except Exception as e:
-            print("Unable to Connect!")
-            print(e)
+            self.print_statements.append(f"Unable to Connect! {e}")
 
             self.connection = False
             
@@ -69,12 +69,12 @@ class SSH_TX_Comms:
 
         try:
             #self.invoke_shell()
-            #print("Interactive shell started")
+            #self.print_statements.append("Interactive shell started")
             self.send_user_input(full_file_path)
-            print("Running file at the following location: " + full_file_path)
+            self.print_statements.append("Running file at the following location: " + full_file_path)
 
         except Exception as e:
-            print ("run manual control" + str(e))
+            self.print_statements.append(f"run manual control {e}")
 
     def run_calibrate_servos(self, file_path, recal_servos):
         # Need to run script to wait for user input
@@ -89,12 +89,12 @@ class SSH_TX_Comms:
 
         try:
             #self.invoke_shell()
-            #print("Interactive shell started")
+            #self.print_statements.append("Interactive shell started")
             self.send_user_input(full_file_path)
-            print("Running file at the following location: " + full_file_path)
+            self.print_statements.append(f"Running file at the following location: {full_file_path}")
 
         except Exception as e:
-            print ("run manual control" + str(e))
+            self.print_statements.append(f"run calibrate control {e}")
 
     def run_pwm_calibrate_servos(self, file_path, recal_servos):
         # Need to run script to wait for user input
@@ -109,12 +109,12 @@ class SSH_TX_Comms:
 
         try:
             #self.invoke_shell()
-            #print("Interactive shell started")
+            #self.print_statements.append("Interactive shell started")
             self.send_user_input(full_file_path)
-            print("Running file at the following location: " + full_file_path)
+            self.print_statements.append("Running file at the following location: " + full_file_path)
 
         except Exception as e:
-            print ("run manual control" + str(e))
+            self.print_statements.append(f"run pwm control {e}")
 
     def run_test(self, file_path, file_name):
         # Need to run script to wait for user input
@@ -122,11 +122,11 @@ class SSH_TX_Comms:
        
         try:
             #self.invoke_shell()
-            #print("Interactive shell started")
+            #self.print_statements.append("Interactive shell started")
             self.send_user_input(full_file_path)
             # TODO need readback
         except Exception as e:
-            print ("run test" + str(e))
+            self.print_statements.append(f"run test control {e}")
     
     def run_camera(self, file_path, file_name):
         # Need to run script to wait for user input
@@ -135,49 +135,49 @@ class SSH_TX_Comms:
         try:
             self.send_command(full_file_path)
         except Exception as e:
-            print ("run camera" + str(e))
+            self.print_statements.append(f"run camera {e}")
 
     def run_firmware(self, file_path):
         try:
             command = f"python3 -u {file_path}/firmware.py"
             self.send_user_input(command + "\n")
-            print(f"Running firmware at: {command}")
+            self.print_statements.append(f"Running firmware at: {command}")
         except Exception as e:
-            print ("run firmware" + str(e))
+            self.print_statements.append(f"run firmware {e}")
 
     def run_config(self, file_path):
-        print("Running chmod..")
+        self.print_statements.append("Running chmod..")
         self.send_user_input(f"chmod +x {file_path}/pi_config.sh\n")
-        print("Chmod finished")
+        self.print_statements.append("Chmod finished")
 
-        print("Running bash...")
+        self.print_statements.append("Running bash...")
         self.send_user_input(f"bash {file_path}/pi_config.sh\n")
-        print("Bash finished")
+        self.print_statements.append("Bash finished")
 
     def run_reboot(self, file_path):
-        print("Running chmod..")
+        self.print_statements.append("Running chmod..")
         self.send_user_input(f"chmod +x {file_path}/rebot.sh\n")
-        print("Chmod finished")
+        self.print_statements.append("Chmod finished")
 
-        print("Running reboot script...")
+        self.print_statements.append("Running reboot script...")
         self.send_user_input(f"bash {file_path}/rebot.sh\n")
-        print("Reboot command sent")
+        self.print_statements.append("Reboot command sent")
 
     def send_command(self, command):
         stdin, stdout, stderr = self.ssh.exec_command(command)
-        print(stdout.readlines())
+        self.print_statements.append(stdout.readlines())
 
     def invoke_shell(self):
         try:
             self.channel = self.ssh.invoke_shell()
         except Exception as e:
-            print ("invoke shell" + str(e))
+            self.print_statements.append(f"invoke shell {e}")
 
     def send_user_input(self, command):
         try:
             self.channel.send(command)
         except Exception as e:
-            print ("send user input" + str(e))
+            self.print_statements.append(f"send user input {e}")
 
     def install_firmware(self, from_local_path, to_remote_path):
         try:
@@ -185,15 +185,15 @@ class SSH_TX_Comms:
 
             if os.path.isfile(from_local_path):
                 sftp.put(from_local_path, to_remote_path)
-                print(f"File {from_local_path} uploaded to {to_remote_path} successfully.")
+                self.print_statements.append(f"File {from_local_path} uploaded to {to_remote_path} successfully.")
             elif os.path.isdir(from_local_path):
                 try:
                     self.create_folder_if_not_exist(to_remote_path)
                     #sftp.mkdir(to_remote_path)
-                    print(f"Remote Directory Created: {to_remote_path}")
+                    self.print_statements.append(f"Remote Directory Created: {to_remote_path}")
                 except IOError as e:
                     if "File exists" not in str(e):
-                        print(f"Error creating remote directory {to_remote_path}: {e}")
+                        self.print_statements.append(f"Error creating remote directory {to_remote_path}: {e}")
                         return
                 
                 for item in os.listdir(from_local_path):
@@ -203,15 +203,15 @@ class SSH_TX_Comms:
 
             sftp.close()
         except Exception as e:
-            print ("install firmware" + str(e))
+            self.print_statements.append(f"install firmware {e}")
 
     def uninstall_firmware(self, remote_path):
         try:
-            print(f"Removing firmware directory: {remote_path}")
+            self.print_statements.append(f"Removing firmware directory: {remote_path}")
             self.send_user_input(f"rm -rf {remote_path}\n")
-            print("Firmware removed.")
+            self.print_statements.append("Firmware removed.")
         except Exception as e:
-            print ("uninstall firmware" + str(e))
+            self.print_statements.append(f"uninstall firmware {e}")
 
     def create_folder_if_not_exist(self, remote_path):
         self.send_command("mkdir -p " + remote_path)

@@ -1,5 +1,8 @@
+import tkinter as tk
 from GUIs.utilities.servo_sliders import ServoSliderGroup
 from GUIs.utilities.utility_sliders import LabeledSliderGroup
+from GUIs.utilities.status_bar import *
+
 from globals import *
 
 def center_window(window, width, height):
@@ -87,6 +90,10 @@ def create_utility_sliders(panel, speed, step_length, num_steps, commands):
     walking_params.grid(row=0, column=0, sticky="nsew")
     return walking_params
 
+def create_status_bar(parent, height, width, font_size):
+    status_bar = StatusBar(parent, height=height, width=width,font=("Courier", font_size))
+    return status_bar
+
 ################################################
 # Getters
 ################################################
@@ -121,6 +128,9 @@ def get_all_slider_head_angles(gui):
 # Position Sliders
 def get_slider_pos_value(gui, leg):
     slider_val = 0
+    if not gui.initialized or gui.no_pos_sliders:
+        return
+    
     try:
         slider_val = gui.left_leg_pos_panel.sliders[leg].get() if leg < 3 else gui.right_leg_pos_panel.sliders[leg-3].get()
     except Exception as e:
@@ -136,7 +146,7 @@ def get_all_slider_pos(gui):
 
 # Utility Sliders  
 def get_slider_forward_val(gui, val):
-    if not gui.initialized:
+    if not gui.initialized or gui.no_pos_sliders:
         return
     
     # Apply shift (example logic: add shift_val to left, subtract from right)
@@ -149,7 +159,7 @@ def get_slider_forward_val(gui, val):
     return float(val)
 
 def get_slider_weight_val(gui, val):
-        if not gui.initialized:
+        if not gui.initialized or gui.no_pos_sliders:
             return
         
         # Apply shift (example logic: add shift_val to left, subtract from right)
@@ -162,7 +172,7 @@ def get_slider_weight_val(gui, val):
         return float(val)
 
 def get_slider_height_val(gui, val):
-    if not gui.initialized:
+    if not gui.initialized or gui.no_pos_sliders:
         return
 
     # Apply shift (example logic: add shift_val to left, subtract from right)
@@ -200,7 +210,7 @@ def set_all_slider_head_angles(gui, angles):
 
 # Position Sliders
 def set_all_slider_pos(gui, pos):
-    if not gui.initialized:
+    if not gui.initialized or gui.no_pos_sliders:
         return
     
     try:
@@ -236,6 +246,17 @@ def set_num_steps_val(gui, val):
     except:
         pass
     return val
+
+def print_status(screen, msg):
+    # If msg is a list, print each element
+    if isinstance(msg, list):
+        for m in msg:
+            print_status(screen, m)
+        return
+
+    # Normal string printing
+    screen.status_bar.print(str(msg))
+    print(msg)
 
 ######################################
 # GUI-SPECIFIC FUNCTIONS

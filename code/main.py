@@ -199,7 +199,6 @@ class RobotControllerAPI:
     # EVENT HANDLING (button presses)
     # ----------------------------------------------------------
     def events(self, button):
-        
         # -------------------------------
         # STARTUP SCREEN EVENTS
         # -------------------------------
@@ -207,7 +206,7 @@ class RobotControllerAPI:
             if button == "manual_control":
                 if not self.ssh.tx_robot.connection:
                     self.simulate = True
-                    print("No SSH Connection Established! Entering SIMULATION MODE.")
+                    print_status(self.screens[self.current_screen], "No SSH Connection Established! Entering SIMULATION MODE.")
 
                 # SIMULATE MODE
                 if self.simulate:
@@ -225,7 +224,7 @@ class RobotControllerAPI:
             elif button == "controller_mode":
                 if not self.ssh.tx_robot.connection:
                     self.simulate = True
-                    print("No SSH Connection Established! Entering SIMULATION MODE.")
+                    print_status(self.screens[self.current_screen], "No SSH Connection Established! Entering SIMULATION MODE.")
 
                 # SIMULATE MODE
                 if self.simulate:
@@ -266,7 +265,6 @@ class RobotControllerAPI:
                 self.switch_screen("pwm_calibrate")
 
             elif button == "plan_control":
-                print("Plan control button clicked - feature not implemented yet.")
                 if self.simulate:
                     self.robot = Robot(False)
                 else:
@@ -288,9 +286,6 @@ class RobotControllerAPI:
                 movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
                     self.last_all_leg_angles = self.send_leg_commands(step)
-                    #user_input = input("Continue to next step? (y/n): ")
-        
-                #user_input = input("End Walking Seq (y/n): ")
 
             elif button == "walk_backward":
                 movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length, num_steps, speed)
@@ -368,7 +363,7 @@ class RobotControllerAPI:
         elif self.current_screen == "calibrate":
             if button == "calibrate":
                 angles = get_all_slider_angles(self.screens["calibrate"])
-                print("Saving calibration offsets:", angles)
+                print_status(self.screens[self.current_screen], "Saving calibration offsets: {angles}")
                 write_cal_data(angles, self.id)
                 self.switch_screen("startup")
 
@@ -403,15 +398,20 @@ class RobotControllerAPI:
                         pos_num += 1
                         self.last_all_leg_angles = self.send_leg_commands(step)
                 else:
-                    print("No file selected!!")
+                    print_status(self.screens[self.current_screen], "No file selected!!")
                 
         # ------
         # -------------------------
         # DISPATCH COMMANDS
         # -------------------------------
+        if button != "none":
+            print_status(self.screens[self.current_screen], f"Running {button}...")
         action = self.dispatch.get(button)
         if action:
-            action()
+            print_statements = action()
+            if print_statements:
+                for msg in print_statements:
+                    print_status(self.screens[self.current_screen], msg)
 
     # ----------------------------------------------------------
     # MAIN UPDATE LOOP (runs every frame)
@@ -499,12 +499,12 @@ class RobotControllerAPI:
         if self.ssh.tx_camera.connection:
             response = self.ssh.tx_camera.receive_response()
             if response:
-                print(f"Received response: {response}")
+                print_status(self.screens[self.current_screen], f"Received response: {response}")
 
         if self.ssh.tx_robot.connection:
             response = self.ssh.tx_robot.receive_response()
             if response:
-                print(f"Received response: {response}")
+                print_status(self.screens[self.current_screen], f"Received response: {response}")
 
         return screen.gui_update()
 
@@ -540,17 +540,32 @@ class RobotControllerAPI:
     def safe_ssh(self, target, action_name, func, *args, **kwargs):
         """
         Safely executes an SSH action.
-        Prevents crashes if the target is not connected.
+        Returns a list of print statements collected by the SSH object.
         """
+        # Not connected
         if not target.connection:
-            print(f"[SSH ERROR] Cannot run '{action_name}': {target.hostname} is not connected.")
-            return False
+            msg = f"[SSH ERROR] Cannot run '{action_name}': {target.hostname} is not connected."
+            print_status(self.screens[self.current_screen], msg)
+            target.print_statements.append(msg)
+
+            # return + clear
+            result = list(target.print_statements)
+            target.print_statements.clear()
+            return result
 
         try:
-            return func(*args, **kwargs)
+            # Run the SSH action
+            func(*args, **kwargs)
+
         except Exception as e:
-            print(f"[SSH ERROR] '{action_name}' failed:", e)
-            return False
+            msg = f"[SSH ERROR] '{action_name}' failed: {e}"
+            print_status(self.screens[self.current_screen], msg)
+            target.print_statements.append(msg)
+
+        # ALWAYS return the collected print statements
+        result = list(target.print_statements)
+        target.print_statements.clear()
+        return result
 
     def run_connect_ssh(self):
         try:
@@ -558,41 +573,41 @@ class RobotControllerAPI:
             self.ssh.tx_camera.connect_ssh()
 
             if self.ssh.tx_robot.connection:
-                print("Successfully connected to servo control Raspberry Pi via SSH.")
+                print_status(self.screens[self.current_screen], "Successfully connected to servo control Raspberry Pi via SSH.")
                 self.screens["startup"].robot_servo_connection = True
             else:
-                print("Failed to connect to servo control Raspberry Pi via SSH.")
+                print_status(self.screens[self.current_screen], "Failed to connect to servo control Raspberry Pi via SSH.")
                 self.screens["startup"].robot_servo_connection = False
 
             if self.ssh.tx_camera.connection:
-                print("Successfully connected to camera Raspberry Pi via SSH.")
+                print_status(self.screens[self.current_screen], "Successfully connected to camera Raspberry Pi via SSH.")
                 self.screens["startup"].robot_camera_connection = True
             else:
-                print("Failed to connect to camera Raspberry Pi via SSH.")
+                print_status(self.screens[self.current_screen], "Failed to connect to camera Raspberry Pi via SSH.")
                 self.screens["startup"].robot_camera_connection = False
 
         except Exception as e:
-            print(f"Error occurred while connecting via SSH: {e}")
+            print_status(self.screens[self.current_screen], f"Error occurred while connecting via SSH: {e}")
 
     # ----------------------------------------------------------
     # CAMERA TESTING
     # ----------------------------------------------------------
     def run_test_camera(self, display_gui):
         if not self.ssh.tx_camera.connection:
-            print("Camera Pi not connected!")
+            print_status(self.screens[self.current_screen], "Camera Pi not connected!")
             return
         
-        print("Starting camera sender...")
+        print_status(self.screens[self.current_screen], "Starting camera sender...")
         self.ssh.tx_camera.run_test(self.instruments_remote_location_camera, CAMERA)
         
         if self.receiver is None:
-            print("Starting camera receiver...")
+            print_status(self.screens[self.current_screen],"Starting camera receiver...")
             self.receiver = CameraReceiver(host="0.0.0.0", port=5000)
             self.receiver.camera_visible = display_gui
             threading.Thread(target=self.receiver.receive_data, daemon=True).start()
         else:
-            print("Camera receiver already running.")
-            print("Toggling camera visibility.")
+            print_status(self.screens[self.current_screen], "Camera receiver already running.")
+            print_status(self.screens[self.current_screen], "Toggling camera visibility.")
             self.receiver.camera_visible = display_gui
 
     # ----------------------------------------------------------
@@ -603,7 +618,7 @@ class RobotControllerAPI:
             threading.Thread(target=self.ssh.tx_robot.run_test, args=(self.instruments_remote_location, ACCELEROMETER)).start()
             #self.ssh.tx_robot.run_test(self.instruments_remote_location, ACCELEROMETER)
         else:
-            print("No SSH Connection Established!")
+            print_status(self.screens[self.current_screen], "No SSH Connection Established!")
 
     # ----------------------------------------------------------
     # SERVO COMMAND SENDER
@@ -626,7 +641,7 @@ class RobotControllerAPI:
             if self.ssh.tx_robot.connection:
                 response = self.ssh.tx_robot.receive_response()
                 if response:
-                    print(response)
+                    print_status(self.screens[self.current_screen], response)
 
             return all_leg_angles
 
@@ -651,12 +666,12 @@ class RobotControllerAPI:
             if self.ssh.tx_robot.connection:
                 response = self.ssh.tx_robot.receive_response()
                 if response:
-                    print(response)
+                    print_status(self.screens[self.current_screen], response)
 
             return head_angles
 
         except Exception as e:
-            print("Sending head command error:", e)
+            print_status(self.screens[self.current_screen], f"Sending head command error: {e}")
             return head_angles
         
     def send_special_command(self, cmd):
@@ -664,16 +679,15 @@ class RobotControllerAPI:
             if self.simulate:
                 pass
             
-            print("Sending Special Command : " + cmd)
             self.ssh.tx_robot.send_user_input(cmd)
 
             if self.ssh.tx_robot.connection:
                 response = self.ssh.tx_robot.receive_response()
                 if response:
-                    print("Response: " + response)
+                    print_status(self.screens[self.current_screen], response)
         
         except Exception as e:
-            print("Sending head command error:", e)
+            print_status(self.screens[self.current_screen], f"Sending head command error: {e}")
         
     def send_pwm_leg_commands(self, all_pwm_settings, all_leg_angles):
         try:
@@ -693,12 +707,12 @@ class RobotControllerAPI:
             if self.ssh.tx_robot.connection:
                 response = self.ssh.tx_robot.receive_response()
                 if response:
-                    print(response)
+                    print_status(self.screens[self.current_screen], response)
 
             return all_leg_angles
 
         except Exception as e:
-            print("Sending command error:", e)
+            print_status(self.screens[self.current_screen], f"Sending head command error: {e}")
             return self.last_all_leg_angles
         
     # ----------------------------------------------------------

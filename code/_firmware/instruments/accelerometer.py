@@ -16,6 +16,10 @@ class MPU6050:
         self.pitch = 0.0
         self.yaw = 0.0
 
+        self.accel_yaw = 0.0
+        self.accel_pitch = 0.0
+        self.accel_roll = 0.0
+
     def get_data(self):
         accel_data = self.sensor.get_accel_data()
         gyro_data = self.sensor.get_gyro_data()
@@ -23,10 +27,10 @@ class MPU6050:
         # Update relative angle
         self.update_angle(accel_data, gyro_data)
 
-        if DEBUG_PRINT_STATEMENT:
-            self.counter += 1
-            if self.counter % PRINT_ITERATIONS == 0:  # only print every 20th call
-                self.print_data(accel_data, gyro_data)
+        #if DEBUG_PRINT_STATEMENT:
+        #    self.counter += 1
+        #    if self.counter % PRINT_ITERATIONS == 0:  # only print every 20th call
+        #        self.print_data(accel_data, gyro_data)
 
     def print_data(self, accel_data, gyro_data):
         print("\n=== MPU6050 Sensor Data ===")
@@ -54,21 +58,24 @@ class MPU6050:
         self.roll += gyro_z * dt  # Yaw can be tracked but is less reliable without a magnetometer
 
         # Accelerometer angle (in degrees)
-        accel_yaw = math.degrees(math.atan2(accel_data['y'], accel_data['z']))
-        accel_pitch = math.degrees(math.atan2(-accel_data['y'], accel_data['x']))
-        accel_roll = math.degrees(math.atan2(accel_data['z'], accel_data['x']))
+        self.accel_yaw = math.degrees(math.atan2(accel_data['y'], accel_data['z']))
+        self.accel_pitch = math.degrees(math.atan2(-accel_data['y'], accel_data['x']))
+        self.accel_roll = math.degrees(math.atan2(accel_data['z'], accel_data['x']))
 
         # Complementary filter (fusion of gyro + accel)
         alpha = 0.0 # weight for gyro
-        self.roll = alpha * self.roll + (1 - alpha) * accel_roll
-        self.pitch = (alpha * self.pitch + (1 - alpha) * accel_pitch)
-        self.yaw = alpha * self.yaw + (1 - alpha) * accel_yaw
+        self.roll = alpha * self.roll + (1 - alpha) * self.accel_roll
+        self.pitch = (alpha * self.pitch + (1 - alpha) * self.accel_pitch)
+        self.yaw = alpha * self.yaw + (1 - alpha) * self.accel_yaw
 
         self.roll += 90
 
     def get_roll_pitch_yaw(self):
         return self.roll, self.pitch, self.yaw
 
+    def get_accel_roll_pitch_yaw(self):
+        return self.accel_roll, self.accel_pitch, self.accel_yaw
+    
 if __name__ == "__main__":
     acc = MPU6050(0x68)
     while True:

@@ -15,6 +15,9 @@ class PWM_Calibrate_Servos_GUI(tk.Frame):
     def __init__(self, width, height, parent_root):
         super().__init__(parent_root)
 
+        self.initialized = False
+        self.no_pos_sliders = True
+        
         self.width = width
         self.height = height
 
@@ -38,16 +41,35 @@ class PWM_Calibrate_Servos_GUI(tk.Frame):
         row = 3
         self.bottom_panel = tk.Frame(self)
         self.bottom_panel.grid(row=row+1, column=0, columnspan=2, sticky="n", pady=BETWEEN_FRAME_YPADDING)
-                               
+
+        row = 4
+        # Status bar goes at the bottom of the entire window
+        self.status_panel = tk.Frame(self)
+        self.status_panel.grid(row=99, column=0, columnspan=4, sticky="nsew")
+
+        # Allow the bottom row to expand
+        self.grid_rowconfigure(99, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_columnconfigure(3, weight=1)
+                
         self.pwm_min_group = []
         self.pwm_max_group = []
         self.pwm_enabled_group = []
 
         # Load widgets
         self.load()
+        
+        self.status_bar = create_status_bar(self.status_panel, 10, 140, 10)
+        self.status_bar.grid(row=0, column=0, sticky="nsew", padx=10)
+
+        self.mode = "Angles"
 
         # Initialize slider values 
         self.new()
+
+        self.initialized = True
 
     def load(self):
         
@@ -135,6 +157,7 @@ class PWM_Calibrate_Servos_GUI(tk.Frame):
         self.selected_button = "exit"
         self.destroy()
 
+    def get_mode(self): return self.mode
     # ----------------------------------------------------------
     # UPDATE LOOP 
     # ----------------------------------------------------------

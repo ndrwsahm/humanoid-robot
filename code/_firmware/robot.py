@@ -21,9 +21,19 @@ class Robot:
         self.upper_pca = PCA9865(0x40, False)
         self.is_recal = is_recal    # Recalibrate servo flag
 
+        self.setpoint = 90.0
+        self.camera_kp = 0.02
+        self.camera_ki = 0.02
+        self.camera_kd = 0.0
+        self.integral = 0.0
+
         self.roll = 0.0
         self.pitch = 0.0
         self.yaw = 0.0
+
+        self.last_roll = 0.0
+        self.last_time = 0.0
+        self.last_error = 0.0
 
         self.is_walking = False
         self.is_standing = True
@@ -55,8 +65,9 @@ class Robot:
     def get_accel_data(self):
         self.imu.get_data()
         self.roll, self.pitch, self.yaw = self.imu.get_roll_pitch_yaw()
+        self.accel_roll, self.accel_pitch, self.accel_yaw = self.imu.get_accel_roll_pitch_yaw()
 
-        return self.roll, self.pitch, self.yaw
+        return self.roll, self.pitch, self.yaw, self.accel_roll, self.accel_pitch, self.accel_yaw
 
     def set_all_angles(self, angles):
         self.left_leg.set_leg_theta(angles[0], angles[1], angles[2], angles[3], angles[4], angles[5])  # starting 90 degree position
@@ -84,6 +95,38 @@ class Robot:
     
     def get_pulse_width_settings(self):
         return self.left_leg.get_pulse_widths() + self.right_leg.get_pulse_widths()
+    
+    def run_steady_camera(self):
+        current_time = time.time()
+        dt = current_time - self.last_time
+
+        if dt < 0:
+            dt = 0.001
+
+        roll, pitch, yaw, accel_roll, accel_pitch, accel_yaw = self.get_accel_data()  # Update IMU data and adjust head position accordingly
+        if self.last_roll != roll:
+
+            # Proportional
+            error = self.setpoint - roll
+            p_term = self.camera_kp * error
+
+            # Integral
+            self.integral += error * dt
+            i_term = self.camera_ki * self.integral
+
+            # Derivative
+            derivative = (error - self.last_error) / dt
+            d_term = self.camera_kd * derivative
+
+            output = p_term + i_term + d_term
+
+            # Clamp outputs
+            print(f"IMU Roll: {roll:.2f}, Pitch: {pitch:.2f}, Yaw: {yaw:.2f}, PID Output {output:.2f}")
+            self.set_head_angles(output, 90)  # Example: Set head roll based on IMU data, keep yaw fixed at 90
+            self.last_roll = roll
+
+            self.last_error = error
+            self.last_time = current_time
 
     def smooth_transition_position(self, last_angles, end_angles):
         new_angles = last_angles

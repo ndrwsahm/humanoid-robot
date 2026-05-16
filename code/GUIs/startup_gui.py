@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from GUIs.tool_tip_gui import ToolTip
+from GUIs.utilities.utils import *
 
 BUTTON_WIDTH = 15
 BUTTON_HEIGHT = 2
@@ -39,37 +40,42 @@ class Startup_GUI(tk.Frame):
     # ----------------------------------------------------------
     def load_widgets(self):
 
-        # LEFT COLUMN
         left = tk.Frame(self)
-        left.grid(row=0, column=0, sticky="n", padx=20, pady=20)
+        left.grid(row=0, column=0, sticky="n", padx=20, pady=5)
 
-        self.create_pi_selector(left)
-        self.create_ssh_section(left)
-
-        # CENTER COLUMN
         center = tk.Frame(self)
-        center.grid(row=0, column=1, sticky="n", padx=20, pady=20)
+        center.grid(row=0, column=1, sticky="n", padx=20, pady=5)
 
-        self.create_firmware_buttons(center)
-        self.create_command_entry(center)
-
-        # RIGHT COLUMN
         right = tk.Frame(self)
-        right.grid(row=0, column=2, sticky="n", padx=20, pady=20)
+        right.grid(row=0, column=2, sticky="n", padx=20, pady=5)
+
+        bottom = tk.Frame(self)
+        bottom.grid(row=1, column=0, columnspan=3, padx=20, pady=0)
 
         left.grid_propagate(False)
         center.grid_propagate(False)
         right.grid_propagate(False)
+        bottom.grid_propagate(False)
 
-        left.config(width=400, height=500)
-        center.config(width=400, height=500)
-        right.config(width=400, height=500)
+        left.config(width=400, height=self.height-250)
+        center.config(width=400, height=self.height-250)
+        right.config(width=400, height=self.height-250)
+        bottom.config(width=self.width-200, height=200)
+
+        self.create_pi_selector(left)
+        self.create_ssh_section(left)
+
+        self.create_firmware_buttons(center)
+        self.create_command_entry(center)
 
         self.create_simulate_scale(right)
         #self.create_recal_scale(right)
         #self.create_nrf_buttons(right)
         self.create_mode_buttons(right)
         self.create_command_reference(left)
+        #self.create_status_bar(bottom)
+        self.status_bar = create_status_bar(bottom, 10, 140, 10)
+        self.status_bar.grid(row=0, column=0, sticky="nsew")
 
     # ----------------------------------------------------------
     # LEFT COLUMN
@@ -297,7 +303,7 @@ class Startup_GUI(tk.Frame):
             item_id = self.cmd_listbox  # listbox itself is the widget
             ToolTip(item_id, descriptions.get(cmd, "No description available"))
 
-        # Optional: click-to-copy behavior
+                # Optional: click-to-copy behavior
         def copy_command(event):
             selection = self.cmd_listbox.get(tk.ACTIVE)
             self.cmd_line_arg.set(selection)
@@ -314,6 +320,41 @@ class Startup_GUI(tk.Frame):
 
         tooltip = ToolTip(self.cmd_listbox, "")
         self.cmd_listbox.bind("<Motion>", on_motion)
+    
+    def create_status_bar(self, parent):
+        # ----------------------------------------------------------
+        # STATUS OUTPUT BOX
+        # ----------------------------------------------------------
+        tk.Label(parent, text="Status Output").grid(row=12, column=0, pady=(20,5))
+
+        status_frame = tk.Frame(parent)
+        status_frame.grid(row=13, column=0, columnspan=2, sticky="nsew")
+
+        parent.rowconfigure(11, weight=1)
+        parent.rowconfigure(13, weight=1)
+
+        # Y Scrollbar
+        status_scroll_y = tk.Scrollbar(status_frame, orient="vertical")
+        status_scroll_y.pack(side="right", fill="y")
+
+        # X Scrollbar
+        status_scroll_x = tk.Scrollbar(status_frame, orient="horizontal")
+        status_scroll_x.pack(side="bottom", fill="x")
+
+        self.status_text = tk.Text(
+            status_frame,
+            height=20,
+            width=140,
+            font=("Courier", 10),
+            yscrollcommand=status_scroll_y.set,
+            xscrollcommand=status_scroll_x.set,
+            wrap="none",          # IMPORTANT: allows horizontal scrolling
+            state="disabled"
+        )
+        self.status_text.pack(side="left", fill="both")
+
+        status_scroll_y.config(command=self.status_text.yview)
+        status_scroll_x.config(command=self.status_text.xview)  
 
     # ----------------------------------------------------------
     # UPDATE LOOP + STATE

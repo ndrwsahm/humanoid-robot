@@ -28,6 +28,7 @@ class Manual_Control_GUI(tk.Frame):
 
         self.selected_button = "none"
         self.initialized = False
+        self.no_pos_sliders = False
 
         self.speed = DEFAULT_SPEED  # default mid-speed
         self.step_length = 1  # default mid-step length
@@ -36,16 +37,20 @@ class Manual_Control_GUI(tk.Frame):
         # Panels 
         self.left_bottom_panel = tk.Frame(self)
         self.right_bottom_panel = tk.Frame(self)
+        self.right_panel = tk.Frame(self)
 
-        self.grid_rowconfigure(3, weight=1)
-        #self.grid_columnconfigure(0, weight=1)
-        #self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(3, weight=0)
+     
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=0)
 
         starting_row = 0
- 
+        self.right_panel.grid(row=starting_row+3, column=2, sticky="n")
+        self.right_panel.config(width=400, height=200)
         self.left_bottom_panel.grid(row=starting_row + 3, column=0, sticky="s", pady=BETWEEN_FRAME_YPADDING)
         self.right_bottom_panel.grid(row=starting_row + 3, column=1, sticky="s", pady=BETWEEN_FRAME_YPADDING)        
-
+        
         self.movement_group = []
         self.movements = ["stand", "walk_forward", "walk_backward", "turn_right", "turn_left"]
         self.movement_labels = ["Stand", "Walk Forward", "Walk Backward", "Turn Right", "Turn Left"]
@@ -63,6 +68,8 @@ class Manual_Control_GUI(tk.Frame):
         self.left_arm_pos_panel, self.right_arm_pos_panel, self.left_leg_pos_panel, self.right_leg_pos_panel = create_pos_sliders(self)
 
         self.load_buttons()
+        self.status_bar = create_status_bar(self.right_panel, 20, 40, 10)
+        self.status_bar.grid(row=0, column=0, sticky="nsew")
         self.new(starting_angles, starting_pos)
 
         self.mode = "Angles"
@@ -132,7 +139,7 @@ class Manual_Control_GUI(tk.Frame):
         result = button_actions.get(self.selected_button, (True, "none"))
         self.selected_button = "none" # Reset after handling
         return result
-
+    
     # ----------------------------------------------------------
     # UTILITY FUNCTIONS — specific to this GUI only
     # ---------------------------------------------------------- 

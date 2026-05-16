@@ -68,11 +68,7 @@ if __name__ == "__main__":
 
     while running:
         if robot.is_steady_camera:
-            roll, pitch, yaw = robot.get_accel_data()  # Update IMU data and adjust head position accordingly
-            if last_roll != roll:
-                print(f"IMU Roll: {roll:.2f}, Pitch: {pitch:.2f}, Yaw: {yaw:.2f}")
-                robot.set_head_angles(roll, 90)  # Example: Set head roll based on IMU data, keep yaw fixed at 90
-                last_roll = roll
+            robot.run_steady_camera()
 
         user_input = rx_comms.get_user_input()
 

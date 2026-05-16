@@ -27,6 +27,7 @@ class Plan_Control_GUI(tk.Frame):
 
         self.selected_button = "none"
         self.initialized = False
+        self.no_pos_sliders = False
 
         # Panels
         self.save_panel = tk.Frame(self)

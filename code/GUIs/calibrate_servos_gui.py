@@ -15,6 +15,9 @@ class Calibrate_Servos_GUI(tk.Frame):
     def __init__(self, width, height, parent_root):
         super().__init__(parent_root)
 
+        self.initialized = False
+        self.no_pos_sliders = True
+
         self.width = width
         self.height = height
 
@@ -33,11 +36,22 @@ class Calibrate_Servos_GUI(tk.Frame):
         self.bottom_panel = tk.Frame(self)
         self.bottom_panel.grid(row=row, column=0, columnspan=2, sticky="n", pady=BETWEEN_FRAME_YPADDING)
 
+        self.right_panel = tk.Frame(self, bg="lightgrey")
+
+        self.right_panel.grid(row=4, column=2, sticky="n")
+        self.right_panel.config(width=400, height=200)
+        
         # Load widgets 
         self.load_buttons()
 
+        self.status_bar = create_status_bar(self.right_panel, 15, 80, 10)
+        self.status_bar.grid(row=0, column=0, sticky="nsew")
+
         # Initialize slider values 
         self.new()
+
+        self.mode = "Angles"
+        self.initialized = True
 
     # ----------------------------------------------------------
     # LOAD 
@@ -95,3 +109,5 @@ class Calibrate_Servos_GUI(tk.Frame):
             return False, "exit"
 
         return True, "none"
+    
+    def get_mode(self): return self.mode
