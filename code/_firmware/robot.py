@@ -124,7 +124,7 @@ class Robot:
                 return 
         
             # Clamp outputs
-            print(f"IMU Roll: {roll:.2f}, Pitch: {pitch:.2f}, Yaw: {yaw:.2f}")
+            #print(f"IMU Roll: {roll:.2f}, Pitch: {pitch:.2f}, Yaw: {yaw:.2f}")
             self.set_head_angles(roll, 90)  # Example: Set head roll based on IMU data, keep yaw fixed at 90
             self.last_roll = roll
 

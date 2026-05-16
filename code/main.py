@@ -1,6 +1,7 @@
 import sys
 import threading
 import configparser
+import numpy as np
 sys.path.insert(0, '/Users/andre/Github/humanoid-robot/code/')
 
 # Simulated Firmware
@@ -107,6 +108,9 @@ class RobotControllerAPI:
 
         # Manual control state flag
         self.manual_control_started = False
+
+        self.imu_buffer = ""
+        self.imu_array = []
 
         # -------------------------------
         # COMMAND DISPATCH TABLE
@@ -504,13 +508,15 @@ class RobotControllerAPI:
         if self.ssh.tx_camera.connection:
             response = self.ssh.tx_camera.receive_response()
             if response:
-                print_status(self.screens[self.current_screen], f"Received response: {response}")
+                print_status(self.screens[self.current_screen], f"Received response from Camera: {response}")
 
         if self.ssh.tx_robot.connection:
             response = self.ssh.tx_robot.receive_response()
             if response:
-                print_status(self.screens[self.current_screen], f"Received response: {response}")
-
+                if self.get_imu_data_readback(self.screens[self.current_screen], response):
+                    pass
+                else:
+                    print_status(self.screens[self.current_screen], f"Received response from Camera: {response}")
         return screen.gui_update()
 
     # ----------------------------------------------------------
@@ -626,11 +632,39 @@ class RobotControllerAPI:
             print_status(self.screens[self.current_screen], "No SSH Connection Established!")
 
     def run_calibrate_imu(self):
-        print_status(self.screens[self.current_screen], "TODO get IMU Data from robot")
-        angles = [1.0, 0.0, 1.0]    # TODO replace with real angles
+        # Clear old IMU data
+        self.imu_array = []
+        self.imu_buffer = ""
+
+        # Start accelerometer test
+        self.ssh.tx_robot.run_test(self.instruments_remote_location, ACCELEROMETER)
+
+        # Schedule stop after 3 seconds
+        self.root.after(3000, self.finish_calibration)
+
+    def finish_calibration(self):
+        # Stop the remote IMU script
+        self.ssh.tx_robot.send_command("pkill -f accelerometer.py")
+
+        # Compute average IMU values
+        if len(self.imu_array) == 0:
+            print_status(self.screens[self.current_screen], "No IMU data collected!")
+            return
+
+        # Average each column
+        imu_np = np.array(self.imu_array)
+        avg = np.mean(imu_np, axis=0)
+        avg = np.round(avg, 2)
+        print_status(self.screens[self.current_screen], f"IMU AVERAGE: {avg}")
+
+        # TODO: compute real calibration angles from avg
+        angles = [avg[0], avg[1], avg[2]]
+
         write_imu_data(angles, self.id)
+
         print_status(self.screens[self.current_screen], "Calibrate IMU Complete!")
         print_status(self.screens[self.current_screen], "Be sure to click Install Firmware to apply changes!!!")
+
     # ----------------------------------------------------------
     # SERVO COMMAND SENDER
     # ----------------------------------------------------------
@@ -649,10 +683,7 @@ class RobotControllerAPI:
                     #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
 
-            if self.ssh.tx_robot.connection:
-                response = self.ssh.tx_robot.receive_response()
-                if response:
-                    print_status(self.screens[self.current_screen], response)
+            self.print_response(self.screens[self.current_screen])
 
             return all_leg_angles
 
@@ -674,10 +705,7 @@ class RobotControllerAPI:
                     cmd = f"{ALL_HEAD_NAMES[k]}{int(head_angles[k])}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
 
-            if self.ssh.tx_robot.connection:
-                response = self.ssh.tx_robot.receive_response()
-                if response:
-                    print_status(self.screens[self.current_screen], response)
+            self.print_response(self.screens[self.current_screen])
 
             return head_angles
 
@@ -692,11 +720,8 @@ class RobotControllerAPI:
             
             self.ssh.tx_robot.send_user_input(cmd)
 
-            if self.ssh.tx_robot.connection:
-                response = self.ssh.tx_robot.receive_response()
-                if response:
-                    print_status(self.screens[self.current_screen], response)
-        
+            self.print_response(self.screens[self.current_screen])
+
         except Exception as e:
             print_status(self.screens[self.current_screen], f"Sending head command error: {e}")
         
@@ -715,10 +740,7 @@ class RobotControllerAPI:
                     #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
 
-            if self.ssh.tx_robot.connection:
-                response = self.ssh.tx_robot.receive_response()
-                if response:
-                    print_status(self.screens[self.current_screen], response)
+            self.print_response(self.screens[self.current_screen])
 
             return all_leg_angles
 
@@ -726,6 +748,17 @@ class RobotControllerAPI:
             print_status(self.screens[self.current_screen], f"Sending head command error: {e}")
             return self.last_all_leg_angles
         
+    # Print Entry Point
+    ####################################
+    def print_response(self, current_screen):
+        if self.ssh.tx_robot.connection:
+                response = self.ssh.tx_robot.receive_response()
+                if response:
+                    if self.get_imu_data_readback(current_screen, response):
+                        pass
+                    else:
+                        print_status(current_screen, response)
+
     # ----------------------------------------------------------
     # HANDLE NONE VALUES IN IK
     # ----------------------------------------------------------
@@ -739,6 +772,43 @@ class RobotControllerAPI:
                     angles[k] = last_angles[k]
         return angles
 
+    def get_imu_data_readback(self, current_screen, response):
+        if response[:3] == "IMU":
+            try:
+                self.imu_values = self.handle_imu_stream(current_screen, response)
+                self.imu_array.append(self.imu_values)
+                print_status(current_screen, f"{self.imu_values}")
+            except Exception as e:
+                print_status(current_screen, f"Error in parsing: {e}")
+
+            return True
+        else:
+            return False
+    def handle_imu_stream(self, current_screen, response):
+        # Append new data to buffer
+        self.imu_buffer += response
+
+        # Split into lines
+        lines = self.imu_buffer.split("\n")
+
+        # Keep the last partial line in the buffer
+        self.imu_buffer = lines[-1]
+
+        # Process all complete lines
+        for line in lines[:-1]:
+            clean = line.strip()
+
+            if clean.startswith("IMU:"):
+                try:
+                    # Remove prefix
+                    clean = clean.replace("IMU:", "").strip()
+                    parts = [p.strip() for p in clean.split(",")]
+                    values = [float(p) for p in parts]
+
+                    return values
+
+                except Exception as e:
+                    print_status(current_screen, f"Error in parsing: {e}")
 
 # ----------------------------------------------------------
 # ENTRY POINT
