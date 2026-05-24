@@ -1,13 +1,4 @@
 try:
-    print("Ignore the error commands starting from here if running without ssh")
-    from _firmware.utility_functions import leg
-    from _firmware.utility_functions import head
-    from _firmware.firmware_globals import *
-    from _firmware.utility_functions.settings_parser import load_robot_settings
-    from _firmware.utility_functions.username_id import get_robot_id_from_username
-    #from _firmware.instruments.accelerometer import MPU6050
-
-except:
     print("Do not ignore the error commands past this point if running with ssh")
     from utility_functions import leg
     from utility_functions import head
@@ -17,12 +8,24 @@ except:
     from utility_functions.settings_parser import load_robot_settings
     from utility_functions.username_id import get_robot_id_from_username
 
+except:
+    print("Ignore the error commands starting from here if running without ssh")
+    from _firmware.utility_functions import leg
+    from _firmware.utility_functions import head
+    from _firmware.firmware_globals import *
+    from _firmware.instruments.accelerometer import MPU6050
+    from _firmware.instruments.servo_utility import PCA9865
+    from _firmware.utility_functions.settings_parser import load_robot_settings
+    from _firmware.utility_functions.username_id import get_robot_id_from_username
+    #from _firmware.instruments.accelerometer import MPU6050
+
 import time
 
 class Robot:
-    def __init__(self, is_recal):
-        self.lower_pca = PCA9865(0x41, False)
-        self.upper_pca = PCA9865(0x40, False)
+    def __init__(self, is_recal, simulate):
+        self.simulate = simulate
+        self.lower_pca = PCA9865(0x41, self.simulate)
+        self.upper_pca = PCA9865(0x40, self.simulate)
         self.is_recal = is_recal    # Recalibrate servo flag
 
         self.setpoint = 90.0
@@ -39,9 +42,12 @@ class Robot:
         self.last_time = 0.0
         self.last_error = 0.0
 
+        self.steady_counter = 0
+        
         self.is_walking = False
         self.is_standing = True
         self.is_steady_camera = False
+        self.is_imu_cal = True
 
         self.new()
 
@@ -54,6 +60,12 @@ class Robot:
 
         settings = load_robot_settings(robot_id)
         
+        self.default_imu_angles = (settings["IMU_DEFAULTS"][0], settings["IMU_DEFAULTS"][1], settings["IMU_DEFAULTS"][2])
+        if self.is_imu_cal:
+            self.offset_imu_thetas = [y - x for x, y in zip(self.default_imu_angles, [90, 90, 90])]
+        else:
+            self.offset_imu_thetas = [0, 0, 0]
+
         print('Building Legs...')
         self.left_leg = leg.Leg(self.lower_pca, "left", settings, self.is_recal)
         self.right_leg = leg.Leg(self.lower_pca, "right", settings, self.is_recal)
@@ -66,7 +78,7 @@ class Robot:
         self.all_thetas = self.left_thetas + self.right_thetas + [90 ,90, 90] + [90, 90, 90] + self.head_thetas
         self.set_all_angles(self.all_thetas)
 
-        self.imu = MPU6050(0x68)
+        self.imu = MPU6050(0x68, self.simulate)
     
     def update(self):
         self.left_leg.update()
@@ -77,7 +89,7 @@ class Robot:
     # Getters
     ##################################
     def get_accel_data(self):
-        self.imu.get_data()
+        self.imu.get_data(self.offset_imu_thetas)
         self.roll, self.pitch, self.yaw = self.imu.get_roll_pitch_yaw()
         self.accel_roll, self.accel_pitch, self.accel_yaw = self.imu.get_accel_roll_pitch_yaw()
 
@@ -88,6 +100,9 @@ class Robot:
     
     def get_pulse_width_settings(self):
         return self.left_leg.get_pulse_widths() + self.right_leg.get_pulse_widths()
+
+    def get_raw_imu_data(self):
+        return 
     
     # Setters
     ##################################
@@ -115,18 +130,31 @@ class Robot:
     # Functions
     ##################################
     def run_steady_camera(self):
-        roll, pitch, yaw, accel_roll, accel_pitch, accel_yaw = self.get_accel_data()  # Update IMU data and adjust head position accordingly
+        # Increment counter
+        self.steady_counter += 1
+
+        # Only run logic every 20 iterations
+        if self.steady_counter < 20:
+            return
+        self.steady_counter = 0  # reset counter
+
+        # Get IMU data
+        roll, pitch, yaw, accel_roll, accel_pitch, accel_yaw = self.get_accel_data()
+
+        # Only update if roll changed
         if self.last_roll != roll:
 
-            # Proportional
+            # Proportional control
             error = roll - self.setpoint
             if abs(error) < 10:
-                return 
-        
-            # Clamp outputs
-            #print(f"IMU Roll: {roll:.2f}, Pitch: {pitch:.2f}, Yaw: {yaw:.2f}")
-            self.set_head_angles(roll, 90)  # Example: Set head roll based on IMU data, keep yaw fixed at 90
-            self.last_roll = roll
+                return
+
+            # Apply head correction
+            counter_roll = 180-roll
+            self.set_head_angles(counter_roll, 90)
+
+            # Store last roll
+            self.last_roll = counter_roll
 
     def smooth_transition_position(self, last_angles, end_angles):
         new_angles = last_angles

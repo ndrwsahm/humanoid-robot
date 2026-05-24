@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     try:
         print("Creating Robot Object...")
-        robot = Robot(True)
+        robot = Robot(True, False)
         print("True")
 
         #           lhr, lha, lhe, lk, laa, lae

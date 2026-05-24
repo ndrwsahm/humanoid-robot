@@ -219,7 +219,7 @@ class RobotControllerAPI:
 
                 # SIMULATE MODE
                 if self.simulate:
-                    self.robot = Robot(False)
+                    self.robot = Robot(False, self.simulate)
 
                 # REAL ROBOT MODE
                 else:
@@ -237,7 +237,7 @@ class RobotControllerAPI:
 
                 # SIMULATE MODE
                 if self.simulate:
-                    self.robot = Robot(False)
+                    self.robot = Robot(False, self.simulate)
 
                 # REAL ROBOT MODE
                 else:
@@ -250,7 +250,7 @@ class RobotControllerAPI:
             elif button == "calibrate_servos":
                 # SIMULATE MODE
                 if self.simulate:
-                    self.robot = Robot(False)
+                    self.robot = Robot(False, self.simulate)
 
                 # REAL ROBOT MODE
                 else:
@@ -263,7 +263,7 @@ class RobotControllerAPI:
             elif button == "pwm_calibrate_servos":
                 # SIMULATE MODE
                 if self.simulate:
-                    self.robot = Robot(False)
+                    self.robot = Robot(False, self.simulate)
 
                 # REAL ROBOT MODE
                 else:
@@ -275,7 +275,7 @@ class RobotControllerAPI:
 
             elif button == "plan_control":
                 if self.simulate:
-                    self.robot = Robot(False)
+                    self.robot = Robot(False, self.simulate)
                 else:
                     self.robot = None
                     self.ssh.tx_robot.run_manual_control(self.firmware_remote_location, 0)
@@ -496,7 +496,7 @@ class RobotControllerAPI:
 
             # 3. Send servo commands
             if self.simulate:
-                self.robot.set_all_angles(leg_angles)
+                self.robot.set_all_angles(leg_angles + [90, 90, 90] + [90, 90, 90] + head_angles)
                 self.robot.update()
             else:
                 self.last_all_leg_angles = self.send_leg_commands(leg_angles)
@@ -505,11 +505,14 @@ class RobotControllerAPI:
         # -------------------------------
         # SSH RESPONSE HANDLING
         # -------------------------------
+
         if self.ssh.tx_camera.connection:
             response = self.ssh.tx_camera.receive_response()
             if response:
                 print_status(self.screens[self.current_screen], f"Received response from Camera: {response}")
 
+        self.print_response(self.screens[self.current_screen])
+        """
         if self.ssh.tx_robot.connection:
             response = self.ssh.tx_robot.receive_response()
             if response:
@@ -517,6 +520,7 @@ class RobotControllerAPI:
                     pass
                 else:
                     print_status(self.screens[self.current_screen], f"Received response from Camera: {response}")
+       """
         return screen.gui_update()
 
     # ----------------------------------------------------------
@@ -578,6 +582,9 @@ class RobotControllerAPI:
         target.print_statements.clear()
         return result
 
+    # ----------------------------------------------------------
+    # Run Buttons
+    # ----------------------------------------------------------
     def run_connect_ssh(self):
         try:
             self.ssh.tx_robot.connect_ssh()
@@ -600,8 +607,7 @@ class RobotControllerAPI:
         except Exception as e:
             print_status(self.screens[self.current_screen], f"Error occurred while connecting via SSH: {e}")
 
-    # ----------------------------------------------------------
-    # CAMERA TESTING
+    # Camera TESTING
     # ----------------------------------------------------------
     def run_test_camera(self, display_gui):
         if not self.ssh.tx_camera.connection:
@@ -621,7 +627,6 @@ class RobotControllerAPI:
             print_status(self.screens[self.current_screen], "Toggling camera visibility.")
             self.receiver.camera_visible = display_gui
 
-    # ----------------------------------------------------------
     # ACCELEROMETER TESTING
     # ----------------------------------------------------------
     def run_test_accelerometer(self):
@@ -636,11 +641,14 @@ class RobotControllerAPI:
         self.imu_array = []
         self.imu_buffer = ""
 
-        # Start accelerometer test
-        self.ssh.tx_robot.run_test(self.instruments_remote_location, ACCELEROMETER)
+        if self.ssh.tx_robot.connection:
+            # Start accelerometer test
+            self.ssh.tx_robot.run_test(self.instruments_remote_location, ACCELEROMETER)
 
-        # Schedule stop after 3 seconds
-        self.root.after(3000, self.finish_calibration)
+            # Schedule stop after 3 seconds
+            self.root.after(3000, self.finish_calibration)
+        else:
+            print_status(self.screens[self.current_screen], "No SSH Connection Established!")
 
     def finish_calibration(self):
         # Stop the remote IMU script
@@ -683,7 +691,7 @@ class RobotControllerAPI:
                     #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
 
-            self.print_response(self.screens[self.current_screen])
+            #self.print_response(self.screens[self.current_screen])
 
             return all_leg_angles
 
@@ -705,7 +713,7 @@ class RobotControllerAPI:
                     cmd = f"{ALL_HEAD_NAMES[k]}{int(head_angles[k])}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
 
-            self.print_response(self.screens[self.current_screen])
+            #self.print_response(self.screens[self.current_screen])
 
             return head_angles
 
@@ -720,7 +728,7 @@ class RobotControllerAPI:
             
             self.ssh.tx_robot.send_user_input(cmd)
 
-            self.print_response(self.screens[self.current_screen])
+            #self.print_response(self.screens[self.current_screen])
 
         except Exception as e:
             print_status(self.screens[self.current_screen], f"Sending head command error: {e}")
@@ -740,38 +748,17 @@ class RobotControllerAPI:
                     #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
 
-            self.print_response(self.screens[self.current_screen])
+            #self.print_response(self.screens[self.current_screen])
 
             return all_leg_angles
 
         except Exception as e:
             print_status(self.screens[self.current_screen], f"Sending head command error: {e}")
             return self.last_all_leg_angles
-        
-    # Print Entry Point
-    ####################################
-    def print_response(self, current_screen):
-        if self.ssh.tx_robot.connection:
-                response = self.ssh.tx_robot.receive_response()
-                if response:
-                    if self.get_imu_data_readback(current_screen, response):
-                        pass
-                    else:
-                        print_status(current_screen, response)
 
     # ----------------------------------------------------------
-    # HANDLE NONE VALUES IN IK
+    # IMU Readback
     # ----------------------------------------------------------
-    def check_is_none(self, angles, last_angles, leg):
-        if angles is None:
-            angles = [90] * 6
-            for k in range(6):
-                if leg == "right":
-                    angles[k] = last_angles[k+6]
-                else:
-                    angles[k] = last_angles[k]
-        return angles
-
     def get_imu_data_readback(self, current_screen, response):
         if response[:3] == "IMU":
             try:
@@ -784,6 +771,7 @@ class RobotControllerAPI:
             return True
         else:
             return False
+        
     def handle_imu_stream(self, current_screen, response):
         # Append new data to buffer
         self.imu_buffer += response
@@ -809,6 +797,31 @@ class RobotControllerAPI:
 
                 except Exception as e:
                     print_status(current_screen, f"Error in parsing: {e}")
+
+    # ----------------------------------------------------------
+    # HANDLE NONE VALUES IN IK
+    # ----------------------------------------------------------
+    def check_is_none(self, angles, last_angles, leg):
+        if angles is None:
+            angles = [90] * 6
+            for k in range(6):
+                if leg == "right":
+                    angles[k] = last_angles[k+6]
+                else:
+                    angles[k] = last_angles[k]
+        return angles
+
+    # ---------------------------------------------------------- 
+    # Print Entry Point
+    # ----------------------------------------------------------
+    def print_response(self, current_screen):
+        if self.ssh.tx_robot.connection:
+                response = self.ssh.tx_robot.receive_response()
+                if response:
+                    if self.get_imu_data_readback(current_screen, response):
+                        pass
+                    else:
+                        print_status(current_screen, response)
 
 # ----------------------------------------------------------
 # ENTRY POINT

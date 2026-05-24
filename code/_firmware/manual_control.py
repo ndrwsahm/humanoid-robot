@@ -47,7 +47,7 @@ if __name__ == "__main__":
     try:
         print("Creating Robot Object...")
 
-        robot = Robot(False)
+        robot = Robot(False, False)
         #           lhr, lha, lhe, lk, laa, lae
         #robot.set_all_angles([90,80,60,100,100,70,90,100,120,90,100,100])
         print("Using STDIN for command input...")
