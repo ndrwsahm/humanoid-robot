@@ -109,8 +109,8 @@ class Robot:
     def set_all_angles(self, angles):
         self.left_leg.set_leg_theta(angles[0], angles[1], angles[2], angles[3], angles[4], angles[5])  # starting 90 degree position
         self.right_leg.set_leg_theta(angles[6], angles[7], angles[8], angles[9], angles[10], angles[11])  # starting 90 degree position
-        #self.left_arm.set_arm_theta(angles[12], angles[13], angles[14])
-        #self.right_arm.set_arm_theta(angles[15], angles[16], angles[17])
+        self.left_arm.set_arm_theta(angles[12], angles[13], angles[14])
+        self.right_arm.set_arm_theta(angles[15], angles[16], angles[17])
         if not self.is_steady_camera:
             self.head.set_head_theta(angles[18], angles[19])
         self.all_thetas = angles

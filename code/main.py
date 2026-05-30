@@ -54,7 +54,7 @@ class RobotControllerAPI:
         self.new()
 
         # Last known servo angles (12 servos)
-        self.last_all_leg_angles = [90] * 12
+        self.last_all_leg_angles = [90] * NUMBER_OF_SERVOS
 
         # Build standing pose
         self.standing_array = build_stand_still_array(WALKING_HEIGHT)
