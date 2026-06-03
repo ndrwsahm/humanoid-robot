@@ -15,8 +15,106 @@ settings = load_robot_settings(ID)
 
 A1_LENGTH = settings["A1_LENGTH"]
 A2_LENGTH = settings["A2_LENGTH"]
+A3_LENGTH = settings["A3_LENGTH"]
+A4_LENGTH = settings["A4_LENGTH"]
 
-def compute_inverse_kinematics(x, y, z, leg):
+import math
+
+def compute_inverse_arm_kinematics(x, y, z, arm):
+    """
+    IK for:
+    - Shoulder yaw (rotator)
+    - Shoulder pitch (extender)
+    - Elbow pitch (mounted 90 degrees from shoulder pitch)
+
+    Parameters:
+        x, y, z : target position in torso frame
+        arm     : "left" or "right"
+
+    Returns:
+        yaw_deg, shoulder_pitch_deg, elbow_pitch_deg
+    """
+
+    # -----------------------------------------
+    # 1. SHOULDER YAW (normal)
+    # -----------------------------------------
+    yaw = math.atan2(y, x)
+
+    # Rotate target into shoulder pitch plane
+    r = math.sqrt(x**2 + y**2)
+    px = r
+    pz = z
+
+    # -----------------------------------------
+    # 2. ELBOW IK (2-link planar)
+    # -----------------------------------------
+    D = (px**2 + pz**2 - A3_LENGTH**2 - A4_LENGTH**2) / (2 * A3_LENGTH * A4_LENGTH)
+    D = max(min(D, 1.0), -1.0)  # clamp
+
+    # Standard elbow angle
+    elbow = math.acos(D)
+
+    # -----------------------------------------
+    # 3. SHOULDER PITCH
+    # -----------------------------------------
+    phi = math.atan2(pz, px)
+    psi = math.atan2(A4_LENGTH * math.sin(elbow),
+                     A3_LENGTH + A4_LENGTH * math.cos(elbow))
+
+    shoulder_pitch = phi - psi
+
+    # Convert to degrees
+    return [math.degrees(yaw), math.degrees(shoulder_pitch), math.degrees(elbow)]
+
+import math
+
+def compute_forward_arm_kinematics(angles, arm):
+    """
+    Forward kinematics for:
+    - Shoulder yaw
+    - Shoulder pitch
+    - Elbow pitch (mounted 90 degrees offset)
+
+    Parameters:
+        angles  : [yaw_deg, shoulder_pitch_deg, elbow_pitch_deg]
+        arm           : "left" or "right"
+
+    Returns:
+        x, y, z  (end-effector position)
+    """
+
+    # Convert to radians
+    yaw = math.radians(angles[0])
+    shoulder = math.radians(angles[1])
+
+    # Elbow is mounted 90° rotated
+    elbow = math.radians(angles[2] + 90)
+
+    # -----------------------------------------
+    # 1. Compute planar extension in shoulder plane
+    # -----------------------------------------
+    # Upper arm contribution
+    x1 = A3_LENGTH * math.cos(shoulder)
+    z1 = A3_LENGTH * math.sin(shoulder)
+
+    # Forearm contribution
+    x2 = A4_LENGTH * math.cos(shoulder + elbow)
+    z2 = A4_LENGTH * math.sin(shoulder + elbow)
+
+    # Total reach in shoulder plane
+    px = x1 + x2
+    pz = z1 + z2
+
+    # -----------------------------------------
+    # 2. Rotate by shoulder yaw to get full 3D
+    # -----------------------------------------
+    x = px * math.cos(yaw)
+    y = px * math.sin(yaw)
+    z = pz
+
+    return x, y, z
+
+def compute_inverse_leg_kinematics(x, y, z, leg):
     # Assumptions: Moving COM by abductors does not effect height of robot
         
     if x == 0:
@@ -105,7 +203,7 @@ def compute_inverse_kinematics(x, y, z, leg):
 
     return theta
 
-def compute_forward_kinematics(angles, leg):
+def compute_forward_leg_kinematics(angles, leg):
     # Ignore Y for now
     HE = angles[HE_IDX]
     KK = angles[KK_IDX]
@@ -142,7 +240,7 @@ if __name__ == "__main__":
     y_pos = 0
     z_pos = -12
 
-    angles = compute_inverse_kinematics(x_pos, y_pos, z_pos, "right")
+    angles = compute_inverse_leg_kinematics(x_pos, y_pos, z_pos, "right")
 
     print(f"    X:    |    Y:    |    Z:   ")
     print("-" * 35)
@@ -159,7 +257,7 @@ if __name__ == "__main__":
     print("")
     print("")
 
-    x_pos, y_pos, z_pos = compute_forward_kinematics(angles, "right")
+    x_pos, y_pos, z_pos = compute_forward_leg_kinematics(angles, "right")
 
     # Print header
     print(f"{'Joint':<20} | {'Angle (°)'}")

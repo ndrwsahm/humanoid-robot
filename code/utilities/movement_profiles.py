@@ -33,8 +33,11 @@ def build_swing_phase(direction, center_x, height, step_length, speed, leg):
         x = direction * step_length * np.cos(t) + center_x
         z = step_height * np.sin(t) + height
 
-        print(x, z)
-        angles.append(compute_inverse_kinematics(x, y, z, leg))
+        #print(x, z)
+        leg_angles = list(compute_inverse_leg_kinematics(center_x, y, z, leg))
+        arm_angles = list(compute_inverse_arm_kinematics(0, 3, 7, leg))
+
+        angles.append(leg_angles + arm_angles)
 
     return angles
 
@@ -56,9 +59,12 @@ def build_push_phase(direction, center_x, height, step_length, speed, leg):
         x = direction * t + center_x
         z = height
 
-        print(x, z)
-        angles.append(compute_inverse_kinematics(x, y, z, leg))
-    
+        #print(x, z)
+        leg_angles = list(compute_inverse_leg_kinematics(center_x, y, z, leg))
+        arm_angles = list(compute_inverse_arm_kinematics(0, 3, 7, leg))
+
+        angles.append(leg_angles + arm_angles)
+
     return angles
 
 def build_lean_phase(direction, center_x, height, speed, leg):
@@ -90,7 +96,10 @@ def build_lean_phase(direction, center_x, height, speed, leg):
         z = height
 
         #print(x, z)
-        angles.append(compute_inverse_kinematics(center_x, y, z, leg))
+        leg_angles = list(compute_inverse_leg_kinematics(center_x, y, z, leg))
+        arm_angles = list(compute_inverse_arm_kinematics(0, 3, 7, leg))
+
+        angles.append(leg_angles + arm_angles)
 
     return angles
 
@@ -195,10 +204,13 @@ def build_stand_still_array(height):
     all_angles = []
     standing = STANDING_POS
 
-    left_angles = compute_inverse_kinematics(standing[0], standing[1], height, "left")
-    right_angles = compute_inverse_kinematics(standing[3], standing[4], height, "right")
+    left_leg_angles = compute_inverse_leg_kinematics(standing[0], standing[1], height, "left")
+    right_leg_angles = compute_inverse_leg_kinematics(standing[3], standing[4], height, "right")
 
-    all_angles = [left_angles + right_angles]
+    left_arm_angles = [90, 45, 90]
+    right_arm_angles = [90, 45, 90]
+
+    all_angles = [left_leg_angles + right_leg_angles + left_arm_angles + right_arm_angles]
 
     return all_angles
 

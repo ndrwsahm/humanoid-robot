@@ -12,6 +12,8 @@ def load_robot_settings(robot_id):
     # --- Limb lengths ---
     a1_length = config.getfloat("leg_length", "A1_LENGTH")
     a2_length = config.getfloat("leg_length", "A2_LENGTH")
+    a3_length = config.getfloat("leg_length", "A3_LENGTH")
+    a4_length = config.getfloat("leg_length", "A4_LENGTH")
 
     # --- Pins ---
     left_pins = [int(x) for x in config["pins"]["LEFT_LEG"].split(",")]
@@ -112,12 +114,16 @@ def load_robot_settings(robot_id):
     return {
         "A1_LENGTH": a1_length,
         "A2_LENGTH": a2_length,
+        "A3_LENGTH": a3_length,
+        "A4_LENGTH": a4_length,
         "LEFT_LEG_PINS": left_pins,
         "RIGHT_LEG_PINS": right_pins,
         "LEFT_ARM_PINS": left_arm_pins,
         "RIGHT_ARM_PINS": right_arm_pins,
         "LEFT_DEFAULTS": left_defaults,
         "RIGHT_DEFAULTS": right_defaults,
+        "LEFT_ARM_DEFAULTS": left_arm_defaults,
+        "RIGHT_ARM_DEFAULTS": right_arm_defaults,
         "HEAD_DEFAULTS": head_defaults,
         "LEFT_LIMITS": left_limits,
         "LEFT_ARM_LIMITS": left_arm_limits,

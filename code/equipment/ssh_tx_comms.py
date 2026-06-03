@@ -165,7 +165,7 @@ class SSH_TX_Comms:
 
     def send_command(self, command):
         stdin, stdout, stderr = self.ssh.exec_command(command)
-        self.print_statements.append(stdout.readlines())
+        #self.print_statements.append(stdout.readlines())
 
     def invoke_shell(self):
         try:

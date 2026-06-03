@@ -54,16 +54,19 @@ class RobotControllerAPI:
         self.new()
 
         # Last known servo angles (12 servos)
-        self.last_all_leg_angles = [90] * NUMBER_OF_SERVOS
+        self.last_all_leg_angles = [90] * NUMBER_OF_LEG_SERVOS
+        self.last_all_body_angles = [90] * NUMBER_OF_BODY_SERVOS
 
         # Build standing pose
         self.standing_array = build_stand_still_array(WALKING_HEIGHT)
         left_leg_angles = self.standing_array[0][:6]   # first 6
-        right_leg_angles = self.standing_array[0][6:]  # last 6
+        right_leg_angles = self.standing_array[0][9:15]  # next 6
+        left_arm_angles = self.standing_array[0][6:9]  # next 3
+        right_arm_angles = self.standing_array[0][15:18]  # next 3
 
         # Compute starting foot positions
-        left_leg_pos = compute_forward_kinematics(left_leg_angles, "left")
-        right_leg_pos = compute_forward_kinematics(right_leg_angles, "right")
+        left_leg_pos = compute_forward_leg_kinematics(left_leg_angles, "left")
+        right_leg_pos = compute_forward_leg_kinematics(right_leg_angles, "right")
         starting_leg_pos = left_leg_pos + right_leg_pos
 
         # -------------------------------
@@ -294,28 +297,30 @@ class RobotControllerAPI:
             if button == "walk_forward":
                 movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    self.last_all_body_angles = self.send_body_commands(step)
 
             elif button == "walk_backward":
                 movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    self.last_all_body_angles = self.send_body_commands(step)
             
             elif button == "turn_right":
                 movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    self.last_all_body_angles = self.send_body_commands(step)
 
             elif button == "turn_left":
                 movement = build_turn_left_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    self.last_all_body_angles = self.send_body_commands(step)
 
             # Standing still
             elif button == "stand":
                 movement = build_stand_still_array(WALKING_HEIGHT)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    print("Sending step:", step)
+                    print("")
+                    self.last_all_body_angles = self.send_body_commands(step)
 
             # Exit manual mode
             elif button == "exit":
@@ -335,27 +340,27 @@ class RobotControllerAPI:
             if button == "walk_forward":
                 movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    self.last_all_body_angles = self.send_body_commands(step)
 
             elif button == "walk_backward":
                 movement = build_walk_array(BACKWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    self.last_all_body_angles = self.send_body_commands(step)
 
             elif button == "turn_right":
                 movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    self.last_all_body_angles = self.send_body_commands(step)
 
             elif button == "turn_left":
                 movement = build_turn_left_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    self.last_all_body_angles = self.send_body_commands(step)
 
             elif button == "stand":
                 movement = build_stand_still_array(WALKING_HEIGHT)
                 for step in movement:
-                    self.last_all_leg_angles = self.send_leg_commands(step)
+                    self.last_all_body_angles = self.send_body_commands(step)
 
             elif button == "camera":
                     self.receiver.camera_visible = not self.receiver.camera_visible
@@ -405,7 +410,7 @@ class RobotControllerAPI:
                     pos_num = 1
                     for step in movement:
                         pos_num += 1
-                        self.last_all_leg_angles = self.send_leg_commands(step)
+                        self.last_all_body_angles = self.send_body_commands(step)
                 else:
                     print_status(self.screens[self.current_screen], "No file selected!!")
                 
@@ -471,35 +476,48 @@ class RobotControllerAPI:
                 left_leg_angles  = leg_angles[0:6]
                 right_leg_angles = leg_angles[6:12]
 
-                #arm_angles = get_all_slider_arm_angles(screen)
-                #left_arm_angles = arm_angles[0:3]
-                #right_arm_angles = arm_angles[3:6]
+                arm_angles = get_all_slider_arm_angles(screen)
+                left_arm_angles = arm_angles[0:3]
+                right_arm_angles = arm_angles[3:6]
+                
                 head_angles = get_all_slider_head_angles(screen)
+
+                all_angles = left_leg_angles + left_arm_angles + right_leg_angles + right_arm_angles
  
-                left_pos  = compute_forward_kinematics(left_leg_angles, "left")
-                right_pos = compute_forward_kinematics(right_leg_angles, "right")
+                left_pos  = compute_forward_leg_kinematics(left_leg_angles, "left")
+                right_pos = compute_forward_leg_kinematics(right_leg_angles, "right")
+                left_arm_pos = compute_forward_arm_kinematics(left_arm_angles, "left")
+                right_arm_pos = compute_forward_arm_kinematics(right_arm_angles, "right")
 
                 set_all_slider_pos(screen, left_pos + right_pos)
+                set_all_slider_arm_angles(screen, left_arm_angles + right_arm_angles)
 
             elif mode == "Kinematics":
                 leg_pos = get_all_slider_pos(screen)
            
-                left_angles = compute_inverse_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
-                right_angles = compute_inverse_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
-
+                left_angles = compute_inverse_leg_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
+                right_angles = compute_inverse_leg_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
+                left_arm_angles = compute_inverse_arm_kinematics(0, 3, 7, "left")
+                right_arm_angles = compute_inverse_arm_kinematics(0, 3, 7, "right")
+                
                 # Replace None values with last known angles
-                left_angles = self.check_is_none(left_angles, self.last_all_leg_angles, "left")
-                right_angles = self.check_is_none(right_angles, self.last_all_leg_angles, "right")
+                left_angles = self.check_is_none(left_angles, self.last_all_body_angles, "left")
+                right_angles = self.check_is_none(right_angles, self.last_all_body_angles, "right")
 
                 leg_angles = left_angles + right_angles
+                arm_angles = left_arm_angles + right_arm_angles
+                
+                all_angles = left_angles + left_arm_angles + right_angles + right_arm_angles
+
                 set_all_slider_angles(screen, leg_angles)
+                set_all_slider_arm_angles(screen, arm_angles)
 
             # 3. Send servo commands
             if self.simulate:
                 self.robot.set_all_angles(leg_angles + [90, 90, 90] + [90, 90, 90] + head_angles)
                 self.robot.update()
             else:
-                self.last_all_leg_angles = self.send_leg_commands(leg_angles)
+                self.last_all_body_angles = self.send_body_commands(all_angles)
                 self.last_all_head_angles = self.send_head_commands(head_angles)
        
         # -------------------------------
@@ -685,7 +703,7 @@ class RobotControllerAPI:
                 return all_leg_angles
 
             # Real robot mode
-            for k in range(NUMBER_OF_SERVOS):
+            for k in range(NUMBER_OF_LEG_SERVOS):
                 if self.last_all_leg_angles[k] != all_leg_angles[k]:
                     cmd = f"{ALL_LEG_NAMES[k]}{int(all_leg_angles[k])}\n"
                     #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
@@ -721,6 +739,31 @@ class RobotControllerAPI:
             print_status(self.screens[self.current_screen], f"Sending head command error: {e}")
             return head_angles
         
+    def send_body_commands(self, all_body_angles):
+        try:
+            # Simulation mode
+            if self.simulate:
+                self.robot.set_all_angles(all_body_angles)
+                self.robot.update()
+                return all_body_angles
+
+            # Real robot mode
+            for k in range(NUMBER_OF_BODY_SERVOS):
+                if self.last_all_body_angles[k] != all_body_angles[k]:
+                    cmd = f"{ALL_BODY_NAMES[k]}{int(all_body_angles[k])}\n"
+                    #cmd = f"{ALL_BODY_NAMES[k]}{all_body_angles[k]}\n"
+                    self.ssh.tx_robot.send_user_input(cmd)
+
+            #self.print_response(self.screens[self.current_screen])
+
+            return all_body_angles
+
+        except Exception as e:
+            print("Sending body command error:", e)
+            #print(f"Last angles: {self.last_all_body_angles}")
+            #print(f"Attempted angles: {all_body_angles}")
+            return self.last_all_body_angles
+        
     def send_special_command(self, cmd):
         try:
             if self.simulate:
@@ -742,8 +785,8 @@ class RobotControllerAPI:
                 return all_leg_angles
 
             # Real robot mode
-            for k in range(NUMBER_OF_SERVOS):
-                if self.last_all_leg_angles[k] != all_leg_angles[k]:
+            for k in range(NUMBER_OF_LEG_SERVOS):
+                if self.last_all_body_angles[k] != all_leg_angles[k]:
                     cmd = f"pwm{ALL_LEG_NAMES[k]}x{all_pwm_settings[k][0]}x{all_pwm_settings[k][1]}x{int(all_leg_angles[k])}\n"
                     #cmd = f"{ALL_LEG_NAMES[k]}{all_leg_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
@@ -754,7 +797,7 @@ class RobotControllerAPI:
 
         except Exception as e:
             print_status(self.screens[self.current_screen], f"Sending head command error: {e}")
-            return self.last_all_leg_angles
+            return self.last_all_body_angles
 
     # ----------------------------------------------------------
     # IMU Readback
@@ -821,8 +864,8 @@ class RobotControllerAPI:
                     if self.get_imu_data_readback(current_screen, response):
                         pass
                     else:
-                        print_status(current_screen, response)
-
+                        #print_status(current_screen, response)
+                        pass
 # ----------------------------------------------------------
 # ENTRY POINT
 # ----------------------------------------------------------
