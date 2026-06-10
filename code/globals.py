@@ -110,6 +110,13 @@ MIN_POS = [-20, SHIFT_WEIGTH_MIN, SHIFT_HEIGTH_MIN, -20, SHIFT_WEIGTH_MIN, SHIFT
 MAX_POS = [20, SHIFT_WEIGTH_MAX, SHIFT_HEIGTH_MAX, 20, SHIFT_WEIGTH_MAX, SHIFT_HEIGTH_MAX]
 
 ALL_BODY_NAMES = ["lhr", "lha", "lhe", "lkk", "laa", "lae", "lsr", "lsa", "lee", "rhr", "rha", "rhe", "rkk", "raa", "rae", "rsr", "rsa", "ree"]
+ALL_BODY_FULL_NAMES = ["Head Yaw: ", "Head Roll: ",
+                        "Left Shoulder Rotator: ", "Left Shoulder Aductor: ", "Left Elbow: ",
+                        "Right Shoulder Rotator: ", "Right Shoulder Aductor: ", "Right Elbow: ",
+                        "Left Hip Rotator: ", "Left Hip Aductor: ", "Left Hip Extendor: ",
+                        "Left Knee: ", "Left Ankle Aductor: ", "Left Ankle Extendor: ",
+                        "Right Hip Rotator: ", "Right Hip Aductor: ", "Right Hip Extendor: ",
+                        "Right Knee: ", "Right Ankle Aductor: ", "Right Ankle Extendor: "]
 
 FORWARD = 1
 BACKWARD = -1

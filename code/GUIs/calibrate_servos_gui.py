@@ -29,8 +29,23 @@ class Calibrate_Servos_GUI(tk.Frame):
 
         self.selected_button = "none"
 
+        self.checkbox_top_panel = tk.Frame(self)
+        self.checkbox_top_panel.grid(row=0, column=2, sticky="nw", pady=10)
+
         # Load servo sliders
         self.head_panel, self.left_arm_panel, self.right_arm_panel, self.left_leg_panel, self.right_leg_panel = create_servo_sliders(self)
+                           
+        self.checkbox_top_left_panel = tk.Frame(self)
+        self.checkbox_top_left_panel.grid(row=1, column=2, sticky="nw", pady=10)
+
+        self.checkbox_top_right_panel = tk.Frame(self)
+        self.checkbox_top_right_panel.grid(row=1, column=2, sticky="n", pady=10)
+
+        self.checkbox_bottom_left_panel = tk.Frame(self)
+        self.checkbox_bottom_left_panel.grid(row=2, column=2, sticky="nw", pady=10)
+
+        self.checkbox_bottom_right_panel = tk.Frame(self)
+        self.checkbox_bottom_right_panel.grid(row=2, column=2, sticky="n", pady=10)
 
         row = 4
         self.bottom_panel = tk.Frame(self)
@@ -73,11 +88,48 @@ class Calibrate_Servos_GUI(tk.Frame):
 
         # Buttons
         self.calibrate_servo_button = tk.Button(self.bottom_panel,text="Calibrate Servos",bg="green",fg="white",font=("Arial", 14),width=BUTTON_WIDTH,height=BUTTON_HEIGHT,command=self.calibrate_button_click )
-        self.calibrate_servo_button.grid(row=row, column=0, padx=20, pady=20)
+        self.calibrate_servo_button.grid(row=row, column=0, padx=20, pady=10)
         row += 1
 
         self.exit_button = tk.Button(self.bottom_panel, text="Exit", bg="green", fg="white", font=("Arial", 14), width=BUTTON_WIDTH, height=BUTTON_HEIGHT, command=self.exit_button_click)
-        self.exit_button.grid(row=row, column=1, padx=20, pady=20)
+        self.exit_button.grid(row=row, column=1, padx=20, pady=10)
+
+        if DRAW_DEBUG_BOXES:
+            debug_box(self.head_panel, "blue")
+            debug_box(self.left_arm_panel, "green")
+            debug_box(self.right_arm_panel, "purple")
+            debug_box(self.left_leg_panel, "orange")
+            debug_box(self.right_leg_panel, "brown")
+
+            debug_box(self.checkbox_top_left_panel, "red")
+            debug_box(self.bottom_panel, "black")
+            debug_box(self.right_panel, "yellow")
+
+        self.calibrate_checkbox = []
+        for k in range(NUMBER_OF_ALL_SERVOS):
+            row = k + 1
+            # Checkbox for this servo
+            if row < 3:
+                panel = self.checkbox_top_panel
+            elif row < 6:
+                panel = self.checkbox_top_left_panel
+                row = row - 1
+            elif row < 9:
+                panel = self.checkbox_top_right_panel
+                row = row - 5
+            elif row < 15:
+                panel = self.checkbox_bottom_left_panel
+                row = row - 8
+            else:
+                panel = self.checkbox_bottom_right_panel
+
+            lbl = tk.Label(panel,text=f"{ALL_BODY_FULL_NAMES[k]} ",anchor="w")
+            lbl.grid(row=row, column=0)
+
+            var = tk.BooleanVar(value=False)
+            chk = tk.Checkbutton(panel, variable=var, pady=5)
+            chk.grid(row=row, column=1)
+            self.calibrate_checkbox.append(var)
 
     def new(self):
         self.head_panel.reset_all()
