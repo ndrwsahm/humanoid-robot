@@ -121,7 +121,7 @@ ALL_BODY_FULL_NAMES = ["Head Yaw: ", "Head Roll: ",
 FORWARD = 1
 BACKWARD = -1
 
-SPEED = 50
+SPEED = 90
 
 # Pygame Variables
 WHITE = (255, 255, 255)

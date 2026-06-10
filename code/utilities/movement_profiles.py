@@ -35,7 +35,12 @@ def build_swing_phase(direction, center_x, height, step_length, speed, leg):
 
         #print(x, z)
         leg_angles = list(compute_inverse_leg_kinematics(center_x, y, z, leg))
-        arm_angles = list(compute_inverse_arm_kinematics(0, 3, 7, leg))
+        if leg == "left":
+            arm_angles = list([105, 90, 90]) # backward
+            #arm_angles = list([90, 90, 90]) 
+        else:
+            arm_angles = list([75, 90, 90]) # backward
+            #arm_angles = list([90, 90, 90])  
 
         angles.append(leg_angles + arm_angles)
 
@@ -61,7 +66,12 @@ def build_push_phase(direction, center_x, height, step_length, speed, leg):
 
         #print(x, z)
         leg_angles = list(compute_inverse_leg_kinematics(center_x, y, z, leg))
-        arm_angles = list(compute_inverse_arm_kinematics(0, 3, 7, leg))
+        if leg == "left":
+            arm_angles = list([80, 90, 90]) # forward
+            #arm_angles = list([90, 90, 90]) 
+        else:
+            arm_angles = list([100, 90, 90]) # forward 
+            #arm_angles = list([90, 90, 90]) 
 
         angles.append(leg_angles + arm_angles)
 
@@ -97,7 +107,7 @@ def build_lean_phase(direction, center_x, height, speed, leg):
 
         #print(x, z)
         leg_angles = list(compute_inverse_leg_kinematics(center_x, y, z, leg))
-        arm_angles = list(compute_inverse_arm_kinematics(0, 3, 7, leg))
+        arm_angles = list([90, 90, 90]) # keep arms neutral during lean
 
         angles.append(leg_angles + arm_angles)
 
@@ -207,8 +217,8 @@ def build_stand_still_array(height):
     left_leg_angles = compute_inverse_leg_kinematics(standing[0], standing[1], height, "left")
     right_leg_angles = compute_inverse_leg_kinematics(standing[3], standing[4], height, "right")
 
-    left_arm_angles = [90, 45, 90]
-    right_arm_angles = [90, 45, 90]
+    left_arm_angles = [90, 90, 90]
+    right_arm_angles = [90, 90, 90]
 
     all_angles = [left_leg_angles + right_leg_angles + left_arm_angles + right_arm_angles]
 
