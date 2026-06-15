@@ -27,6 +27,9 @@ from utilities.movement_profiles import *
 from utilities.camera_receiver import CameraReceiver
 from utilities.write_to_file import *
 
+# Import AI 
+from ai_tasks.ai_find_ball import Find_Ball
+
 DEBUG_PRINT_STATEMENT = False
     
 
@@ -60,9 +63,9 @@ class RobotControllerAPI:
         # Build standing pose
         self.standing_array = build_stand_still_array(WALKING_HEIGHT)
         left_leg_angles = self.standing_array[0][:6]   # first 6
-        right_leg_angles = self.standing_array[0][9:15]  # next 6
-        left_arm_angles = self.standing_array[0][6:9]  # next 3
-        right_arm_angles = self.standing_array[0][15:18]  # next 3
+        right_leg_angles = self.standing_array[0][6:12]  # next 6
+        #left_arm_angles = self.standing_array[0][6:9]  # next 3
+        #right_arm_angles = self.standing_array[0][15:18]  # next 3
 
         # Compute starting foot positions
         left_leg_pos = compute_forward_leg_kinematics(left_leg_angles, "left")
@@ -173,6 +176,11 @@ class RobotControllerAPI:
             )
         }
 
+        # AI Variables
+        self.last_ai_button_pressed = "None"
+        self.last_left_leg_direction = 0
+        self.last_right_leg_direction = 0
+
     # ----------------------------------------------------------
     # UNUSED PLACEHOLDERS (future expansion)
     # ----------------------------------------------------------
@@ -275,6 +283,15 @@ class RobotControllerAPI:
 
                 self.manual_control_started = True 
                 self.switch_screen("pwm_calibrate")
+
+            elif button == "ai_task":
+                print_status(self.screens[self.current_screen], "Starting AI Task: Find the Ball")
+                if self.simulate:
+                    self.robot = Robot(False, self.simulate)
+                else:
+                    self.robot = None
+                    print_status(self.screens[self.current_screen], "Entering manual control mode for AI test...")
+                    self.run_ai_test()
 
             elif button == "plan_control":
                 if self.simulate:
@@ -691,6 +708,153 @@ class RobotControllerAPI:
         print_status(self.screens[self.current_screen], "Calibrate IMU Complete!")
         print_status(self.screens[self.current_screen], "Be sure to click Install Firmware to apply changes!!!")
 
+    # AI TESTS
+    # ----------------------------------------------------------
+    def get_state_variables(self, camera_buffer):
+        state = []
+        green_pixel_array = self.agent.getBallImageState(camera_buffer[:, 60], "green")
+        wall_detect_pixel_array = self.agent.getWallImageState(camera_buffer[:, 80])
+        wall_pixel_array = self.agent.getWallImageState(camera_buffer[:, 100])
+
+        ball_state = self.agent.convertArraytoSmallerSegments(green_pixel_array)  
+        wall_detect_state = self.agent.convertArraytoSmallerSegments(wall_detect_pixel_array)
+        wall_state = self.agent.convertArraytoSmallerSegments(wall_pixel_array)  
+        
+        for pixel in ball_state:  # 0 - 7 idx
+            state.append(pixel)
+
+        for pixel in wall_detect_state: #8 - 15 idx
+            state.append(pixel)
+
+        for pixel in wall_state:  # 16 - 23 idx
+            state.append(pixel)
+
+        if self.last_ai_button_pressed == "walk_forward":
+            self.last_left_leg_direction = 2
+            self.last_right_leg_direction = 2
+        elif self.last_ai_button_pressed == "turn_right":
+            self.last_left_leg_direction = 2
+            self.last_right_leg_direction = -2
+        elif self.last_ai_button_pressed == "turn_left":
+            self.last_left_leg_direction = -2
+            self.last_right_leg_direction = 2
+        elif self.last_ai_button_pressed == "stand":
+            self.last_left_leg_direction = 0
+            self.last_right_leg_direction = 0
+
+        state.append(self.last_left_leg_direction) # 24 idx
+        state.append(self.last_right_leg_direction) # 25 idx
+
+        state.append(0)
+        state.append(0)
+
+        return state
+    
+    def get_state_variables_size(self):
+        state = []
+        state = self.get_state_variables()
+
+        return len(state)
+    
+    def run_ai_test(self):
+        ai_is_running = True
+        state = [0] * 28  # Initialize state with the correct size (24 image segments + 2 leg direction indicators)
+
+        print_status(self.screens[self.current_screen], "Starting AI Test...")
+        try:
+            self.run_test_camera(True)
+        except Exception as e:
+            print_status(self.screens[self.current_screen], f"Error starting camera for AI test: {e}")
+            return
+        
+        self.agent = Find_Ball(28) 
+
+        #if USE_DETERMINISTIC_POLICY:
+        self.agent.epsilon = 0
+
+        # Load trained model
+        loaded = self.agent.model.load("model.pth")
+        print_status(self.screens[self.current_screen], f"Model loaded: {loaded}")   
+
+        speed = 90
+        num_steps = 4
+        step_length = 1
+
+        # Run ssh command to start manual control of robot
+        self.robot = None
+        self.ssh.tx_robot.run_manual_control(self.firmware_remote_location, 0)
+                
+        self.manual_control_started = True
+
+        movement = build_stand_still_array(WALKING_HEIGHT)
+        for step in movement:
+            self.last_all_body_angles = self.send_body_commands(step)
+
+        while ai_is_running:
+            if self.receiver.received_data_frame is None:
+                print_status(self.screens[self.current_screen], "Waiting for camera data...")
+                time.sleep(0.5) 
+                continue
+
+            frame = self.receiver.received_data_frame
+            
+            #self.receiver.show_new_frame(frame)
+            mask = self.agent.getWallFilteredFrame(frame)
+            self.receiver.show_new_frame(mask)
+
+            state = self.get_state_variables(frame)
+            print_status(self.screens[self.current_screen], f"Current state: {state}")
+
+            # 2. Predict next move (no training)
+            move = self.agent.predictMove(state)
+
+            # 3. Convert move to robot command + evaluate game status
+            button, alive, score, reward = self.agent.getGameData(move, state)
+            self.last_ai_button_pressed = button
+
+            # 4. Send action to robot
+            if button == "walk_forward":
+                movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
+                for step in movement:
+                    print("Sending step:", step)
+                    self.last_all_body_angles = self.send_body_commands(step)
+
+            elif button == "turn_right":
+                movement = build_turn_right_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
+                for step in movement:
+                    self.last_all_body_angles = self.send_body_commands(step)
+
+            elif button == "turn_left":
+                movement = build_turn_left_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
+                for step in movement:
+                    self.last_all_body_angles = self.send_body_commands(step)
+
+            elif button == "stand":
+                movement = build_stand_still_array(WALKING_HEIGHT)
+                for step in movement:
+                    print("Sending step:", step)
+                    self.send_leg_commands(step)
+                    #self.last_all_body_angles = self.send_body_commands(step)
+
+            elif button == "exit":
+                ai_is_running = False
+
+            user_response = input("Press any key to continue to the next step, or type 'exit' to stop the AI test: ")
+
+            if user_response == "exit":
+                ai_is_running = False
+
+            # 5. Handle episode termination
+            # TODO May not need this
+            if not alive:
+                print("\n--- EPISODE ENDED ---")
+                print("Cause of death:", self.agent.determineCauseOfDeath())
+                print("Final score:", score)
+                print("----------------------\n")
+
+                self.agent.resetGame()
+                time.sleep(0.5)  # small pause before restarting
+        
     # ----------------------------------------------------------
     # SERVO COMMAND SENDER
     # ----------------------------------------------------------
@@ -740,6 +904,7 @@ class RobotControllerAPI:
             return head_angles
         
     def send_body_commands(self, all_body_angles):
+        print("Attempting to send body commands:", all_body_angles)
         try:
             # Simulation mode
             if self.simulate:
@@ -753,6 +918,7 @@ class RobotControllerAPI:
                     cmd = f"{ALL_BODY_NAMES[k]}{int(all_body_angles[k])}\n"
                     #cmd = f"{ALL_BODY_NAMES[k]}{all_body_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
+                    print("Sent body command:", cmd)
 
             #self.print_response(self.screens[self.current_screen])
 

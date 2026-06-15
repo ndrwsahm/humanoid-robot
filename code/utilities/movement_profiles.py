@@ -8,7 +8,7 @@ sys.path.insert(0, utilities_dir)
 print("Utilities directory added to path: ", utilities_dir)
 from utilities.kinematics import *
 
-STANDING_POS = [FOOT_X_CENTER, 0, WALKING_HEIGHT, FOOT_X_CENTER, 0, WALKING_HEIGHT]
+STANDING_POS = [FOOT_X_CENTER, 1, WALKING_HEIGHT, FOOT_X_CENTER, 1, WALKING_HEIGHT]
 
 def convert_speed_to_frames(speed):
     min_frames = 5
@@ -22,13 +22,13 @@ def build_swing_phase(direction, center_x, height, step_length, speed, leg):
 
     if leg == "left":
         y = -FOOT_Y_SWING
-        print("Left Leg Swing")
+        #print("Left Leg Swing")
     else:
        y = FOOT_Y_SWING
-       print("Right Leg Swing")
+       #print("Right Leg Swing")
 
     # half circle equation z = sqrt(r^2 - x^2)
-    print("Swing Step X Z Pos....")
+    #print("Swing Step X Z Pos....")
     for t in np.linspace(np.pi, 0, convert_speed_to_frames(speed)):
         x = direction * step_length * np.cos(t) + center_x
         z = step_height * np.sin(t) + height
@@ -53,12 +53,12 @@ def build_push_phase(direction, center_x, height, step_length, speed, leg):
     
     if leg == "left":
         y = FOOT_Y_PUSH
-        print("Left Leg Push")
+        #print("Left Leg Push")
     else:
         y = -FOOT_Y_PUSH
-        print("Right Leg Push")
+        #print("Right Leg Push")
 
-    print("Back Step X Z Pos....")
+    #print("Back Step X Z Pos....")
     #Straight line from end of half circle to back
     for t in np.linspace(step_length, -step_length, convert_speed_to_frames(speed)):
         x = direction * t + center_x
@@ -214,14 +214,19 @@ def build_stand_still_array(height):
     all_angles = []
     standing = STANDING_POS
 
-    left_leg_angles = compute_inverse_leg_kinematics(standing[0], standing[1], height, "left")
-    right_leg_angles = compute_inverse_leg_kinematics(standing[3], standing[4], height, "right")
+    print("Standing Left X Y Z Pos: ", standing[0], standing[1], standing[2])
+    print("Standing Right X Y Z Pos: ", standing[3], standing[4], standing[5])
 
-    left_arm_angles = [90, 90, 90]
-    right_arm_angles = [90, 90, 90]
+    left_leg_angles = list(compute_inverse_leg_kinematics(standing[0], standing[1], height, "left"))
+    right_leg_angles = list(compute_inverse_leg_kinematics(standing[3], standing[4], height, "right"))
 
-    all_angles = [left_leg_angles + right_leg_angles + left_arm_angles + right_arm_angles]
+    #left_arm_angles = list([90, 90, 90])
+    #right_arm_angles = list([90, 90, 90])
 
+    #all_angles = [left_leg_angles + left_arm_angles + right_leg_angles + right_arm_angles]
+    all_angles = [left_leg_angles + right_leg_angles]
+    print("Standing Left Leg Angles: ", left_leg_angles)
+    print("Standing Right Leg Angles: ", right_leg_angles)
     return all_angles
 
 def load_positions_from_ini(file_path):

@@ -21,9 +21,12 @@ class CameraReceiver:
         self.fps = 0
 
         self.camera_visible = False
+        self.is_camera_running = False
+        self.received_data_frame = None
 
     def receive_data(self):
         while True:
+            self.is_camera_running = True
             # Read length prefix
             length_bytes = self.conn.recv(4)
             if not length_bytes:
@@ -44,6 +47,8 @@ class CameraReceiver:
             
             # Convert buffer back into an image
             frame = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
+
+            self.received_data_frame = frame
 
             if frame is None:
                 print("Failed to decode frame")
@@ -73,8 +78,19 @@ class CameraReceiver:
 
             else:
                 cv2.destroyAllWindows()
-
+                
         self.cleanup()
+
+    def return_frame_data(self):
+        return self.received_data_frame
+    
+    def show_new_frame(self, frame):
+        if frame is not None:
+            self.camera_visible = True
+            cv2.imshow("New Feed", frame)
+            cv2.waitKey(1)
+        else:
+            print("No frame data to show.")
 
     def cleanup(self):
         self.conn.close()
