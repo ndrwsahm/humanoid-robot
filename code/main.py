@@ -14,6 +14,7 @@ from GUIs.controller_mode_gui import *
 from GUIs.calibrate_servos_gui import Calibrate_Servos_GUI
 from GUIs.pwm_calibrate_servos_gui import PWM_Calibrate_Servos_GUI
 from GUIs.plan_control_gui import Plan_Control_GUI
+from GUIs.hsv_tuner_gui import *
 from GUIs.utilities.utils import *
 
 # Import equipment
@@ -81,11 +82,10 @@ class RobotControllerAPI:
             "manual": Manual_Control_GUI(GUI_WIDTH, GUI_HEIGHT,self.standing_array[0], starting_leg_pos, self.root),
 
             "controller": Controller_Mode_GUI(GUI_WIDTH, GUI_HEIGHT, self.root),
-
+            "calibrate_hsv": HSV_Tuner_GUI(GUI_WIDTH//2, GUI_HEIGHT, self.root),
             "calibrate": Calibrate_Servos_GUI(GUI_WIDTH, GUI_HEIGHT, self.root),
             "pwm_calibrate": PWM_Calibrate_Servos_GUI(GUI_WIDTH, GUI_HEIGHT, self.root), # Reusing the same GUI for PWM calibration
             "plan_control": Plan_Control_GUI(GUI_WIDTH, GUI_HEIGHT, self.standing_array[0], starting_leg_pos, self.root)
-
         }
 
         self.current_screen = "startup"
@@ -284,6 +284,16 @@ class RobotControllerAPI:
                 self.manual_control_started = True 
                 self.switch_screen("pwm_calibrate")
 
+            elif button == "calibrate_hsv":
+                print_status(self.screens[self.current_screen], "Starting AI Task: Find the Ball")
+                if self.simulate:
+                    self.robot = Robot(False, self.simulate)
+                else:
+                    self.robot = None
+                    print_status(self.screens[self.current_screen], "Entering manual control mode for AI test...")
+                    self.run_calibrate_hsv() 
+                    self.switch_screen("calibrate_hsv")
+
             elif button == "ai_task":
                 print_status(self.screens[self.current_screen], "Starting AI Task: Find the Ball")
                 if self.simulate:
@@ -352,7 +362,7 @@ class RobotControllerAPI:
             num_steps = 1
             speed = 25
             if self.receiver == None:
-                    self.run_test_camera(False)
+                self.run_test_camera(False)
 
             if button == "walk_forward":
                 movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
@@ -430,6 +440,14 @@ class RobotControllerAPI:
                         self.last_all_body_angles = self.send_body_commands(step)
                 else:
                     print_status(self.screens[self.current_screen], "No file selected!!")
+
+        elif self.current_screen == "calibrate_hsv":
+            if button == "save":
+                print_status(self.screens[self.current_screen], self.screens[self.current_screen].wall_hsv)
+                write_hsv_wall_data(self.screens[self.current_screen].wall_hsv)
+
+                print_status(self.screens[self.current_screen], self.screens[self.current_screen].ball_hsv)
+                write_hsv_ball_data(self.screens[self.current_screen].ball_hsv)
                 
         # ------
         # -------------------------
@@ -487,56 +505,66 @@ class RobotControllerAPI:
             # 1. Read mode
             mode = screen.get_mode()
 
-            # 2. Compute kinematics
-            if mode == "Angles":
-                leg_angles = get_all_slider_angles(screen)
-                left_leg_angles  = leg_angles[0:6]
-                right_leg_angles = leg_angles[6:12]
+            if self.current_screen != "calibrate_hsv":
+                # 2. Compute kinematics
+                if mode == "Angles":
+                    leg_angles = get_all_slider_angles(screen)
+                    left_leg_angles  = leg_angles[0:6]
+                    right_leg_angles = leg_angles[6:12]
 
-                arm_angles = get_all_slider_arm_angles(screen)
-                left_arm_angles = arm_angles[0:3]
-                right_arm_angles = arm_angles[3:6]
-                
-                head_angles = get_all_slider_head_angles(screen)
+                    arm_angles = get_all_slider_arm_angles(screen)
+                    left_arm_angles = arm_angles[0:3]
+                    right_arm_angles = arm_angles[3:6]
+                    
+                    head_angles = get_all_slider_head_angles(screen)
 
-                all_angles = left_leg_angles + left_arm_angles + right_leg_angles + right_arm_angles
- 
-                left_pos  = compute_forward_leg_kinematics(left_leg_angles, "left")
-                right_pos = compute_forward_leg_kinematics(right_leg_angles, "right")
-                left_arm_pos = compute_forward_arm_kinematics(left_arm_angles, "left")
-                right_arm_pos = compute_forward_arm_kinematics(right_arm_angles, "right")
+                    all_angles = left_leg_angles + left_arm_angles + right_leg_angles + right_arm_angles
+    
+                    left_pos  = compute_forward_leg_kinematics(left_leg_angles, "left")
+                    right_pos = compute_forward_leg_kinematics(right_leg_angles, "right")
+                    left_arm_pos = compute_forward_arm_kinematics(left_arm_angles, "left")
+                    right_arm_pos = compute_forward_arm_kinematics(right_arm_angles, "right")
 
-                set_all_slider_pos(screen, left_pos + right_pos)
-                set_all_slider_arm_angles(screen, left_arm_angles + right_arm_angles)
+                    set_all_slider_pos(screen, left_pos + right_pos)
+                    set_all_slider_arm_angles(screen, left_arm_angles + right_arm_angles)
 
-            elif mode == "Kinematics":
-                leg_pos = get_all_slider_pos(screen)
-           
-                left_angles = compute_inverse_leg_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
-                right_angles = compute_inverse_leg_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
-                left_arm_angles = compute_inverse_arm_kinematics(0, 3, 7, "left")
-                right_arm_angles = compute_inverse_arm_kinematics(0, 3, 7, "right")
-                
-                # Replace None values with last known angles
-                left_angles = self.check_is_none(left_angles, self.last_all_body_angles, "left")
-                right_angles = self.check_is_none(right_angles, self.last_all_body_angles, "right")
+                elif mode == "Kinematics":
+                    leg_pos = get_all_slider_pos(screen)
+            
+                    left_angles = compute_inverse_leg_kinematics(leg_pos[0], leg_pos[1], leg_pos[2], "left")
+                    right_angles = compute_inverse_leg_kinematics(leg_pos[3], leg_pos[4], leg_pos[5], "right")
+                    left_arm_angles = compute_inverse_arm_kinematics(0, 3, 7, "left")
+                    right_arm_angles = compute_inverse_arm_kinematics(0, 3, 7, "right")
+                    
+                    # Replace None values with last known angles
+                    left_angles = self.check_is_none(left_angles, self.last_all_body_angles, "left")
+                    right_angles = self.check_is_none(right_angles, self.last_all_body_angles, "right")
 
-                leg_angles = left_angles + right_angles
-                arm_angles = left_arm_angles + right_arm_angles
-                
-                all_angles = left_angles + left_arm_angles + right_angles + right_arm_angles
+                    leg_angles = left_angles + right_angles
+                    arm_angles = left_arm_angles + right_arm_angles
+                    
+                    all_angles = left_angles + left_arm_angles + right_angles + right_arm_angles
 
-                set_all_slider_angles(screen, leg_angles)
-                set_all_slider_arm_angles(screen, arm_angles)
+                    set_all_slider_angles(screen, leg_angles)
+                    set_all_slider_arm_angles(screen, arm_angles)
 
-            # 3. Send servo commands
-            if self.simulate:
-                self.robot.set_all_angles(leg_angles + [90, 90, 90] + [90, 90, 90] + head_angles)
-                self.robot.update()
-            else:
-                self.last_all_body_angles = self.send_body_commands(all_angles)
-                self.last_all_head_angles = self.send_head_commands(head_angles)
-       
+                # 3. Send servo commands
+                if self.simulate:
+                    self.robot.set_all_angles(leg_angles + [90, 90, 90] + [90, 90, 90] + head_angles)
+                    self.robot.update()
+                else:
+                    self.last_all_body_angles = self.send_body_commands(all_angles)
+                    self.last_all_head_angles = self.send_head_commands(head_angles)
+        
+            elif self.current_screen == "calibrate_hsv":
+                wall_hsv = self.screens[self.current_screen].get_wall_hsv_values()
+                self.receiver.wall_lower_hsv = np.array([wall_hsv[0], wall_hsv[1], wall_hsv[2]])
+                self.receiver.wall_upper_hsv = np.array([wall_hsv[3], wall_hsv[4], wall_hsv[5]])
+
+                ball_hsv = self.screens[self.current_screen].get_ball_hsv_values()
+                self.receiver.ball_lower_hsv = np.array([ball_hsv[0], ball_hsv[1], ball_hsv[2]])
+                self.receiver.ball_upper_hsv = np.array([ball_hsv[3], ball_hsv[4], ball_hsv[5]])
+
         # -------------------------------
         # SSH RESPONSE HANDLING
         # -------------------------------
@@ -655,8 +683,11 @@ class RobotControllerAPI:
         if self.receiver is None:
             print_status(self.screens[self.current_screen],"Starting camera receiver...")
             self.receiver = CameraReceiver(host="0.0.0.0", port=5000)
+            # Start filtered display (if GUI enabled)
+            #self.receiver.filter_frame(self.tuner)
             self.receiver.camera_visible = display_gui
-            threading.Thread(target=self.receiver.receive_data, daemon=True).start()
+            #threading.Thread(target=self.receiver.receive_data, daemon=True).start()
+            threading.Thread(target=self.receiver.show_filtered_feed, daemon=True).start()
         else:
             print_status(self.screens[self.current_screen], "Camera receiver already running.")
             print_status(self.screens[self.current_screen], "Toggling camera visibility.")
@@ -756,13 +787,23 @@ class RobotControllerAPI:
 
         return len(state)
     
+    def run_calibrate_hsv(self):
+        calibrate_is_running = True
+
+        print_status(self.screens[self.current_screen], "Starting HSV...")
+        try:
+            self.run_test_camera(True)
+        except Exception as e:
+            print_status(self.screens[self.current_screen], f"Error starting camera for Calibrate HSV: {e}")
+            return
+    
     def run_ai_test(self):
         ai_is_running = True
         state = [0] * 28  # Initialize state with the correct size (24 image segments + 2 leg direction indicators)
 
         print_status(self.screens[self.current_screen], "Starting AI Test...")
         try:
-            self.run_test_camera(True)
+            self.run_test_camera(False)
         except Exception as e:
             print_status(self.screens[self.current_screen], f"Error starting camera for AI test: {e}")
             return
@@ -785,10 +826,10 @@ class RobotControllerAPI:
         self.ssh.tx_robot.run_manual_control(self.firmware_remote_location, 0)
                 
         self.manual_control_started = True
-
+ 
         movement = build_stand_still_array(WALKING_HEIGHT)
         for step in movement:
-            self.last_all_body_angles = self.send_body_commands(step)
+            self.last_all_leg_angles = self.send_leg_commands(step)
 
         while ai_is_running:
             if self.receiver.received_data_frame is None:
@@ -798,9 +839,12 @@ class RobotControllerAPI:
 
             frame = self.receiver.received_data_frame
             
-            #self.receiver.show_new_frame(frame)
-            mask = self.agent.getWallFilteredFrame(frame)
-            self.receiver.show_new_frame(mask)
+            #self.receiver.show_new_frame("Full Frame",frame)
+            #mask = self.agent.getBallFilteredFrame(frame)
+            #self.receiver.show_new_frame("Ball Frame", mask)
+
+            #mask2 = self.agent.getWallFilteredFrame(frame)
+            #self.receiver.show_new_frame("Wall Frame", mask2)
 
             state = self.get_state_variables(frame)
             print_status(self.screens[self.current_screen], f"Current state: {state}")
@@ -816,7 +860,6 @@ class RobotControllerAPI:
             if button == "walk_forward":
                 movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
-                    print("Sending step:", step)
                     self.last_all_body_angles = self.send_body_commands(step)
 
             elif button == "turn_right":
@@ -832,7 +875,6 @@ class RobotControllerAPI:
             elif button == "stand":
                 movement = build_stand_still_array(WALKING_HEIGHT)
                 for step in movement:
-                    print("Sending step:", step)
                     self.send_leg_commands(step)
                     #self.last_all_body_angles = self.send_body_commands(step)
 
@@ -904,7 +946,7 @@ class RobotControllerAPI:
             return head_angles
         
     def send_body_commands(self, all_body_angles):
-        print("Attempting to send body commands:", all_body_angles)
+        #print("Attempting to send body commands:", all_body_angles)
         try:
             # Simulation mode
             if self.simulate:
@@ -918,7 +960,7 @@ class RobotControllerAPI:
                     cmd = f"{ALL_BODY_NAMES[k]}{int(all_body_angles[k])}\n"
                     #cmd = f"{ALL_BODY_NAMES[k]}{all_body_angles[k]}\n"
                     self.ssh.tx_robot.send_user_input(cmd)
-                    print("Sent body command:", cmd)
+                    #print("Sent body command:", cmd)
 
             #self.print_response(self.screens[self.current_screen])
 
