@@ -187,6 +187,38 @@ def write_pwm_calibration_data(pwm_min, pwm_max, enabled, ID):
     print("Updated RIGHT:", right_str)
     print(f"config/{ID}/settings.ini updated successfully.")
 
+def write_hsv_wall_data(hsv_data):
+    settings_path = Path("ai_tasks/ai_find_ball.py")
+    content = settings_path.read_text()
+
+    pattern = rf"WALL_MIN_HSV\s*=\s*.*"
+    replacement = f"WALL_MIN_HSV = [{hsv_data[0]}, {hsv_data[1]}, {hsv_data[2]}]"
+    content = re.sub(pattern, replacement, content)
+
+    settings_path.write_text(content)
+
+    pattern = rf"WALL_MAX_HSV\s*=\s*.*"
+    replacement = f"WALL_MAX_HSV = [{hsv_data[3]}, {hsv_data[4]}, {hsv_data[5]}]"
+    content = re.sub(pattern, replacement, content)
+
+    settings_path.write_text(content)
+
+def write_hsv_ball_data(hsv_data):
+    settings_path = Path("ai_tasks/ai_find_ball.py")
+    content = settings_path.read_text()
+
+    pattern = rf"GREEN_BALL_MIN_HSV\s*=\s*.*"
+    replacement = f"GREEN_BALL_MIN_HSV = [{hsv_data[0]}, {hsv_data[1]}, {hsv_data[2]}]"
+    content = re.sub(pattern, replacement, content)
+
+    settings_path.write_text(content)
+
+    pattern = rf"GREEN_BALL_MAX_HSV\s*=\s*.*"
+    replacement = f"GREEN_BALL_MAX_HSV = [{hsv_data[3]}, {hsv_data[4]}, {hsv_data[5]}]"
+    content = re.sub(pattern, replacement, content)
+
+    settings_path.write_text(content)
+
 def write_imu_data(offset_data, ID):
     settings_path = Path(f"_firmware/configs/{ID}/settings.ini")
 

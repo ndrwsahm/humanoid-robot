@@ -214,8 +214,8 @@ def build_stand_still_array(height):
     all_angles = []
     standing = STANDING_POS
 
-    print("Standing Left X Y Z Pos: ", standing[0], standing[1], standing[2])
-    print("Standing Right X Y Z Pos: ", standing[3], standing[4], standing[5])
+    #print("Standing Left X Y Z Pos: ", standing[0], standing[1], standing[2])
+    #print("Standing Right X Y Z Pos: ", standing[3], standing[4], standing[5])
 
     left_leg_angles = list(compute_inverse_leg_kinematics(standing[0], standing[1], height, "left"))
     right_leg_angles = list(compute_inverse_leg_kinematics(standing[3], standing[4], height, "right"))
@@ -225,8 +225,8 @@ def build_stand_still_array(height):
 
     #all_angles = [left_leg_angles + left_arm_angles + right_leg_angles + right_arm_angles]
     all_angles = [left_leg_angles + right_leg_angles]
-    print("Standing Left Leg Angles: ", left_leg_angles)
-    print("Standing Right Leg Angles: ", right_leg_angles)
+    #print("Standing Left Leg Angles: ", left_leg_angles)
+    #print("Standing Right Leg Angles: ", right_leg_angles)
     return all_angles
 
 def load_positions_from_ini(file_path):

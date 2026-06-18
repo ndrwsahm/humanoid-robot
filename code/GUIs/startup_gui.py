@@ -227,10 +227,16 @@ class Startup_GUI(tk.Frame):
         ).grid(row=9, column=0, pady=BUTTON_YPADDING)
 
         tk.Button(
+            parent, text="Calibrate HSV", bg="green", fg="white", font=("Arial", 14),
+            width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
+            command=self.calibrate_hsv_button_click
+        ).grid(row=9, column=1, pady=BUTTON_YPADDING)
+
+        tk.Button(
             parent, text="Find Green Ball", bg="green", fg="white", font=("Arial", 14),
             width=BUTTON_WIDTH, height=BUTTON_HEIGHT,
             command=self.ai_task_button_click
-        ).grid(row=9, column=1, pady=BUTTON_YPADDING)
+        ).grid(row=10, column=1, pady=BUTTON_YPADDING)
 
         tk.Button(
             parent, text="Calibrate Servos", bg="green", fg="white", font=("Arial", 14),
@@ -426,6 +432,7 @@ class Startup_GUI(tk.Frame):
             "calibrate_imu": (True, "calibrate_imu"),
             "pwm_calibrate_servos": (True, "pwm_calibrate_servos"),
             "ai_task": (True, "ai_task"),
+            "calibrate_hsv": (True, "calibrate_hsv"),
             "plan_control": (True, "plan_control"),
             "raspi_config": (True, "raspi_config"),
             "reboot": (True, "reboot")
@@ -489,6 +496,7 @@ class Startup_GUI(tk.Frame):
     def ssh_button_click(self): self.selected_button = "ssh"
     def calibrate_servos_button_click(self): self.selected_button = "calibrate_servos"
     def pwm_calibrate_servos_button_click(self): self.selected_button = "pwm_calibrate_servos"
+    def calibrate_hsv_button_click(self): self.selected_button = "calibrate_hsv"
     def ai_task_button_click(self): self.selected_button = "ai_task"
     def plan_control_button_click(self): self.selected_button = "plan_control"
     def calibrate_imu_button_click(self): self.selected_button = "calibrate_imu"

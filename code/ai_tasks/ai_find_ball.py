@@ -43,16 +43,16 @@ LEARNING_RATE = 0.001
 NUMBER_OF_SEGMENTS = 8  # used to convert camera width into small array
 
 # regular lighting (hMin = 0 , sMin = 0, vMin = 67), (hMax = 162 , sMax = 21, vMax = 175)
-#WALL_MIN_HSV = [0, 0, 221]
-#WALL_MAX_HSV = [170, 25, 255]
+#WALL_MIN_HSV = [0, 0, 0]
+#WALL_MAX_HSV = [179, 255, 255]
 
-WALL_MIN_HSV = [64, 64, 10]
-WALL_MAX_HSV = [170, 90, 233]
+WALL_MIN_HSV = [0, 0, 0]
+WALL_MAX_HSV = [179, 255, 255]
 
 # regular lighting {'hMin': 68, 'sMin': 113, 'vMin': 15, 'hMax': 87, 'sMax': 255, 'vMax': 116}
 # poor lighting {'hMin': 37, 'sMin': 131, 'vMin': 0, 'hMax': 79, 'sMax': 255, 'vMax': 161}
-GREEN_BALL_MIN_HSV = [13, 131, 0]
-GREEN_BALL_MAX_HSV = [79, 255, 161] # green ball
+GREEN_BALL_MIN_HSV = [13, 50, 0]
+GREEN_BALL_MAX_HSV = [79, 255, 75] # green ball
 
 BLUE_BALL_MIN_HSV = [88, 102, 35]
 BLUE_BALL_MAX_HSV = [145, 255, 255] # blue ball
@@ -379,6 +379,9 @@ class Find_Ball:
         elif color == "blue":
             ball_min_hsv = BLUE_BALL_MIN_HSV
             ball_max_hsv = BLUE_BALL_MAX_HSV
+        else:
+            ball_min_hsv = GREEN_BALL_MIN_HSV
+            ball_max_hsv = GREEN_BALL_MAX_HSV
 
         for j in range(int(CAMERA_HEIGHT)):
             r = camera_buffer[j][0]
@@ -386,7 +389,7 @@ class Find_Ball:
             b = camera_buffer[j][2]
 
             hsv_camera_buffer = colorsys.rgb_to_hsv(r, g, b) 
-            if hsv_camera_buffer[0]*100 > ball_min_hsv[0] and hsv_camera_buffer[0]*100 <= ball_max_hsv[0] and hsv_camera_buffer[1]*100 > ball_min_hsv[1] and hsv_camera_buffer[1]*100 <= ball_max_hsv[1] and hsv_camera_buffer[2] > ball_min_hsv[2] and hsv_camera_buffer[2]*100 <= ball_max_hsv[2]:
+            if hsv_camera_buffer[0]*100 > ball_min_hsv[0] and hsv_camera_buffer[0]*100 <= ball_max_hsv[0] and hsv_camera_buffer[1]*100 > ball_min_hsv[1] and hsv_camera_buffer[1]*100 <= ball_max_hsv[1] and hsv_camera_buffer[2] > ball_min_hsv[2] and hsv_camera_buffer[2] <= ball_max_hsv[2]:
                 green_array.append(1)
             else:
                 green_array.append(0)  
@@ -427,6 +430,27 @@ class Find_Ball:
             
         return small_state
     
+    def getBallFilteredFrame(self, frame):
+        height = frame.shape[0]
+        width = frame.shape[1]
+
+        filtered = np.zeros((height, width), dtype=np.uint8)
+
+        for y in range(height):
+            for x in range(width):
+                r = frame[y][x][0]
+                g = frame[y][x][1]
+                b = frame[y][x][2]
+
+                hsv_buffer = colorsys.rgb_to_hsv(r, g, b)
+                #print(hsv_buffer[0]*100, hsv_buffer[1]*100, hsv_buffer[2])
+                if hsv_buffer[0]*100 >= GREEN_BALL_MIN_HSV[0] and hsv_buffer[0]*100 <= GREEN_BALL_MAX_HSV[0] and hsv_buffer[1]*100 >= GREEN_BALL_MIN_HSV[1] and hsv_buffer[1]*100 <= GREEN_BALL_MAX_HSV[1]  and hsv_buffer[2] >= GREEN_BALL_MIN_HSV[2] and hsv_buffer[2] <= GREEN_BALL_MAX_HSV[2]:
+                    filtered[y][x] = 255   # white pixel
+                else:
+                    filtered[y][x] = 0     # black pixel
+
+        return filtered
+    
     def getWallFilteredFrame(self, frame):
         height = frame.shape[0]
         width = frame.shape[1]
@@ -439,23 +463,14 @@ class Find_Ball:
                 g = frame[y][x][1]
                 b = frame[y][x][2]
 
-                # FIX: normalize RGB to 0–1
-                h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
-
-                # scale to match your HSV ranges
-                h *= 100
-                s *= 100
-                v *= 100
-
-                if (WALL_MIN_HSV[0] <= h <= WALL_MAX_HSV[0] and
-                    WALL_MIN_HSV[1] <= s <= WALL_MAX_HSV[1] and
-                    WALL_MIN_HSV[2] <= v <= WALL_MAX_HSV[2]):
+                hsv_buffer = colorsys.rgb_to_hsv(r, g, b)
+                #print(hsv_buffer[0]*100, hsv_buffer[1]*100, hsv_buffer[2])
+                if hsv_buffer[0]*100 >= WALL_MIN_HSV[0] and hsv_buffer[0]*100 <= WALL_MAX_HSV[0] and hsv_buffer[1]*100 >= WALL_MIN_HSV[1] and hsv_buffer[1]*100 <= WALL_MAX_HSV[1]  and hsv_buffer[2] >= WALL_MIN_HSV[2] and hsv_buffer[2] <= WALL_MAX_HSV[2]:
                     filtered[y][x] = 255   # white pixel
                 else:
                     filtered[y][x] = 0     # black pixel
 
         return filtered
-    
     #def getWallFilteredFrame(self):
     #    return self.wall_filter_buffer
 
