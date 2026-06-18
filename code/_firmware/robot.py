@@ -2,6 +2,7 @@ try:
     print("Do not ignore the error commands past this point if running with ssh")
     from utility_functions import leg
     from utility_functions import head
+    from utility_functions import arm
     from firmware_globals import *
     from instruments.accelerometer import MPU6050
     from instruments.servo_utility import PCA9865
@@ -12,6 +13,7 @@ except:
     print("Ignore the error commands starting from here if running without ssh")
     from _firmware.utility_functions import leg
     from _firmware.utility_functions import head
+    from _firmware.utility_functions import arm
     from _firmware.firmware_globals import *
     from _firmware.instruments.accelerometer import MPU6050
     from _firmware.instruments.servo_utility import PCA9865
@@ -70,12 +72,17 @@ class Robot:
         self.left_leg = leg.Leg(self.lower_pca, "left", settings, self.is_recal)
         self.right_leg = leg.Leg(self.lower_pca, "right", settings, self.is_recal)
 
+        self.left_arm = arm.Arm(self.upper_pca, "left", settings, self.is_recal)
+        self.right_arm = arm.Arm(self.upper_pca, "right", settings, self.is_recal)
+
         self.head = head.Head(self.upper_pca, settings, self.is_recal)
 
-        self.left_thetas = self.left_leg.get_leg_thetas()
-        self.right_thetas = self.right_leg.get_leg_thetas()
+        self.left_leg_thetas = self.left_leg.get_leg_thetas()
+        self.right_leg_thetas = self.right_leg.get_leg_thetas()
+        self.left_arm_thetas = self.left_arm.get_arm_thetas()
+        self.right_arm_thetas = self.right_arm.get_arm_thetas()
         self.head_thetas = self.head.get_head_thetas()
-        self.all_thetas = self.left_thetas + self.right_thetas + [90 ,90, 90] + [90, 90, 90] + self.head_thetas
+        self.all_thetas = self.left_leg_thetas + self.right_leg_thetas + self.left_arm_thetas + self.right_arm_thetas + self.head_thetas
         self.set_all_angles(self.all_thetas)
 
         self.imu = MPU6050(0x68, self.simulate)
@@ -83,6 +90,9 @@ class Robot:
     def update(self):
         self.left_leg.update()
         self.right_leg.update()
+
+        self.left_arm.update()
+        self.right_arm.update()
             
         #self.head.set_head_theta(self.roll, 90)
 

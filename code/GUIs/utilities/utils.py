@@ -5,6 +5,8 @@ from GUIs.utilities.status_bar import *
 
 from globals import *
 
+DRAW_DEBUG_BOXES = False
+
 def center_window(window, width, height):
     window.update_idletasks()  # ensures correct geometry
 
@@ -295,6 +297,9 @@ def hide_kinematic_sliders(gui):
     gui.right_arm_pos_panel.hide()
     gui.left_leg_pos_panel.hide()
     gui.right_leg_pos_panel.hide()
+
+def debug_box(widget, color="red"):
+    widget.config(highlightbackground=color, highlightthickness=2)
 
 
     

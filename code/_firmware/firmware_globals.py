@@ -51,7 +51,7 @@ joint_map = {
         "lhr": LHR_IDX, "lha": LHA_IDX, "lhe": LHE_IDX, "lkk": LK_IDX,
         "laa": LAA_IDX, "lae": LAE_IDX, "rhr": RHR_IDX, "rha": RHA_IDX,
         "rhe": RHE_IDX, "rkk": RK_IDX, "raa": RAA_IDX, "rae": RAE_IDX,
-        "lsr": LSR_IDX, "lsa": LSA_IDX, "le": LE_IDX, "rsr": RSR_IDX,
-        "rsa": RSA_IDX, "re": RE_IDX,
+        "lsr": LSR_IDX, "lsa": LSA_IDX, "lee": LE_IDX, "rsr": RSR_IDX,
+        "rsa": RSA_IDX, "ree": RE_IDX,
         "hya": HYA_IDX, "hro": HRO_IDX
     }

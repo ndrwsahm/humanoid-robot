@@ -34,7 +34,11 @@ COM_PORT = "COM8"
 GUI_WIDTH = 1500
 GUI_HEIGHT = 750
 
-NUMBER_OF_SERVOS = 12
+NUMBER_OF_ARM_SERVOS = 6
+NUMBER_OF_LEG_SERVOS = 12
+NUMBER_OF_HEAD_SERVOS = 2
+NUMBER_OF_BODY_SERVOS = NUMBER_OF_LEG_SERVOS + NUMBER_OF_ARM_SERVOS 
+NUMBER_OF_ALL_SERVOS = NUMBER_OF_BODY_SERVOS + NUMBER_OF_HEAD_SERVOS
 
 FORWARD = 1
 BACKWARD = -1
@@ -96,7 +100,7 @@ FOOT_Z_MAX = SHIFT_HEIGTH_MAX
 ALL_HEAD_NAMES = ["hya", "hro"]
 ALL_HEAD = [HYA_IDX, HRO_IDX]
 
-ALL_ARM_NAMES = ["lsr", "lsa", "le", "rsr", "rsa", "re"]
+ALL_ARM_NAMES = ["lsr", "lsa", "lee", "rsr", "rsa", "ree"]
 ALL_ARMS = [LSR_IDX, LSA_IDX, LE_IDX, RSR_IDX, RSA_IDX, RE_IDX]
 
 ALL_LEG_NAMES = ["lhr", "lha", "lhe", "lkk", "laa", "lae", "rhr", "rha", "rhe", "rkk", "raa", "rae"]
@@ -105,10 +109,19 @@ ALL_POS = [LEFT_FOOT_X, LEFT_FOOT_Y, LEFT_FOOT_Z, RIGHT_FOOT_X, RIGHT_FOOT_Y, RI
 MIN_POS = [-20, SHIFT_WEIGTH_MIN, SHIFT_HEIGTH_MIN, -20, SHIFT_WEIGTH_MIN, SHIFT_HEIGTH_MIN]
 MAX_POS = [20, SHIFT_WEIGTH_MAX, SHIFT_HEIGTH_MAX, 20, SHIFT_WEIGTH_MAX, SHIFT_HEIGTH_MAX]
 
+ALL_BODY_NAMES = ["lhr", "lha", "lhe", "lkk", "laa", "lae", "lsr", "lsa", "lee", "rhr", "rha", "rhe", "rkk", "raa", "rae", "rsr", "rsa", "ree"]
+ALL_BODY_FULL_NAMES = ["Head Yaw: ", "Head Roll: ",
+                        "Left Shoulder Rotator: ", "Left Shoulder Aductor: ", "Left Elbow: ",
+                        "Right Shoulder Rotator: ", "Right Shoulder Aductor: ", "Right Elbow: ",
+                        "Left Hip Rotator: ", "Left Hip Aductor: ", "Left Hip Extendor: ",
+                        "Left Knee: ", "Left Ankle Aductor: ", "Left Ankle Extendor: ",
+                        "Right Hip Rotator: ", "Right Hip Aductor: ", "Right Hip Extendor: ",
+                        "Right Knee: ", "Right Ankle Aductor: ", "Right Ankle Extendor: "]
+
 FORWARD = 1
 BACKWARD = -1
 
-SPEED = 50
+SPEED = 90
 
 # Pygame Variables
 WHITE = (255, 255, 255)
