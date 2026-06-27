@@ -46,13 +46,13 @@ NUMBER_OF_SEGMENTS = 8  # used to convert camera width into small array
 #WALL_MIN_HSV = [0, 0, 0]
 #WALL_MAX_HSV = [179, 255, 255]
 
-WALL_MIN_HSV = [0, 0, 0]
-WALL_MAX_HSV = [179, 255, 255]
+WALL_MIN_HSV = [254, 254, 254]
+WALL_MAX_HSV = [255, 255, 255]
 
 # regular lighting {'hMin': 68, 'sMin': 113, 'vMin': 15, 'hMax': 87, 'sMax': 255, 'vMax': 116}
 # poor lighting {'hMin': 37, 'sMin': 131, 'vMin': 0, 'hMax': 79, 'sMax': 255, 'vMax': 161}
-GREEN_BALL_MIN_HSV = [13, 50, 0]
-GREEN_BALL_MAX_HSV = [79, 255, 75] # green ball
+GREEN_BALL_MIN_HSV = [35, 175, 50]
+GREEN_BALL_MAX_HSV = [60, 255, 255] # green ball
 
 BLUE_BALL_MIN_HSV = [88, 102, 35]
 BLUE_BALL_MAX_HSV = [145, 255, 255] # blue ball
@@ -96,6 +96,15 @@ class Find_Ball:
         self.trainer = QTrainer(self.model, lr=LEARNING_RATE, gamma=self.gamma)
 
         self.num_layers = self.model.getNumberOfHiddenLayers()
+
+        self.wall_min_hsv = np.array(WALL_MIN_HSV)
+        self.wall_max_hsv = np.array(WALL_MAX_HSV)
+
+        self.green_ball_min_hsv = np.array(GREEN_BALL_MIN_HSV)
+        self.green_ball_max_hsv = np.array(GREEN_BALL_MAX_HSV)
+
+        self.blue_ball_min_hsv = BLUE_BALL_MIN_HSV
+        self.blue_ball_max_hsv = BLUE_BALL_MAX_HSV
 
         if DEBUG_PRINT_AI_SETTINGS:
             self.printAISettings()
@@ -231,7 +240,16 @@ class Find_Ball:
             self.num_of_predicted_moves += 1
 
         if DEBUG_PRINT_MOVE_DECISION:
-            print(move_buffer + "Move Decision  : " + str(self.final_move))
+            if move == 0:
+                action = "walk_forward"
+            elif move == 1:
+                action = "turn_left"
+            elif move == 2:
+                action = "turn_right"
+            else:
+                action = "stand"
+            print("Move Array   :   ", str(self.final_move))
+            print(move_buffer + "Move Decision  : " + action)
 
         return self.final_move
     
@@ -367,7 +385,7 @@ class Find_Ball:
 
         return reward
     
-    def getBallImageState(self, camera_buffer, color):
+    def getImageState(self, camera_buffer, color):
         hsv_camera_buffer = []
         green_array = []    
         #print(camera_buffer.shape)
@@ -379,6 +397,9 @@ class Find_Ball:
         elif color == "blue":
             ball_min_hsv = BLUE_BALL_MIN_HSV
             ball_max_hsv = BLUE_BALL_MAX_HSV
+        elif color == "white":
+            ball_min_hsv = WALL_MIN_HSV
+            ball_max_hsv = WALL_MAX_HSV
         else:
             ball_min_hsv = GREEN_BALL_MIN_HSV
             ball_max_hsv = GREEN_BALL_MAX_HSV
@@ -389,29 +410,17 @@ class Find_Ball:
             b = camera_buffer[j][2]
 
             hsv_camera_buffer = colorsys.rgb_to_hsv(r, g, b) 
-            if hsv_camera_buffer[0]*100 > ball_min_hsv[0] and hsv_camera_buffer[0]*100 <= ball_max_hsv[0] and hsv_camera_buffer[1]*100 > ball_min_hsv[1] and hsv_camera_buffer[1]*100 <= ball_max_hsv[1] and hsv_camera_buffer[2] > ball_min_hsv[2] and hsv_camera_buffer[2] <= ball_max_hsv[2]:
+            #if color == "green":
+            #    print("GREEN MIN BUFFER:  ", ball_min_hsv)
+            #    print("HSV BUFFER         ", [int(hsv_camera_buffer[0]*255), int(hsv_camera_buffer[1]*255), int(hsv_camera_buffer[2])])
+            #    print("GREEN MAX BUFFER:  ", ball_max_hsv)
+            #    print("")
+            if int(hsv_camera_buffer[0]*255) > ball_min_hsv[0] and int(hsv_camera_buffer[0]*255) <= ball_max_hsv[0] and int(hsv_camera_buffer[1]*255) > ball_min_hsv[1] and int(hsv_camera_buffer[1]*255) <= ball_max_hsv[1] and int(hsv_camera_buffer[2]) > ball_min_hsv[2] and int(hsv_camera_buffer[2]) <= ball_max_hsv[2]:
                 green_array.append(1)
             else:
                 green_array.append(0)  
 
         return green_array 
-
-    def getWallImageState(self, camera_buffer):
-        hsv_camera_buffer = []
-        wall_array = []
-
-        for j in range(int(CAMERA_HEIGHT)):
-            r = camera_buffer[j][0]
-            g = camera_buffer[j][1]
-            b = camera_buffer[j][2]
-
-            hsv_camera_buffer = colorsys.rgb_to_hsv(r, g, b) 
-            if hsv_camera_buffer[0]*100 >= WALL_MIN_HSV[0] and hsv_camera_buffer[0]*100 <= WALL_MAX_HSV[0] and hsv_camera_buffer[1]*100 >= WALL_MIN_HSV[1] and hsv_camera_buffer[1]*100 <= WALL_MAX_HSV[1]  and hsv_camera_buffer[2] >= WALL_MIN_HSV[2] and hsv_camera_buffer[2] <= WALL_MAX_HSV[2]:
-                wall_array.append(1)
-            else:
-                wall_array.append(0) 
-
-        return wall_array 
 
     def convertArraytoSmallerSegments(self, pixel_array):
         temp_state = pixel_array

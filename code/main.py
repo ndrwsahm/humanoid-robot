@@ -741,16 +741,94 @@ class RobotControllerAPI:
 
     # AI TESTS
     # ----------------------------------------------------------
-    def get_state_variables(self, camera_buffer):
-        state = []
-        green_pixel_array = self.agent.getBallImageState(camera_buffer[:, 60], "green")
-        wall_detect_pixel_array = self.agent.getWallImageState(camera_buffer[:, 80])
-        wall_pixel_array = self.agent.getWallImageState(camera_buffer[:, 100])
+    def save_images(self, camera_buffer, hsv, green_array, white_array):
+        # Save raw image
+        cv2.imwrite("data/_01_raw_img.png", camera_buffer)
+        cv2.imwrite("data/_02_hsv_raw.png", hsv)
 
-        ball_state = self.agent.convertArraytoSmallerSegments(green_pixel_array)  
-        wall_detect_state = self.agent.convertArraytoSmallerSegments(wall_detect_pixel_array)
-        wall_state = self.agent.convertArraytoSmallerSegments(wall_pixel_array)  
-        
+        # Convert mask to BGR so we can draw colored lines
+        green_mask_bgr = cv2.cvtColor(green_array, cv2.COLOR_GRAY2BGR)
+        white_mask_bgr = cv2.cvtColor(white_array, cv2.COLOR_GRAY2BGR)
+
+        # Draw red lines above and below row 360
+        row = 320
+        cv2.line(green_mask_bgr, (0, row - 2), (green_mask_bgr.shape[1], row - 2), (0, 0, 255), 2)
+        cv2.line(green_mask_bgr, (0, row + 2), (green_mask_bgr.shape[1], row + 2), (0, 0, 255), 2)
+
+        row = 500
+        cv2.line(white_mask_bgr, (0, row - 2), (green_mask_bgr.shape[1], row - 2), (0, 0, 255), 2)
+        cv2.line(white_mask_bgr, (0, row + 2), (green_mask_bgr.shape[1], row + 2), (0, 0, 255), 2)
+
+        row = 600
+        cv2.line(white_mask_bgr, (0, row - 2), (green_mask_bgr.shape[1], row - 2), (0, 0, 255), 2)
+        cv2.line(white_mask_bgr, (0, row + 2), (green_mask_bgr.shape[1], row + 2), (0, 0, 255), 2)
+
+        # Draw vertical lines to create 8 sections
+        height, width = green_mask_bgr.shape[:2]
+        num_sections = 8
+        section_width = width // num_sections
+
+        for i in range(1, num_sections):
+            x = i * section_width
+            cv2.line(green_mask_bgr, (x, 0), (x, height), (0, 0, 255), 2)
+
+        # Save the annotated mask
+        cv2.imwrite("data/_03_ball_mask_with_lines.png", green_mask_bgr)
+
+        # Draw vertical lines to create 8 sections
+        height, width = white_mask_bgr.shape[:2]
+        num_sections = 8
+        section_width = width // num_sections
+
+        for i in range(1, num_sections):
+            x = i * section_width
+            cv2.line(white_mask_bgr, (x, 0), (x, height), (0, 0, 255), 2)
+
+        # Save the annotated mask
+        cv2.imwrite("data/_04_wall_mask_with_lines.png", white_mask_bgr)
+
+        # Resize all images to the same size
+        target_w = 640
+        target_h = 360
+
+        raw_resized   = cv2.resize(camera_buffer, (target_w, target_h))
+        hsv_resized   = cv2.resize(hsv, (target_w, target_h))
+        green_resized = cv2.resize(green_mask_bgr, (target_w, target_h))
+        white_resized = cv2.resize(white_mask_bgr, (target_w, target_h))
+
+        # Row 1: raw + hsv
+        top_row = cv2.hconcat([raw_resized, hsv_resized])
+
+        # Row 2: green mask + white mask
+        bottom_row = cv2.hconcat([green_resized, white_resized])
+
+        # Full 2×2 grid
+        combined = cv2.vconcat([top_row, bottom_row])
+
+        # Save final combined image
+        cv2.imwrite("data/_00_combined.png", combined)
+
+
+    def get_state_variables(self, camera_buffer): 
+        state = []
+ 
+        # Convert to HSV
+        hsv = cv2.cvtColor(camera_buffer, cv2.COLOR_BGR2HSV)
+    
+        # Create mask
+        green_pixel_array = cv2.inRange(hsv, self.agent.green_ball_min_hsv, self.agent.green_ball_max_hsv)
+        wall_detect_array = cv2.inRange(hsv, self.agent.wall_min_hsv, self.agent.wall_max_hsv)
+
+        # Save images
+        self.save_images(camera_buffer, hsv, green_pixel_array, wall_detect_array)
+
+        green_pixel_array = (green_pixel_array > 0).astype(int)
+        wall_detect_array = (wall_detect_array > 0).astype(int)
+
+        ball_state = self.agent.convertArraytoSmallerSegments(green_pixel_array[320].tolist())  
+        wall_detect_state = self.agent.convertArraytoSmallerSegments(wall_detect_array[500].tolist())
+        wall_state = self.agent.convertArraytoSmallerSegments(wall_detect_array[600].tolist())  
+
         for pixel in ball_state:  # 0 - 7 idx
             state.append(pixel)
 

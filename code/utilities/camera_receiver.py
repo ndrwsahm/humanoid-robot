@@ -178,6 +178,13 @@ class CameraReceiver:
                 
         self.cleanup()
 
+    def get_filtered_frame(self, frame, mask):
+        mask = np.array(mask)
+        mask_frame = cv2.inRange(frame, mask[0], mask[1])
+        filtered_frame = cv2.bitwise_and(frame, frame, mask=mask_frame)
+
+        return filtered_frame
+    
     def cleanup(self):
         self.conn.close()
         cv2.destroyAllWindows()

@@ -72,7 +72,7 @@ class HSV_Tuner_GUI(tk.Frame):
         self.wall_s_max.place(x=20+100, y=90+20, width=100)
         self.wall_v_max.place(x=20+100, y=160+20, width=100)
 
-        ball_lbl = tk.Label(self.right_panel, text="Wall HSV")
+        ball_lbl = tk.Label(self.right_panel, text="Bll HSV")
         ball_lbl.place(x=20, y=20)
 
         # LEFT PANEL SLIDERS
@@ -100,9 +100,13 @@ class HSV_Tuner_GUI(tk.Frame):
         self.ball_v_max.place(x=20+100, y=160+20, width=100)
 
         # DEFAULTS
-        #self.h_max.set(179)
-        #self.s_max.set(255)
-        #self.v_max.set(255)
+        self.ball_h_max.set(179)
+        self.ball_s_max.set(255)
+        self.ball_v_max.set(255)
+
+        self.wall_h_max.set(179)
+        self.wall_s_max.set(255)
+        self.wall_v_max.set(255)
 
         # BUTTONS
         save_btn = tk.Button(self.left_panel, text="Save HSV", command=self.save_hsv_values)
