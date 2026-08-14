@@ -217,6 +217,7 @@ def compute_forward_leg_kinematics(angles, leg):
       angles are already in servo/joint space.
     """
     hip = angles[HE_IDX]  # Assuming hip is the first angle in the list
+    abductor = angles[HA_IDX] # Assuming abductor is the second angle in the list
     knee = angles[KK_IDX] # Assuming knee is the second angle in the list
 
     # If your project stores right-leg angles mirrored (e.g., 180 - angle),
@@ -225,9 +226,11 @@ def compute_forward_leg_kinematics(angles, leg):
         # Example mirroring convention: convert mirrored representation to actual joint angles
         hip = math.radians(180.0 - hip)
         knee = math.radians(180.0 - knee)
+        abductor = math.radians(180.0 - abductor)
     else:
         hip = math.radians(hip)
         knee = math.radians(knee)
+        abductor = math.radians(abductor)
 
     # knee position relative to hip
     knee_x = A1_LENGTH * math.cos(hip)
@@ -241,7 +244,9 @@ def compute_forward_leg_kinematics(angles, leg):
     x = knee_x + foot_x
     z = knee_z + foot_z
 
-    return x,0,z
+    y = z * math.cos(abductor)  # Adjust y based on abductor angle
+  
+    return x,y,z
 
 
 if __name__ == "__main__":
