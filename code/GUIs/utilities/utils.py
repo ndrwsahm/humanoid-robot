@@ -7,6 +7,14 @@ from globals import *
 
 DRAW_DEBUG_BOXES = False
 
+# Slider index constants (match the names list in create_utility_sliders)
+IDX_SHIFT_FORWARD = 0
+IDX_SHIFT_WEIGHT  = 1
+IDX_SHIFT_HEIGHT  = 2
+IDX_SPEED         = 3
+IDX_STEP_LENGTH   = 4
+IDX_NUM_STEPS     = 5
+
 def center_window(window, width, height):
     window.update_idletasks()  # ensures correct geometry
 
@@ -152,11 +160,11 @@ def get_slider_forward_val(gui, val):
         return
     
     # Apply shift (example logic: add shift_val to left, subtract from right)
-    gui.left_leg_pos_panel.sliders[0].set(val)
-    gui.right_leg_pos_panel.sliders[0].set(val)
+    gui.left_leg_pos_panel.sliders[IDX_SHIFT_FORWARD].set(val)
+    gui.right_leg_pos_panel.sliders[IDX_SHIFT_FORWARD].set(val)
 
-    gui.left_leg_pos_panel._update_label(0, val)
-    gui.right_leg_pos_panel._update_label(0, val)
+    gui.left_leg_pos_panel._update_label(IDX_SHIFT_FORWARD, val)
+    gui.right_leg_pos_panel._update_label(IDX_SHIFT_FORWARD, val)
 
     return float(val)
 
@@ -165,11 +173,11 @@ def get_slider_weight_val(gui, val):
             return
         
         # Apply shift (example logic: add shift_val to left, subtract from right)
-        gui.left_leg_pos_panel.sliders[1].set(val)
-        gui.right_leg_pos_panel.sliders[1].set(val)
+        gui.left_leg_pos_panel.sliders[IDX_SHIFT_WEIGHT].set(val)
+        gui.right_leg_pos_panel.sliders[IDX_SHIFT_WEIGHT].set(val)
 
-        gui.left_leg_pos_panel._update_label(1, val)
-        gui.right_leg_pos_panel._update_label(1, val)
+        gui.left_leg_pos_panel._update_label(IDX_SHIFT_WEIGHT, val)
+        gui.right_leg_pos_panel._update_label(IDX_SHIFT_WEIGHT, val)
 
         return float(val)
 
@@ -178,11 +186,11 @@ def get_slider_height_val(gui, val):
         return
 
     # Apply shift (example logic: add shift_val to left, subtract from right)
-    gui.left_leg_pos_panel.sliders[2].set(val)
-    gui.right_leg_pos_panel.sliders[2].set(val)
+    gui.left_leg_pos_panel.sliders[IDX_SHIFT_HEIGHT].set(val)
+    gui.right_leg_pos_panel.sliders[IDX_SHIFT_HEIGHT].set(val)
 
-    gui.left_leg_pos_panel._update_label(2, val)
-    gui.right_leg_pos_panel._update_label(2, val)
+    gui.left_leg_pos_panel._update_label(IDX_SHIFT_HEIGHT, val)
+    gui.right_leg_pos_panel._update_label(IDX_SHIFT_HEIGHT, val)
     return float(val)
 
 #######################################
@@ -224,18 +232,20 @@ def set_all_slider_pos(gui, pos):
 # Utility Sliders
 def set_speed_val(gui, val):
     val = int(float(val))
+    print("Setting speed to:", val)
     gui.speed = val
     try:
-        gui.walking_params._update_label(2, val)  # Update Speed label in LabeledSliderGroup
+        gui.walking_params._update_label(3, val)  # Update Speed label in LabeledSliderGroup
     except:
         pass
     return val
 
 def set_step_length_val(gui, val):
     val = round(float(val) * 2) / 2.0
+    print("Setting step length to:", val)
     gui.step_length = val
     try:
-        gui.walking_params._update_label(3, val)  # Update Step Length label in LabeledSliderGroup
+        gui.walking_params._update_label(4, val)  # Update Step Length label in LabeledSliderGroup
     except:
         pass
     return val
@@ -244,7 +254,7 @@ def set_num_steps_val(gui, val):
     val = int(float(val))
     gui.num_steps = val
     try:
-        gui.walking_params._update_label(4, val)  # Update Number of Steps label in LabeledSliderGroup
+        gui.walking_params._update_label(5, val)  # Update Number of Steps label in LabeledSliderGroup
     except:
         pass
     return val

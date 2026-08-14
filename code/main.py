@@ -938,6 +938,7 @@ class RobotControllerAPI:
             if button == "walk_forward":
                 movement = build_walk_array(FORWARD, WALKING_HEIGHT, step_length, num_steps, speed)
                 for step in movement:
+                    user_response = input("Press any key to continue to the next step, or type 'exit' to stop the AI test: ")
                     self.last_all_body_angles = self.send_body_commands(step)
 
             elif button == "turn_right":

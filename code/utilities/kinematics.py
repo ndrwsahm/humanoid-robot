@@ -204,27 +204,45 @@ def compute_inverse_leg_kinematics(x, y, z, leg):
     return theta
 
 def compute_forward_leg_kinematics(angles, leg):
-    # Ignore Y for now
-    HE = angles[HE_IDX]
-    KK = angles[KK_IDX]
+    """
+    Compute planar forward kinematics for a leg (side view).
+    Returns (x, z) in same length units as A1, A2.
 
+    Parameters
+    - angles: [hip_deg, knee_deg] in degrees
+    - leg: "left" or "right"
+    - deg_input: True if input angles are degrees (default True)
+    - mirror_right: if True, apply the same mirroring convention used in your code
+      (e.g., if right-leg angles are stored mirrored as 180 - angle). Set False if
+      angles are already in servo/joint space.
+    """
+    hip = angles[HE_IDX]  # Assuming hip is the first angle in the list
+    knee = angles[KK_IDX] # Assuming knee is the second angle in the list
+
+    # If your project stores right-leg angles mirrored (e.g., 180 - angle),
+    # undo that mirroring here when computing forward kinematics.
     if leg == "right":
-        HE = 180 - HE
-        KK = 180 - KK
+        # Example mirroring convention: convert mirrored representation to actual joint angles
+        hip = math.radians(180.0 - hip)
+        knee = math.radians(180.0 - knee)
+    else:
+        hip = math.radians(hip)
+        knee = math.radians(knee)
 
-    # Knee position
-    knee_x = A1_LENGTH * math.cos(math.radians(HE))
-    knee_z = -A1_LENGTH * math.sin(math.radians(HE))
+    # knee position relative to hip
+    knee_x = A1_LENGTH * math.cos(hip)
+    knee_z = -A1_LENGTH * math.sin(hip)
 
-    # Foot position relative to knee
-    foot_x = A2_LENGTH * math.cos(math.radians(HE + KK))
-    foot_z = -A2_LENGTH * math.sin(math.radians(HE + KK))
+    # foot relative to knee
+    foot_x = A2_LENGTH * math.cos(hip + knee)
+    foot_z = -A2_LENGTH * math.sin(hip + knee)
 
-    # Total foot position
+    # total foot position
     x = knee_x + foot_x
     z = knee_z + foot_z
 
-    return [x, 0, z]
+    return x,0,z
+
 
 if __name__ == "__main__":
     joint_names = [
